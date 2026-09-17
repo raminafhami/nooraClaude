@@ -1,0 +1,35 @@
+export const Ids = {
+	// users
+	assignees: "Assignees",
+
+	// information
+	amount: "Amount",
+	title: "Title",
+	description: "Description",
+	paymentDate: "PaymentDate",
+	file: "File",
+	priority: "Priority",
+	bankSheba: "Sheba",
+	bankAccountNumber: "BankAccountNumber",
+	bankCardNumber: "BankCardNumber",
+	state: "State",
+	expertState: "ExpertState",
+	assistantstate: "AssistantState",
+	userData: "UserData",
+	bankAccountsOwner: "BankAccountsOwner",
+	reviewDes: "ReviewDes",
+	payDes: "PayDes",
+	processType: "ProcessType",
+	remainingAmount: "RemainingAmount",
+	isCancel: "IsCancel",
+	costsIds: "CostsIds",
+	currency: "Currency",
+	currencyRate: "CurrencyRate",
+	paidAmount: "PaidAmount",
+	userInformation: "UserInformation",
+	inputType: "InputType",
+	cashPay: "CashPay",
+	nationalCode: "NationalCode",
+
+	pettyCostIds: "PettyCostIds",
+} as const;

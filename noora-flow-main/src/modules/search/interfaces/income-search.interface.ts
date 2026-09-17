@@ -1,0 +1,30 @@
+export interface IncomeSearchBody {
+  id: string;
+  instanceId: string;
+  caseNo: string;
+  costId: string;
+  title: string;
+  description: string;
+  status: string;
+  amount: number;
+  currency: string;
+  currencyRate: number;
+  quantity: number;
+  unit: string;
+  discount: number;
+  additionalFee: number;
+  tax: number;
+  duty: number;
+  total: number;
+  type: string;
+  categoryId: string;
+  isDeleted: boolean;
+  refIncomeId: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  year: number;
+  month: number;
+  dayOfYear: number;
+}

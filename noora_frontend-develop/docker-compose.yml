@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  noora-front:
+    container_name: noora-front
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: noora-front:0.0.1
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    networks:
+      - noora-front-net
+    ports:
+      - "3000:3000"
+networks:
+  noora-front-net:
+    external: true
+    name: nginx-proxy

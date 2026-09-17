@@ -1,0 +1,20 @@
+name: Deploy to My Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_MAIN }}
+
+      - name: SSH into server and deploy
+        run: |
+          ssh -T -o StrictHostKeyChecking=no ubuntu@37.32.15.237 "cd ~/apps/noora-flow && git pull && git checkout main && sudo docker compose -f docker-compose.yml up -d --build && sudo docker image prune -f"

@@ -1,0 +1,144 @@
+# Production stack for a customer server.
+#
+# Place this file next to the two repositories:
+#   .
+#   ├── docker-compose.prod.yml
+#   ├── .env                      <- server secrets, never committed
+#   ├── noora-flow-main/          <- backend
+#   └── noora_frontend-develop/   <- frontend
+#
+# Every value comes from the .env next to this file; no secret is stored here.
+
+services:
+  backend:
+    container_name: noora-backend
+    build:
+      context: ./noora-flow-main
+      dockerfile: Dockerfile
+      target: production
+    image: noora-flow:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      REDIS_HOST: redis
+      ELASTIC_NODE: http://elasticsearch:9200
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    volumes:
+      - ./noora-flow-main/assets:/app/assets
+      - backend-statics:/app/statics
+      - backend-documents:/app/documents
+      - backend-inspection:/app/inspection-files
+      - backend-users-docs:/app/users-docs
+      - backend-asset-req:/app/asset-requirements
+      - backend-tickets:/app/tickts
+      - backend-app-docs:/app/app-docs
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    networks:
+      - noora
+
+  frontend:
+    container_name: noora-frontend
+    build:
+      context: ./noora_frontend-develop
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_EXTERNAL_API_URL: ${NEXT_PUBLIC_EXTERNAL_API_URL}
+        NEXT_PUBLIC_INTERNAL_API_URL: ${NEXT_PUBLIC_INTERNAL_API_URL:-/api}
+        NEXT_PUBLIC_CUSTOMER_LOGO: ${NEXT_PUBLIC_CUSTOMER_LOGO:-/images/customer-logo.png}
+        NEXT_PUBLIC_CUSTOMER_NAME: ${NEXT_PUBLIC_CUSTOMER_NAME:-}
+        NEXT_PUBLIC_ENABLE_OTP_LOGIN: ${NEXT_PUBLIC_ENABLE_OTP_LOGIN:-false}
+    image: noora-front:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - noora
+
+  mongo:
+    container_name: noora-mongo
+    image: mongo:4.4.8
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - noora
+    # Not published: reachable only from the internal network.
+
+  redis:
+    container_name: noora-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - noora
+
+  elasticsearch:
+    container_name: noora-elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms1g -Xmx1g}
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u elastic:$$ELASTIC_PASSWORD http://localhost:9200/_cluster/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - noora
+
+networks:
+  noora:
+    name: noora-net
+    driver: bridge
+
+volumes:
+  mongo-data:
+    name: noora-mongo-data
+  redis-data:
+    name: noora-redis-data
+  elastic-data:
+    name: noora-elastic-data
+  backend-statics:
+  backend-documents:
+  backend-inspection:
+  backend-users-docs:
+  backend-asset-req:
+  backend-tickets:
+  backend-app-docs:

@@ -1,0 +1,29 @@
+export interface UserSearchBody {
+  id: string;
+  name: string;
+  lastname: string;
+  username: string;
+  nationalCode: string;
+  email: string;
+  phoneNo: string;
+  password: string;
+  setPassword: boolean;
+  type: string;
+  groups: string;
+  branchId: string;
+  bankAccountNumber: string;
+  bankCardNumber: string;
+  bankSheba: string;
+  bankAccountOwner: string;
+  sepidarId: string;
+  credit: number;
+  postalCode: string;
+  address: string;
+  isActive: boolean;
+  loginType: string;
+  createdBy: string;
+  createdAt: string;
+  year: number;
+  month: number;
+  dayOfYear: number;
+}

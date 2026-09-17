@@ -1,0 +1,34 @@
+export interface Assignee {
+  id: string;
+  name: string;
+}
+
+export const AssigneeType = {
+  Coordinator: "coordinator",
+  Customer: "customer",
+  Expert: "expert",
+  InspectionCoordinator: "inspectionCoordinator",
+  Inspector: "inspector",
+  Manager: "manager",
+  Marketer: "marketer",
+  Reviewer: "reviewer",
+  TechnicalExpert: "technicalExpert",
+} as const;
+
+export const assigneesTemplate: {
+  [key in (typeof AssigneeType)[keyof typeof AssigneeType]]: string;
+} = {
+  [AssigneeType.Coordinator]: "هماهنگ کننده",
+  [AssigneeType.Customer]: "مشتری",
+  [AssigneeType.Expert]: "کارشناس",
+  [AssigneeType.InspectionCoordinator]: "هماهنگ کننده بازرسی",
+  [AssigneeType.Inspector]: "بازرس",
+  [AssigneeType.Manager]: "مدیر",
+  [AssigneeType.Marketer]: "بازاریاب",
+  [AssigneeType.Reviewer]: "بررسی کننده",
+  [AssigneeType.TechnicalExpert]: "کارشناس",
+};
+
+export type Assignees = Partial<{
+  [key in (typeof AssigneeType)[keyof typeof AssigneeType]]: Assignee;
+}>;

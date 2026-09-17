@@ -1,0 +1,352 @@
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNotEmptyObject,
+  IsInt,
+  IsBoolean,
+  ValidateNested,
+  IsDate,
+  IsDateString,
+  IsEmail,
+  IsObject,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsIn,
+  IsEnum,
+  ArrayUnique,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  StageTypes,
+  StageSubTypes,
+  ConnectorTypes,
+} from 'src/common/const/enums';
+
+class Expression {
+  @ApiProperty()
+  lhs: any;
+
+  @ApiProperty()
+  op: string;
+
+  @ApiProperty()
+  rhs: any;
+}
+
+class Condition {
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  op: string;
+
+  @ApiProperty({ type: [Expression] })
+  expressions: Expression[];
+
+  @ApiProperty()
+  onTrueNextStage: string;
+
+  @ApiProperty()
+  onFalseNextStage: string;
+}
+
+class PropertyType {
+  @ApiProperty({ type: String })
+  type: string;
+
+  @ApiProperty({ type: String })
+  arrayOf: string;
+
+  @IsArray()
+  @ApiProperty({ type: [] })
+  @IsOptional()
+  properties: any[];
+
+  @ApiProperty({ type: String })
+  default: string;
+
+  @ApiProperty({ type: Boolean })
+  required: boolean;
+
+  @ApiProperty()
+  enum: [any];
+
+  @ApiProperty()
+  displayType: string;
+}
+
+class Variable {
+  @ApiProperty()
+  key: string;
+
+  @ApiProperty()
+  type: string;
+
+  @ApiProperty()
+  required: boolean;
+
+  @ApiProperty()
+  value?: any;
+}
+
+class State {
+  @ApiProperty()
+  name: string;
+  @ApiProperty()
+  title: string;
+}
+
+class DocumentType {
+  [key: string]: {
+    name: string;
+    title: string;
+    extensions: string[];
+    multiple: boolean;
+  };
+}
+
+class DocumentFolder {
+  [key: string]: { types: string[] };
+}
+class Documents {
+  types: DocumentType;
+  folders: DocumentFolder;
+}
+class Property {
+  @ApiProperty()
+  key: string;
+
+  @ApiProperty()
+  section: string;
+
+  @ApiProperty({ type: PropertyType })
+  value: PropertyType;
+}
+
+class Criteria {
+  @ApiProperty({ default: true })
+  @IsOptional()
+  allCompleted: boolean;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  anyCompleted: boolean;
+
+  @ApiProperty({ default: true })
+  @IsOptional()
+  allActivitiesCompleted: boolean;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  anyActivitiesCompleted: boolean;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  allSuccess: boolean;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  anySuccess: boolean;
+
+  @ApiProperty({ default: true })
+  @IsOptional()
+  mandatoryCompleted: boolean;
+
+  @ApiProperty({ default: true })
+  @IsOptional()
+  onErrorComplete: boolean;
+
+  @ApiProperty({ default: false })
+  @IsOptional()
+  showError: boolean;
+}
+class Config {}
+class Connector {
+  @ApiProperty({ type: String })
+  @IsEnum(ConnectorTypes)
+  type: ConnectorTypes;
+
+  @ApiProperty()
+  config: Config;
+}
+
+class ServiceType {
+  @ApiProperty({ type: String })
+  name: string;
+
+  @ApiProperty()
+  inputs: any;
+
+  @ApiProperty()
+  output: string;
+}
+
+class Starter {
+  @ApiProperty()
+  groups: string[];
+
+  @ApiProperty()
+  users: string[];
+}
+
+class StageDefinition {
+  @ApiProperty({ type: String, required: true })
+  key: string;
+
+  @ApiProperty({ type: String })
+  name: string;
+
+  @IsOptional()
+  @ApiProperty({ type: String })
+  displayName: string;
+
+  @IsOptional()
+  @ApiProperty({ type: String })
+  description: string;
+
+  @ApiProperty({ type: String, default: 'event' })
+  @IsEnum(StageTypes)
+  @IsString()
+  type: StageTypes;
+
+  @ApiProperty({ type: String, default: 'start' })
+  @IsEnum(StageSubTypes)
+  @IsString()
+  subType: StageSubTypes;
+
+  @ApiProperty({ type: Boolean, default: true })
+  @IsOptional()
+  auto: boolean; // execute stage automatically or trigger manually
+
+  @ApiProperty({ type: Boolean, default: false })
+  @IsOptional()
+  disabled: boolean; // disable stage
+
+  @ApiProperty({ type: [String], default: [] })
+  nextStages: string[];
+
+  @ApiProperty({ type: String, default: '' })
+  defaultNextStage: string;
+
+  @IsArray()
+  @ApiProperty({ type: [Property] })
+  @IsOptional()
+  properties: Property[];
+
+  @IsArray()
+  @ApiProperty({ type: [Condition] })
+  @IsOptional()
+  conditions: Condition[];
+
+  @ApiProperty()
+  @IsOptional()
+  assignee: string;
+
+  @ApiProperty({ type: [String] })
+  @IsOptional()
+  watchers: string[];
+
+  @ApiProperty({ type: Criteria })
+  @IsOptional()
+  criteria?: Criteria;
+
+  @ApiProperty({ type: Connector })
+  @IsOptional()
+  connector?: Connector;
+
+  @ApiProperty({ type: ServiceType })
+  @IsOptional()
+  service?: ServiceType;
+
+  @ApiProperty({ type: String })
+  @IsOptional()
+  processDefinitionId?: string;
+
+  @ApiProperty({ type: String })
+  @IsOptional()
+  processDefinitionKey?: string;
+
+  @ApiProperty({ type: Number })
+  @IsOptional()
+  estimatedTimeDuration?: number;
+
+  @ApiProperty({ type: String })
+  @IsOptional()
+  priority?: string;
+}
+
+export class CreateProcessDefinitionDto {
+  @IsNotEmpty()
+  @ApiProperty({ type: String, required: true })
+  name: string;
+
+  @IsNotEmpty()
+  @ApiProperty({ type: String, required: true })
+  key: string;
+
+  @IsNotEmpty()
+  @ApiProperty({ type: String, required: true })
+  indicator: string;
+
+  @IsNotEmpty()
+  @ApiProperty({ type: Boolean, required: true })
+  useCN: boolean;
+
+  @IsOptional()
+  @ApiProperty({ type: String })
+  maxPossibleDuration: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({ type: String, required: false })
+  displayable: boolean;
+
+  @IsOptional()
+  @ApiProperty({ type: String })
+  description: string;
+
+  @IsOptional()
+  @ApiProperty({ type: Boolean, default: false })
+  isParallel: boolean;
+
+  @IsArray()
+  @ApiProperty({ type: [Variable] })
+  // @ValidateType(() => Property)
+  // @ValidateNested({ each: true })
+  @Type(() => Variable)
+  processVariables: Variable[];
+
+  @IsArray()
+  @ApiProperty({ type: [State] })
+  @Type(() => State)
+  stateList: State[];
+
+  @ApiProperty({ type: Criteria })
+  @IsOptional()
+  criteria?: Criteria;
+
+  @IsArray()
+  @ApiProperty({ type: [StageDefinition], default: [] })
+  // @ValidateType(() => StageDefinition)
+  // @ValidateNested({ each: true })
+  @Type(() => StageDefinition)
+  stages: StageDefinition[];
+
+  @ApiProperty({ type: Connector })
+  @IsOptional()
+  assigneeConnector?: Connector; // this field is temporary
+
+  @ApiProperty({ type: Connector })
+  @IsOptional()
+  candidateStarter?: Starter;
+
+  @ApiProperty({ type: Documents, default: {} })
+  @IsOptional()
+  documents?: Documents;
+}
+
+function ValidateType(arg0: () => typeof StageDefinition) {
+  throw new Error('Function not implemented.');
+}

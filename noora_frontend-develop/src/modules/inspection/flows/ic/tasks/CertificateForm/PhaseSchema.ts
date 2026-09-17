@@ -1,0 +1,37 @@
+import { z } from "zod";
+
+import { ids } from "../../models/Ids";
+
+export const schema = z.object({
+  [ids.applicant]: z.string(),
+  [ids.billOfLadingDate]: z.string(),
+  [ids.billOfLadingNo]: z.string(),
+  [ids.billOfLadingQuantity]: z.string(),
+  [ids.buyerNameEn]: z.string(),
+  [ids.certificateConclusion]: z.string(),
+  [ids.certificateFormNote]: z.string(),
+  [ids.certificateFormStatus]: z.string(),
+  [ids.certificateIssueDate]: z.string().nullable(),
+  [ids.certificateIssueNo]: z.string().nullable(),
+  [ids.grossWeight]: z.string(),
+  [ids.insuranceCompany]: z.string(),
+  [ids.insurancePolicyNo]: z.string(),
+  [ids.invoiceDate]: z.string(),
+  [ids.invoiceNo]: z.string(),
+  [ids.netWeight]: z.string(),
+  [ids.packing]: z.string(),
+  [ids.shippedFrom]: z.string(),
+  [ids.shippedTo]: z.string(),
+  [ids.goodsCustomTariffNos]: z.string(),
+  [ids.goodsDescriptions]: z.string(),
+  [ids.countryOfOrigin]: z.string(),
+  [ids.inspectionPlace]: z.string(),
+  [ids.inspectionDate]: z.string(),
+  [ids.inspectionQualityDescription]: z.string(),
+  [ids.inspectionRemarkDescription]: z.string(),
+  [ids.shipper]: z.string(),
+  [ids.seller]: z.string(),
+  [ids.proformaDate]: z.string(),
+  [ids.proformaNo]: z.string(),
+  [ids.registrationOrderNo]: z.string(),
+});

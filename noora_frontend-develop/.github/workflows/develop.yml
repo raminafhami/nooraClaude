@@ -1,0 +1,35 @@
+name: Deploy to My Server
+
+on:
+  push:
+    branches:
+      - demo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install OpenVPN
+        run: sudo apt-get update && sudo apt-get install -y openvpn
+
+      - name: Set up VPN Configuration
+        run: |
+          echo "${{ secrets.VPN_CONFIG }}" | base64 --decode > vpn-config.ovpn
+          echo -e "${{ secrets.VPN_USERNAME }}\n${{ secrets.VPN_PASSWORD }}" > vpn-auth.txt
+          sudo openvpn --config vpn-config.ovpn --auth-user-pass vpn-auth.txt --daemon
+
+      - name: Wait for VPN to connect
+        run: sleep 20 # Adjust this if needed to allow time for VPN connection
+
+      - name: Verify VPN Connection
+        run: curl ifconfig.me # Ensure IP has changed
+
+      - name: SSH into server and deploy
+        run: |
+          ssh -T -o StrictHostKeyChecking=no root@192.168.2.26 "cd /root/apps/noora_frontend && git checkout demo && git pull && docker compose -f docker-compose.dev.yml up -d --build && docker image prune -f"

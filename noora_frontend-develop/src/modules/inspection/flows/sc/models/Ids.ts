@@ -1,0 +1,48 @@
+// prettier-ignore
+export const ids = {
+  // aggregate
+  assignees:                                  "Assignees",
+  branch:                                     "Branch",
+
+  // information
+  authorityOrganization:                      "AuthorityOrganization",
+  authorityPerson:                            "AuthorityPerson",
+  buyer:                                      "Buyer",
+  caseOperationDescription:                   "CaseOperationDescription",
+  caseOperationSummary:                       "CaseOperationSummary",
+  caseType:                                   "CaseType",
+  contractAttachmentStatus:                   "ContractAttachmentStatus",
+  contractDuration:                           "ContractDuration",
+  contractEmployerObligations:                "ContractEmployerObligations",
+  contractEndDate:                            "ContractEndDate",
+  contractInspectorObligations:               "ContractInspectorObligations",
+  contractIssueDate:                          "ContractIssueDate",
+  contractIssueNo:                            "ContractIssueNo",
+  contractObligationsFulfillmentArticle:      "ContractObligationsFulfillmentArticle",
+  contractObligationsFulfillmentClauses:      "ContractObligationsFulfillmentClauses",
+  contractStartDate:                          "ContractStartDate",
+  contractSubject:                            "ContractSubject",
+  contractSubjectArticle:                     "ContractSubjectArticle",
+  cottageNo:                                  "CottageNo",
+  goodsDescriptions:                          "GoodsDescriptions",
+  goodsField:                                 "GoodsField",
+  goodsQuantity:                              "GoodsQuantity",
+  goodsQuantityUnit:                          "GoodsQuantityUnit",
+  inspectionDate:                             "InspectionDate",
+  inspectionFeeInRial:                        "InspectionFeeInRial",
+  inspectionPlace:                            "InspectionPlace",
+	inspectionInstanceId:												"InspectionInstanceId",
+	inspectionCaseNo:														"InspectionCaseNo",
+  invoiceDate:                                "InvoiceDate",
+  invoiceNo:                                  "InvoiceNo",
+  invoicePaymentStatus:                       "InvoicePaymentStatus",
+  reportDescription:                          "ReportDescription",
+  reportIssueDate:                            "ReportIssueDate",
+  reportIssueNo:                              "ReportIssueNo",
+  reportSubject:                              "ReportSubject",
+
+  // steps
+  informationFormNote:                        "InformationFormNote",
+  informationReviewNote:                      "InformationReviewNote",
+  informationReviewStatus:                    "InformationReviewStatus",
+} as const;

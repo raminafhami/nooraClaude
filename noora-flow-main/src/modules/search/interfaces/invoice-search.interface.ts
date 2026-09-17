@@ -1,0 +1,34 @@
+export interface InvoiceSearchBody {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  type: string;
+  expiryAt: string;
+  issuedAt: string;
+  items: string;
+  recipient: string;
+  invoiceNo: string;
+  issueNo: string;
+  discount: number;
+  duty: number;
+  additionalFee: number;
+  isCash: boolean;
+  financialDocumentId: string;
+  total: number;
+  tax: number;
+  createdBy: string;
+  issuedBy: string;
+  updatedBy: string;
+  yearOfCreatedAt: number;
+  monthOfCreatedAt: number;
+  dayOfCreatedAt: number;
+  createdAt: string;
+  updatedAt: string;
+  yearOfExpiryAt: number;
+  monthOfExpiryAt: number;
+  dayOfExpiryAt: number;
+  yearOfIssuedAt: number;
+  monthOfIssuedAt: number;
+  dayOfIssuedAt: number;
+}

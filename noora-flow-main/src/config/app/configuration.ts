@@ -1,0 +1,23 @@
+import { registerAs } from '@nestjs/config';
+export default registerAs('app', () => ({
+  env: process.env.APP_ENV,
+  name: process.env.APP_NAME,
+  port: process.env.APP_PORT,
+  sepidar: process.env.SEPIDAR,
+  smsApiKey: process.env.SMS_API_KEY,
+  smsUri: process.env.SMS_URI,
+  rasmiopApiKey: process.env.RASMIO_API_KEY,
+  rasmioUrl: process.env.RASMIO_URL,
+  currencyApiKey: process.env.CURRENCY_API_KEY,
+  currencyApiUrl: process.env.CURRENCY_API_URL,
+  customerNaitcoUrl: process.env.CUSTOMER_NAITCO_URL,
+  recaptchaSecretKey: process.env.RECAPTCHA_SECRET_KEY,
+  recaptchaVerifyUrl: process.env.RECAPTCHA_VERIFY_URL,
+  processWithoutFileThreshold: process.env.PROCESS_WITHOUT_FILE_THRESHOLD,
+  swaggerUsername: process.env.SWAGGER_USERNAME,
+  swaggerPassword: process.env.SWAGGER_PASSWORD,
+  encryptionSecret: process.env.APP_ENCRYPTION_SECRET,
+  invoiceCryptoSecretKey: process.env.INVOICE_CRYPTO_SECRET_KEY,
+  invoiceExpiryAlertThreshold: process.env.INVOICE_EXPIRY_ALERT_THRESHOLD,
+  companyDispatcherType: process.env.COMPANY_DISPATCHER_TYPE,
+}));

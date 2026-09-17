@@ -1,0 +1,35 @@
+import { MappingTypeMapping } from '@elastic/elasticsearch/lib/api/types';
+
+export const userMapping: MappingTypeMapping = {
+  properties: {
+    id: { type: 'keyword' },
+    name: { type: 'text' },
+    lastname: { type: 'text' },
+    username: { type: 'text' },
+    nationalCode: { type: 'text' },
+    email: { type: 'text' },
+    phoneNo: { type: 'text' },
+    password: { type: 'text' },
+    setPassword: { type: 'boolean' },
+    type: { type: 'keyword' },
+    groups: { type: 'keyword' },
+    branchId: { type: 'keyword' },
+    bankAccountNumber: { type: 'text' },
+    bankCardNumber: { type: 'text' },
+    bankSheba: { type: 'text' },
+    bankAccountOwner: { type: 'text' },
+    sepidarId: { type: 'text' },
+    credit: { type: 'float' },
+    postalCode: { type: 'text' },
+    address: { type: 'text' },
+    isActive: { type: 'boolean' },
+    loginType: { type: 'keyword' },
+    createdBy: { type: 'keyword' },
+    year: { type: 'integer' },
+    month: { type: 'integer' },
+    dayOfYear: { type: 'integer' },
+    createdAt: {
+      type: 'date',
+    },
+  },
+};

@@ -1,0 +1,36 @@
+import { MappingTypeMapping } from '@elastic/elasticsearch/lib/api/types';
+
+export const incomeMapping: MappingTypeMapping = {
+  properties: {
+    id: { type: 'keyword' },
+    instanceId: { type: 'keyword' },
+    caseNo: { type: 'text' },
+    costId: { type: 'keyword' },
+    title: { type: 'text' },
+    description: { type: 'text' },
+    status: { type: 'text' },
+    amount: { type: 'float' },
+    currency: { type: 'text' },
+    currencyRate: { type: 'integer' },
+    quantity: { type: 'integer' },
+    unit: { type: 'text' },
+    discount: { type: 'integer' },
+    additionalFee: { type: 'integer' },
+    tax: { type: 'float' },
+    duty: { type: 'integer' },
+    total: { type: 'float' },
+    type: { type: 'text' },
+    categoryId: { type: 'keyword' },
+    isDeleted: { type: 'boolean' },
+    refIncomeId: { type: 'keyword' },
+    createdBy: { type: 'keyword' },
+    updatedBy: { type: 'keyword' },
+    year: { type: 'integer' },
+    month: { type: 'integer' },
+    dayOfYear: { type: 'integer' },
+    createdAt: {
+      type: 'date',
+    },
+    updatedAt: { type: 'date'},
+  },
+};
