@@ -102,7 +102,9 @@ services:
 
   elasticsearch:
     container_name: noora-elastic
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    # Using the Docker Hub mirror instead of docker.elastic.co: the latter
+    # times out from some networks/datacenters (e.g. Iran), Docker Hub does not.
+    image: elasticsearch:8.14.3
     restart: unless-stopped
     environment:
       - discovery.type=single-node

@@ -19,8 +19,8 @@ const vazirmatnFont = Vazirmatn({
 
 const metadata: Metadata = {
 	title: {
-		template: "%s | NAIT",
-		default: "NAIT",
+		template: "%s | APK",
+		default: "APK",
 	},
 	description: "",
 };
