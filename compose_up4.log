@@ -1,0 +1,301 @@
+ Image noora-front:latest Building 
+ Image noora-flow:latest Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.40kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 3.12kB done
+#2 DONE 0.0s
+
+#3 [frontend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 2.87kB done
+#3 DONE 0.0s
+
+#4 [frontend internal] load metadata for docker.io/library/node:18-alpine
+#4 ...
+
+#5 [backend internal] load metadata for docker.io/library/node:20-slim
+#5 DONE 1.1s
+
+#6 [backend internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#4 [frontend internal] load metadata for docker.io/library/node:18-alpine
+#4 DONE 1.1s
+
+#7 [frontend internal] load .dockerignore
+#7 transferring context: 2B done
+#7 DONE 0.0s
+
+#8 [backend builder  1/12] FROM docker.io/library/node:20-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0
+#8 resolve docker.io/library/node:20-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0 0.0s done
+#8 DONE 0.0s
+
+#9 [frontend base 1/1] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#9 resolve docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e 0.0s done
+#9 DONE 0.0s
+
+#10 [backend internal] load build context
+#10 transferring context: 58.77kB 0.1s done
+#10 DONE 0.1s
+
+#11 [backend builder  9/12] COPY --chown=node:node src ./src/
+#11 CACHED
+
+#12 [backend production 2/9] RUN mkdir /app
+#12 CACHED
+
+#13 [backend production 7/9] COPY --chown=node:node --from=builder /app/node_modules ./node_modules/
+#13 CACHED
+
+#14 [backend production 3/9] RUN chown -R node:node /app
+#14 CACHED
+
+#15 [backend production 4/9] WORKDIR /app
+#15 CACHED
+
+#16 [backend builder  6/12] COPY --chown=node:node package*.json ./
+#16 CACHED
+
+#17 [backend production 5/9] COPY --chown=node:node --from=builder /app/dist ./dist/
+#17 CACHED
+
+#18 [backend builder 11/12] COPY --chown=node:node nest-cli.json ./
+#18 CACHED
+
+#19 [backend builder  7/12] RUN npm ci
+#19 CACHED
+
+#20 [backend builder  5/12] WORKDIR /app
+#20 CACHED
+
+#21 [backend builder  3/12] RUN mkdir /app
+#21 CACHED
+
+#22 [backend builder 10/12] COPY --chown=node:node tsconfig*.json ./
+#22 CACHED
+
+#23 [backend builder 12/12] RUN npm run build     && npm prune --production
+#23 CACHED
+
+#24 [backend production 6/9] COPY --chown=node:node --from=builder /app/assets ./assets/
+#24 CACHED
+
+#25 [backend builder  2/12] RUN cd /
+#25 CACHED
+
+#26 [backend builder  4/12] RUN chown -R node:node /app
+#26 CACHED
+
+#27 [backend builder  8/12] COPY --chown=node:node assets ./assets/
+#27 CACHED
+
+#28 [backend production 8/9] RUN retry() {         for i in 1 2 3 4 5; do             "$@" && return 0;             echo "Command failed (attempt $i/5): $*  -- retrying in 5s..." >&2;             sleep 5;         done;         echo "Command failed after 5 attempts: $*" >&2;         return 1;     };     retry apt-get update     && retry apt-get install -y wget gnupg     && retry wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'     && retry apt-get update     && retry apt-get install -y google-chrome-stable udev fonts-freefont-ttf libxss1 --no-install-recommends     && rm -rf /var/lib/apt/lists/*
+#28 CACHED
+
+#29 [backend production 9/9] RUN which google-chrome-stable || true
+#29 CACHED
+
+#30 [backend] exporting to image
+#30 exporting layers done
+#30 exporting manifest sha256:8119b82eb71f1a5a3941ae225ff3b7b9f065d3344c7a39a322ba62a5d21277e1 done
+#30 exporting config sha256:0b081d57d63ba8344360392bd379796d986825b0f24eb8ef13c440ad0762329d done
+#30 exporting attestation manifest sha256:f773970997a2646c98da917aaf43084cea0fb8c16c2f0074ac2aae686d4fd31c done
+#30 exporting manifest list sha256:79befbc88a4b38978c1f3a04fb2f41a6c642fb0219a4ad4a2fb0e4cb16cd54a5 done
+#30 naming to docker.io/library/noora-flow:latest done
+#30 unpacking to docker.io/library/noora-flow:latest 0.0s done
+#30 DONE 0.1s
+
+#31 [frontend internal] load build context
+#31 transferring context: 356.10kB 0.2s done
+#31 DONE 0.2s
+
+#32 [frontend deps 2/4] WORKDIR /app
+#32 CACHED
+
+#33 [frontend deps 3/4] COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+#33 CACHED
+
+#34 [frontend deps 1/4] RUN apk add --no-cache libc6-compat
+#34 CACHED
+
+#35 [frontend deps 4/4] RUN   if [ -f yarn.lock ]; then yarn --frozen-lockfile;   elif [ -f package-lock.json ]; then npm ci;   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile;   else echo "Lockfile not found." && exit 1;   fi
+#35 CACHED
+
+#36 [frontend builder 1/4] WORKDIR /app
+#36 CACHED
+
+#37 [frontend builder 2/4] COPY --from=deps /app/node_modules ./node_modules
+#37 CACHED
+
+#38 [backend] resolving provenance for metadata file
+#38 DONE 0.0s
+
+#39 [frontend builder 3/4] COPY . .
+#39 DONE 0.8s
+
+#40 [frontend builder 4/4] RUN npm run build
+#40 0.470 
+#40 0.470 > noora-front@0.1.0 build
+#40 0.470 > next build
+#40 0.470 
+#40 1.816   ▲ Next.js 14.2.24
+#40 1.816 
+#40 1.848    Creating an optimized production build ...
+#40 8.239 
+#40 8.239 (process:18): VIPS-WARNING **: 18:14:37.167: threads clipped to 1024
+#40 116.8 Browserslist: caniuse-lite is outdated. Please run:
+#40 116.8   npx update-browserslist-db@latest
+#40 116.8   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+#40 156.1 Browserslist: caniuse-lite is outdated. Please run:
+#40 156.1   npx update-browserslist-db@latest
+#40 156.1   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+#40 231.7  ✓ Compiled successfully
+#40 231.7    Skipping linting
+#40 231.7    Checking validity of types ...
+#40 305.8    Collecting page data ...
+#40 312.2    Generating static pages (0/38) ...
+#40 313.4    Generating static pages (9/38) 
+#40 313.8    Generating static pages (18/38) 
+#40 315.5    Generating static pages (28/38) 
+#40 315.7  ✓ Generating static pages (38/38)
+#40 316.7    Finalizing page optimization ...
+#40 316.7    Collecting build traces ...
+#40 324.9 
+#40 324.9 Route (app)                                           Size     First Load JS
+#40 324.9 ┌ ○ /                                                 167 B          89.3 kB
+#40 324.9 ├ ○ /_not-found                                       167 B          89.3 kB
+#40 324.9 ├ ○ /api/auth/logout                                  0 B                0 B
+#40 324.9 ├ ƒ /api/inspection/public/[encryptedId]/certificate  0 B                0 B
+#40 324.9 ├ ƒ /api/letter/public/[encryptedId]                  0 B                0 B
+#40 324.9 ├ ƒ /api/users/[id]                                   0 B                0 B
+#40 324.9 ├ ○ /dashboard                                        19.2 kB         372 kB
+#40 324.9 ├ ○ /dashboard/admin                                  21.3 kB         301 kB
+#40 324.9 ├ ƒ /dashboard/admin/branches                         4.79 kB         174 kB
+#40 324.9 ├ ƒ /dashboard/admin/branches/[id]                    23.6 kB         255 kB
+#40 324.9 ├ ƒ /dashboard/admin/business-process/[id]            13.5 kB         226 kB
+#40 324.9 ├ ƒ /dashboard/admin/groups                           11.8 kB         189 kB
+#40 324.9 ├ ƒ /dashboard/admin/groups/[id]                      12.4 kB         197 kB
+#40 324.9 ├ ƒ /dashboard/admin/roles                            1.82 kB         125 kB
+#40 324.9 ├ ƒ /dashboard/admin/roles/[id]                       6.38 kB         125 kB
+#40 324.9 ├ ƒ /dashboard/admin/roles/[id]/edit                  2.07 kB         155 kB
+#40 324.9 ├ ƒ /dashboard/admin/roles/add                        1.93 kB         155 kB
+#40 324.9 ├ ○ /dashboard/admin/users                            8.95 kB         212 kB
+#40 324.9 ├ ƒ /dashboard/admin/users/[id]                       12 kB           162 kB
+#40 324.9 ├ ƒ /dashboard/admin/users/add                        9.96 kB         180 kB
+#40 324.9 ├ ƒ /dashboard/applications/files/[id]                0 B                0 B
+#40 324.9 ├ ○ /dashboard/charts                                 31.6 kB         392 kB
+#40 324.9 ├ ○ /dashboard/collection                             14.5 kB         249 kB
+#40 324.9 ├ ○ /dashboard/contacts                               21.1 kB         317 kB
+#40 324.9 ├ ƒ /dashboard/contacts/buyers/[id]                   17.3 kB         322 kB
+#40 324.9 ├ ƒ /dashboard/contacts/customers/[id]                39.7 kB         358 kB
+#40 324.9 ├ ○ /dashboard/emails                                 23.6 kB         276 kB
+#40 324.9 ├ ƒ /dashboard/financial                              35.3 kB         389 kB
+#40 324.9 ├ ƒ /dashboard/financial/budget-category/[id]         18.4 kB         290 kB
+#40 324.9 ├ ƒ /dashboard/form-generator                         221 B           206 kB
+#40 324.9 ├ ƒ /dashboard/form-generator/[id]                    607 B           207 kB
+#40 324.9 ├ ○ /dashboard/hr-management                          23.2 kB         351 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/contract/[id]            9.91 kB         147 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/contract/[id]/edit       4.59 kB         210 kB
+#40 324.9 ├ ○ /dashboard/hr-management/contract/add             7.94 kB         247 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/courses/[id]             19.6 kB         282 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/jobs                     7.37 kB         179 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/jobs/[id]/edit           6.04 kB         159 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/jobs/add                 5.92 kB         158 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/personnel                13.3 kB         209 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/personnel/[id]           26.5 kB         349 kB
+#40 324.9 ├ ƒ /dashboard/hr-management/training                 983 B           262 kB
+#40 324.9 ├ ○ /dashboard/inspection                             9.7 kB          159 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/bank-coi               10.8 kB         512 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/coi                    14.5 kB         506 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/ic                     10.2 kB         518 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/lc                     13.8 kB         505 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/sampling/boushehr      9.21 kB         407 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/sampling/customs       9.3 kB          407 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/sampling/productive    9.32 kB         407 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/sc                     12.4 kB         503 kB
+#40 324.9 ├ ƒ /dashboard/inspection/[id]/source                 9.99 kB         426 kB
+#40 324.9 ├ ƒ /dashboard/inspection/contract/[id]               16.2 kB         192 kB
+#40 324.9 ├ ƒ /dashboard/management                             28 kB           386 kB
+#40 324.9 ├ ƒ /dashboard/notifications                          3.77 kB         182 kB
+#40 324.9 ├ ƒ /dashboard/notifications/add                      6.85 kB         201 kB
+#40 324.9 ├ ○ /dashboard/procedure                              16.8 kB         408 kB
+#40 324.9 ├ ƒ /dashboard/procedure/[id]                         19.1 kB         237 kB
+#40 324.9 ├ ○ /dashboard/profile                                23.9 kB         474 kB
+#40 324.9 ├ ○ /dashboard/secretariat                            15.6 kB         205 kB
+#40 324.9 ├ ƒ /dashboard/storage                                23.8 kB         258 kB
+#40 324.9 ├ ƒ /dashboard/storage/products/[id]                  7.89 kB         234 kB
+#40 324.9 ├ ○ /dashboard/tasks                                  41.9 kB         327 kB
+#40 324.9 ├ ○ /dashboard/tasks-list                             26.3 kB         240 kB
+#40 324.9 ├ ƒ /dashboard/tasks-list/[id]                        62.4 kB         359 kB
+#40 324.9 ├ ƒ /dashboard/tasks/[id]                             429 kB          941 kB
+#40 324.9 ├ ○ /dashboard/tickets-list                           15.4 kB         260 kB
+#40 324.9 ├ ƒ /inspection/[id]                                  5.27 kB         140 kB
+#40 324.9 ├ ƒ /letter/[id]                                      4.83 kB         139 kB
+#40 324.9 ├ ○ /login                                            9.62 kB         160 kB
+#40 324.9 ├ ƒ /payment/[id]                                     10.1 kB         175 kB
+#40 324.9 └ ○ /register                                         180 B          96.1 kB
+#40 324.9 + First Load JS shared by all                         89.1 kB
+#40 324.9   ├ chunks/2117-3b3538d1542dc651.js                   31.7 kB
+#40 324.9   ├ chunks/fd9d1056-6564c4966c49eab7.js               53.6 kB
+#40 324.9   └ other shared chunks (total)                       3.7 kB
+#40 324.9 
+#40 324.9 
+#40 324.9 ƒ Middleware                                          26.7 kB
+#40 324.9 
+#40 324.9 ○  (Static)   prerendered as static content
+#40 324.9 ƒ  (Dynamic)  server-rendered on demand
+#40 324.9 
+#40 DONE 325.2s
+
+#41 [frontend runner 2/7] RUN addgroup --system --gid 1001 nodejs
+#41 CACHED
+
+#42 [frontend runner 3/7] RUN adduser --system --uid 1001 nextjs
+#42 CACHED
+
+#43 [frontend runner 4/7] COPY --from=builder /app/public ./public
+#43 DONE 0.1s
+
+#35 [frontend deps 4/4] RUN   if [ -f yarn.lock ]; then yarn --frozen-lockfile;   elif [ -f package-lock.json ]; then npm ci;   elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile;   else echo "Lockfile not found." && exit 1;   fi
+#35 CACHED
+
+#44 [frontend runner 5/7] COPY --chown=nextjs:nextjs --from=builder /app/.next ./.next
+#44 DONE 3.7s
+
+#45 [frontend runner 6/7] COPY --chown=nextjs:nextjs --from=deps /app/node_modules ./node_modules/
+#45 DONE 18.1s
+
+#46 [frontend runner 7/7] COPY --chown=nextjs:nextjs --from=deps /app/package*.json ./
+#46 DONE 1.3s
+
+#47 [frontend] exporting to image
+#47 exporting layers
+#47 exporting layers 56.7s done
+#47 exporting manifest sha256:ae9ed07ecdc17c88d31290d5e7cd3eefc6ec03c53bf265b365089b3d9aa3b0b2 0.0s done
+#47 exporting config sha256:a2689363ffdd0250e39d9408f96f309a50644a2ab660d28540a1da7b7b7f85cb done
+#47 exporting attestation manifest sha256:0e7594a1e63cfb11c90589a3ea71d9ad210e450df9af4f96c32ebb05f0e15d5c done
+#47 exporting manifest list sha256:f9b3496e0699dea314d552dc40fc7388d1000afa9275c180265dd9de394a6aac done
+#47 naming to docker.io/library/noora-front:latest done
+#47 unpacking to docker.io/library/noora-front:latest
+#47 unpacking to docker.io/library/noora-front:latest 24.1s done
+#47 DONE 80.9s
+
+#48 [frontend] resolving provenance for metadata file
+#48 DONE 0.0s
+ Image noora-front:latest Built 
+ Image noora-flow:latest Built 
+ Container noora-mongo Running 
+ Container noora-redis Running 
+ Container noora-elastic Running 
+ Container noora-backend Running 
+ Container noora-frontend Recreate 
+ Container noora-frontend Recreated 
+ Container noora-mongo Waiting 
+ Container noora-redis Waiting 
+ Container noora-redis Healthy 
+ Container noora-mongo Healthy 
+ Container noora-frontend Starting 
+ Container noora-frontend Started 
