@@ -31,6 +31,7 @@ import { UserBankInfo } from "@/identity/users/models/UserBankInfo";
 import { addUserBankInfo } from "@/identity/users/services/addUserBankInfo";
 import { updateUserBankInfo } from "@/identity/users/services/updateUserBankInfo";
 import { messages } from "@/messages";
+import { normalizeSheba } from "@/utils/string/normalizeSheba";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 function UserBankInfoUpsertDialog({
@@ -58,7 +59,10 @@ function UserBankInfoUpsertDialog({
 		bankSheba: z
 			.string()
 			.refine(
-				(value) => !value || (value.length === 26 && isShebaValid(value)),
+				(value) => {
+					const sheba = normalizeSheba(value);
+					return !sheba || (sheba.length === 26 && isShebaValid(sheba));
+				},
 				"شماره شبا وارد شده نامعتبر است.",
 			),
 		bankAccountOwner: z.string(),
@@ -92,7 +96,7 @@ function UserBankInfoUpsertDialog({
 			bankAccountNumber: values.bankAccountNumber,
 			bankCardNumber: values.bankCardNumber,
 			bankName: values.bankName,
-			bankSheba: values.bankSheba,
+			bankSheba: normalizeSheba(values.bankSheba),
 			bankAccountOwner: values.bankAccountOwner,
 			bankBranch: values.bankBranch,
 		};
@@ -271,7 +275,8 @@ function UserBankInfoUpsertDialog({
 											<Input
 												className="tracking-wider rtl:text-right"
 												dir="ltr"
-												maxLength={26}
+												maxLength={40}
+												placeholder="IR000000000000000000000000"
 												{...field}
 											/>
 										</FormControl>

@@ -110,6 +110,11 @@ export const productionSubIndustries = [
     type: IndustryTypes.SUB,
     parentId: new Types.ObjectId('65131335c5b4320012345678'),
   },
+  {
+    name: 'برق و الکترونیک',
+    type: IndustryTypes.SUB,
+    parentId: new Types.ObjectId('65131335c5b4320012345678'),
+  },
 ];
 
 export const servicesSubIndustries = [

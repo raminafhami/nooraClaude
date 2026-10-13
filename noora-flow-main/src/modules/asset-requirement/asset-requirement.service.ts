@@ -114,6 +114,28 @@ export class AssetRequirementService
     return this.assetRequirementRepositoryImpl.deleteById(node.id);
   }
 
+  // Removes every checklist node of an audit together with their files.
+  async deleteAuditTree(auditId: string) {
+    const nodes = await this.assetRequirementRepositoryImpl.model
+      .find({ auditId })
+      .select('_id');
+    const nodeIds = nodes.map((n) => n.id);
+    if (!nodeIds.length) return;
+
+    const files = await this.assetRequirementFileRepositoryImpl.model.find({
+      assetId: { $in: nodeIds },
+    });
+    await this.assetRequirementFileRepositoryImpl.model.deleteMany({
+      assetId: { $in: nodeIds },
+    });
+    await this.assetRequirementRepositoryImpl.model.deleteMany({ auditId });
+
+    const directories = [...new Set(files.map((f) => f.directory))];
+    await Promise.all(
+      directories.map((dir) => fs.rm(dir, { recursive: true, force: true })),
+    );
+  }
+
   async saveFile(data: any) {
     return this.assetRequirementFileRepositoryImpl.create(data);
   }

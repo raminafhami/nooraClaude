@@ -117,17 +117,10 @@ export class AuditController {
   })
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const asset = await this.assetRequirementService.findOne({
-      auditId: id,
-      parent: null,
-    });
-    if (asset?.children?.length >= 1) {
-      throw new NotFoundException('you can not delete this audit');
-    }
     const checkDeleted = await this.auditService.deleteById(id);
     if (!checkDeleted) {
       throw new NotFoundException('audit not exist.');
     }
-    await this.assetRequirementService.deleteById(asset.id);
+    await this.assetRequirementService.deleteAuditTree(id);
   }
 }

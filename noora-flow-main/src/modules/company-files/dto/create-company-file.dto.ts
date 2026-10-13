@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateCompanyFileDto {
   @ApiProperty({ type: 'string', format: 'binary' })
@@ -19,4 +24,9 @@ export class CreateCompanyFileDto {
   @IsNotEmpty()
   @IsDateString()
   date: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @IsDateString()
+  expiryDate?: Date | null;
 }

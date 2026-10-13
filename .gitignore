@@ -3,6 +3,8 @@
 *.bak
 *.bak-*
 certs/
+mongo-keyfile-dir/
 compose_*.log
 node_modules/
 .next/
+.claude/settings.local.json

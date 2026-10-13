@@ -1,11 +1,14 @@
 "use client";
 
-import moment from "jalali-moment";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { createCompanyDocument } from "@/company-documents/services/createCompanyDocument";
+import {
+	isJalaliBefore,
+	toApiDate,
+} from "@/company-documents/utils/documentDate";
 import { AlertDescription } from "@/components/ui/alert";
 import { DestructiveAlert } from "@/components/ui/alert/destructive-alert";
 import { Button } from "@/components/ui/button";
@@ -31,12 +34,22 @@ import { Input } from "@/components/ui/input";
 import { messages } from "@/messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const formSchema = z.object({
-	title: z.string().min(1, messages.validation.required),
-	description: z.string().min(1, messages.validation.required),
-	date: z.string().min(1, messages.validation.required),
-	file: z.instanceof(File, { message: messages.validation.required }),
-});
+const formSchema = z
+	.object({
+		title: z.string().min(1, messages.validation.required),
+		description: z.string().min(1, messages.validation.required),
+		date: z.string().min(1, messages.validation.required),
+		expiryDate: z.string(),
+		file: z.instanceof(File, { message: messages.validation.required }),
+	})
+	.refine(
+		({ date, expiryDate }) =>
+			!date || !expiryDate || !isJalaliBefore(expiryDate, date),
+		{
+			path: ["expiryDate"],
+			message: "تاریخ انقضا نمی‌تواند قبل از تاریخ صدور باشد.",
+		},
+	);
 
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -50,6 +63,7 @@ function CompanyDocumentCreateDialog({
 			title: "",
 			description: "",
 			date: "",
+			expiryDate: "",
 			file: undefined,
 		},
 	});
@@ -67,7 +81,8 @@ function CompanyDocumentCreateDialog({
 			await createCompanyDocument({
 				title: values.title,
 				description: values.description,
-				date: moment(values.date, "jYYYY/jMM/jDD").format("YYYY-MM-DD"),
+				date: toApiDate(values.date),
+				expiryDate: values.expiryDate ? toApiDate(values.expiryDate) : null,
 				file: values.file,
 			});
 
@@ -139,8 +154,22 @@ function CompanyDocumentCreateDialog({
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>
-											تاریخ<span className="text-red-500"> *</span>
+											تاریخ صدور<span className="text-red-500"> *</span>
 										</FormLabel>
+										<FormControl>
+											<DateInput {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={control}
+								name="expiryDate"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>تاریخ انقضا</FormLabel>
 										<FormControl>
 											<DateInput {...field} />
 										</FormControl>

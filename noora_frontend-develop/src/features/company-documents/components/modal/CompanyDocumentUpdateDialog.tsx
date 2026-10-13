@@ -1,12 +1,16 @@
 "use client";
 
-import moment from "jalali-moment";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { CompanyDocument } from "@/company-documents/models/CompanyDocument";
 import { updateCompanyDocument } from "@/company-documents/services/updateCompanyDocument";
+import {
+	isJalaliBefore,
+	toApiDate,
+	toJalaliInput,
+} from "@/company-documents/utils/documentDate";
 import { AlertDescription } from "@/components/ui/alert";
 import { DestructiveAlert } from "@/components/ui/alert/destructive-alert";
 import { Button } from "@/components/ui/button";
@@ -31,11 +35,21 @@ import { Input } from "@/components/ui/input";
 import { messages } from "@/messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const formSchema = z.object({
-	title: z.string().min(1, messages.validation.required),
-	description: z.string().min(1, messages.validation.required),
-	date: z.string().min(1, messages.validation.required),
-});
+const formSchema = z
+	.object({
+		title: z.string().min(1, messages.validation.required),
+		description: z.string().min(1, messages.validation.required),
+		date: z.string().min(1, messages.validation.required),
+		expiryDate: z.string(),
+	})
+	.refine(
+		({ date, expiryDate }) =>
+			!date || !expiryDate || !isJalaliBefore(expiryDate, date),
+		{
+			path: ["expiryDate"],
+			message: "تاریخ انقضا نمی‌تواند قبل از تاریخ صدور باشد.",
+		},
+	);
 
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -54,7 +68,8 @@ function CompanyDocumentUpdateDialog({
 		defaultValues: {
 			title: payload.document.title ?? "",
 			description: payload.document.description ?? "",
-			date: payload.document.date ?? "",
+			date: toJalaliInput(payload.document.date),
+			expiryDate: toJalaliInput(payload.document.expiryDate),
 		},
 	});
 
@@ -70,7 +85,8 @@ function CompanyDocumentUpdateDialog({
 			await updateCompanyDocument(payload.document.id, {
 				title: values.title,
 				description: values.description,
-				date: moment(values.date, "jYYYY/jMM/jDD").format("YYYY-MM-DD"),
+				date: toApiDate(values.date),
+				expiryDate: values.expiryDate ? toApiDate(values.expiryDate) : null,
 			});
 
 			toast.success("مدرک با موفقیت ویرایش شد");
@@ -148,8 +164,22 @@ function CompanyDocumentUpdateDialog({
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>
-											تاریخ<span className="text-red-500"> *</span>
+											تاریخ صدور<span className="text-red-500"> *</span>
 										</FormLabel>
+										<FormControl>
+											<DateInput {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={control}
+								name="expiryDate"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>تاریخ انقضا</FormLabel>
 										<FormControl>
 											<DateInput {...field} />
 										</FormControl>

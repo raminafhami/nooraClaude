@@ -115,7 +115,7 @@ export default function AddAudit({
 										case "چارت سازمانی":
 											return `APK-OC-${auditNo}`;
 										case "ممیزی داخلی":
-											return `APK-RI-${auditNo}`;
+											return `APK-${auditNo}`;
 										case "فرم":
 											return `APK-FR-${auditNo}`;
 										case "نظامنامه کیفیت":
@@ -163,7 +163,7 @@ export default function AddAudit({
 													case "چارت سازمانی":
 														return `APK-OC-${auditNo}`;
 													case "ممیزی داخلی":
-														return `APK-RI-${auditNo}`;
+														return `APK-${auditNo}`;
 													case "فرم":
 														return `APK-FR-${auditNo}`;
 													case "نظامنامه کیفیت":

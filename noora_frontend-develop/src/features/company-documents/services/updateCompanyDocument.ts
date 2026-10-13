@@ -4,6 +4,7 @@ interface UpdateCompanyDocumentDto {
 	title: string;
 	description: string;
 	date: string;
+	expiryDate: string | null;
 }
 
 async function updateCompanyDocument(

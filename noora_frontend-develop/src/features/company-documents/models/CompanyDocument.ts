@@ -3,6 +3,7 @@ type CompanyDocument = {
 	title: string;
 	description: string;
 	date: string;
+	expiryDate?: string | null;
 	fileName: string;
 };
 

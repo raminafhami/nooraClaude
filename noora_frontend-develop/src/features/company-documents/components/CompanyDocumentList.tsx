@@ -45,6 +45,7 @@ function CompanyDocumentList() {
 
 			const documents = await getCompanyDocuments({
 				filters,
+				sort: { date: "desc" },
 				pagination: { page, pageSize },
 			});
 

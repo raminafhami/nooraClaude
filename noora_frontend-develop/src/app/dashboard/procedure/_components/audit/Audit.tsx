@@ -15,6 +15,8 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
+import { DeleteDialog } from "@/components/ui/dialog/delete-dialog";
+import { useDialogs } from "@/components/ui/dialog/use-dialogs";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -60,7 +62,6 @@ export function Audit({
 	auditData,
 	loading,
 	getData,
-	setLoading,
 	setSearch,
 	search,
 	isRisk,
@@ -75,20 +76,22 @@ export function Audit({
 	const [addAuditModal, setAddAuditModal] = useState<boolean>(false);
 	const [data, setData] = useState<AuditType>();
 
-	async function deleteAsset(id: string) {
-		setLoading(true);
-		try {
-			let response = await DeleteAudit({ id });
-			if (response) {
+	const dialogs = useDialogs();
+
+	async function deleteAsset(asset: AuditType) {
+		const result = await dialogs.open(DeleteDialog, {
+			title: `«${asset.title}» به همراه چک‌لیست و فایل‌های آن`,
+			onSubmit: async () => {
+				await DeleteAudit({ id: asset.id });
 				toast.success("با موفقیت حذف شد!");
-				setTimeout(() => {
-					getData();
-					setLoading(false);
-				}, 500);
-			}
-		} catch (e) {
-			toast.error("خطایی رخ داد!");
-			setLoading(false);
+			},
+			onError: () => {
+				toast.error("خطایی رخ داد!");
+			},
+		});
+
+		if (result) {
+			getData();
 		}
 	}
 
@@ -377,7 +380,7 @@ export function Audit({
 												data-tooltip-id={`asset-${asset.id}`}
 												size={15}
 												className="inline-flex cursor-pointer text-red-400 hover:text-red-700 focus:outline-0"
-												onClick={() => deleteAsset(asset.id)}
+												onClick={() => deleteAsset(asset)}
 											/>
 										</>
 									)}

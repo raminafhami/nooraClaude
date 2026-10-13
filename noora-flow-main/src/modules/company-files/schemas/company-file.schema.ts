@@ -37,6 +37,12 @@ export class CompanyFile extends Document {
   })
   date: Date;
 
+  @Prop({
+    type: Date,
+    default: null,
+  })
+  expiryDate: Date;
+
   @Prop({ type: String, required: true })
   directory: string;
 

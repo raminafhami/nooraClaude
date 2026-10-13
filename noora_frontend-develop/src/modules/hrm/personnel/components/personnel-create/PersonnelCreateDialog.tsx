@@ -44,6 +44,7 @@ import { AcademicDegree } from "@/hrm/shared/models/AcademicDegree";
 import { addUserBankInfo } from "@/identity/users/services/addUserBankInfo";
 import { messages } from "@/messages";
 import { SelectItemType } from "@/types/SelectItem";
+import { normalizeSheba } from "@/utils/string/normalizeSheba";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { PersonnelUpsertDegreeWidget } from "../PersonnelUpsertDegreeWidget";
@@ -85,7 +86,10 @@ const formSchema = z
 		bankSheba: z
 			.string()
 			.refine(
-				(value) => !value || (value.length === 26 && isShebaValid(value)),
+				(value) => {
+					const sheba = normalizeSheba(value);
+					return !sheba || (sheba.length === 26 && isShebaValid(sheba));
+				},
 				"شماره شبا وارد شده نامعتبر است.",
 			),
 		academics: z
@@ -226,7 +230,7 @@ function PersonnelCreateDialog({
 						bankAccountNumber: values.bankAccountNumber,
 						bankCardNumber: values.bankCardNumber,
 						bankName: values.bankName,
-						bankSheba: values.bankSheba.toUpperCase(),
+						bankSheba: normalizeSheba(values.bankSheba),
 						bankAccountOwner: values.bankAccountOwner,
 						bankBranch: values.bankBranch,
 					});
@@ -758,7 +762,8 @@ function PersonnelCreateDialog({
 												<Input
 													className="rtl:text-right"
 													dir="ltr"
-													maxLength={26}
+													maxLength={40}
+													placeholder="IR000000000000000000000000"
 													{...field}
 												/>
 											</FormControl>

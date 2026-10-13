@@ -37,7 +37,7 @@ services:
     env_file:
       - .env
     environment:
-      MONGO_URI: mongodb://mongo:27017
+      MONGO_URI: mongodb://mongo:27017/?replicaSet=rs0
       REDIS_HOST: redis
       ELASTIC_NODE: http://elasticsearch:9200
     volumes:
@@ -84,11 +84,13 @@ services:
     container_name: noora-mongo
     image: mongo:4.4.8
     restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/replica-set.key"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
     volumes:
       - mongo-data:/data/db
+      - ./mongo-keyfile-dir/replica-set.key:/data/keyfile/replica-set.key:ro
     healthcheck:
       test: ["CMD", "mongo", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
       interval: 15s

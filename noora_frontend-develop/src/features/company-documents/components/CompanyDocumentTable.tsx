@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CompanyDocument } from "@/company-documents/models/CompanyDocument";
 import { deleteCompanyDocumentFile } from "@/company-documents/services/deleteCompanyDocumentFile";
 import { getCompanyDocumentFile } from "@/company-documents/services/getCompanyDocumentFile";
+import { toJalaliInput } from "@/company-documents/utils/documentDate";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/ui/dialog/delete-dialog";
 import { useDialogs } from "@/components/ui/dialog/use-dialogs";
@@ -108,7 +109,8 @@ const CompanyDocumentTable = ({
 				<TableRow>
 					<TableHead className="w-12">#</TableHead>
 					<TableHead className="w-96">عنوان</TableHead>
-					<TableHead className="w-36">تاریخ</TableHead>
+					<TableHead className="w-36">تاریخ صدور</TableHead>
+					<TableHead className="w-36">تاریخ انقضا</TableHead>
 					<TableHead>توضیحات</TableHead>
 					<TableHead className="w-36">عملیات</TableHead>
 				</TableRow>
@@ -123,7 +125,17 @@ const CompanyDocumentTable = ({
 							<div className="min-w-28">{item.title}</div>
 						</TableCell>
 
-						<TableCell>{moment(item.date).format("jYYYY/jMM/jDD")}</TableCell>
+						<TableCell>{toJalaliInput(item.date)}</TableCell>
+
+						<TableCell
+							className={
+								item.expiryDate && moment(item.expiryDate).isBefore(moment(), "day")
+									? "text-red-600"
+									: undefined
+							}
+						>
+							{toJalaliInput(item.expiryDate) || "-"}
+						</TableCell>
 
 						<TableCell>
 							<div className="min-w-36">{item.description}</div>

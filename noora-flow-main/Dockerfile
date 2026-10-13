@@ -68,25 +68,10 @@ COPY --chown=node:node --from=builder ${APPDIR}/node_modules ./node_modules/
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/google-chrome-stable" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
 
-# Debian's mirrors occasionally return transient 503s during apt-get.
-# retry() re-attempts a failing command a few times with a short backoff
-# so the build doesn't fail on a one-off mirror hiccup.
-RUN retry() { \
-        for i in 1 2 3 4 5; do \
-            "$@" && return 0; \
-            echo "Command failed (attempt $i/5): $*  -- retrying in 5s..." >&2; \
-            sleep 5; \
-        done; \
-        echo "Command failed after 5 attempts: $*" >&2; \
-        return 1; \
-    }; \
-    retry apt-get update \
-    && retry apt-get install -y wget gnupg \
-    && retry wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && retry apt-get update \
-    && retry apt-get install -y google-chrome-stable udev fonts-freefont-ttf libxss1 --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+# Use Debian's own chromium package instead of Google's apt repo - the
+# google-chrome-stable repo is only reachable over HTTPS on this host (plain
+# HTTP to dl.google.com times out), which broke apt-get update against it.
+RUN apt-get -o Acquire::Retries=3 update     && apt-get -o Acquire::Retries=3 install -y --no-install-recommends chromium fonts-freefont-ttf fonts-noto-core ca-certificates     && ln -s /usr/bin/chromium /usr/bin/google-chrome-stable     && rm -rf /var/lib/apt/lists/*
 
 RUN which google-chrome-stable || true
 
