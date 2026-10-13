@@ -25,7 +25,10 @@ export abstract class CrudService<T extends BaseSchema> {
     return this.repository.findWithOutPagination(where, populate, projection);
   }
 
-  async findAll(query: GetQueryDto) {
+  async findAll(
+    query: GetQueryDto,
+    collation?: { locale: string; [key: string]: any },
+  ) {
     let condition: any = { $and: [] };
     let sort = null;
     let filters = null;
@@ -71,6 +74,7 @@ export abstract class CrudService<T extends BaseSchema> {
       query.size,
       sort,
       query.populate,
+      collation,
     );
     return { data, count };
   }

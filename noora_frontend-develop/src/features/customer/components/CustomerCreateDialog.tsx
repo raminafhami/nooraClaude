@@ -109,8 +109,8 @@ function CustomerCreateDialog({
 						)
 						.refine(
 							(value) =>
-								(value.startsWith("0") && value.length !== 11) ||
-								(value.startsWith("+") && value.length < 11),
+								(value.startsWith("0") && value.length === 11) ||
+								(value.startsWith("+") && value.length >= 12),
 							messages.validation.invalid("شماره همراه"),
 						),
 					email: z.string(),
@@ -249,7 +249,7 @@ function CustomerCreateDialog({
 				},
 			});
 
-			if (data.title) {
+			if (data.bankName || data.bankCardNumber || data.bankAccountNumber || data.bankSheba) {
 				try {
 					await addUserBankInfo(createdCustomer.id, {
 						title: data.title,
@@ -264,6 +264,8 @@ function CustomerCreateDialog({
 					toast.error("خطای نامشخصی در هنگام ثبت اطلاعات حساب بانکی رخ داد.");
 				}
 			}
+
+			onClose(true);
 
 			router.push(
 				getDynamicUrl(`/dashboard/contacts/customers/${createdCustomer.id}`),

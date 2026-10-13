@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 import { BsFillTrashFill } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
+import DatePicker from "react-multi-date-picker";
 import { toast } from "sonner";
 
 import DeleteAssetRequirementFile from "@/api/assetRequirement/deleteAssetRequirementFile";
@@ -38,9 +41,18 @@ export default function ConflictModal({
 }: ConflictModalProps) {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [conflict, setConflict] = useState<string>();
+	const [conflictDate, setConflictDate] = useState<any>();
 	const [description, setDescription] = useState<string>();
 	const [fileName, setFileName] = useState<string>();
 	const [file, setFile] = useState<any>([]);
+
+	useEffect(() => {
+		if (isShow) {
+			setConflict(data?.conflict ?? "");
+			setConflictDate(data?.conflictDate ? new Date(data.conflictDate) : null);
+			setDescription(data?.description ?? "");
+		}
+	}, [isShow, data]);
 
 	async function updateConflict() {
 		setLoading(true);
@@ -48,6 +60,9 @@ export default function ConflictModal({
 			let response = await PutAssetRequirement({
 				id,
 				conflict,
+				conflictDate: conflictDate
+					? new Date(conflictDate).toISOString()
+					: null,
 				description,
 			});
 			if (response) {
@@ -158,59 +173,24 @@ export default function ConflictModal({
 					size="7xl"
 					title="اطلاعات"
 					content={
-						<div className="mt-6 flex bg-gray-100">
+						<div className="mt-6 flex flex-col bg-gray-100">
+							<div className="flex">
 							{!readonly && (
 								<>
-									<div className="col-span-9 col-start-1 mx-2 flex flex-col items-center rounded-xl border-x-4 border-gray-100 bg-gray-100 p-1 py-[2rem]">
-										<input
-											value={conflict}
-											onChange={(event) => setConflict(event.target.value)}
-											className={`group relative mx-[1rem] mb-[1rem] mt-[1rem] w-[300px] text-ellipsis rounded rounded-2xl border-2 border-white bg-white px-2 py-2 pl-[2.8rem] pr-[.5rem] text-[.9rem] placeholder-gray-400 focus:border-blue-500 focus:text-black focus:outline-0`}
-											placeholder={`${
-												category === "ممیزی داخلی"
-													? "شرح عدم انطباق"
-													: "عنوان مغایرت"
-											}`}
-										/>
-										<textarea
-											value={description}
-											onChange={(event) => setDescription(event.target.value)}
-											className={`group relative mb-[1rem] max-h-[16rem] min-h-[4.5rem] w-[300px] text-ellipsis rounded-2xl border-r-2 border-none bg-white px-2 py-2 text-[13px] placeholder-gray-400 focus:bg-blue-300 focus:text-white focus:placeholder-white focus:outline-0`}
-											placeholder={"توضیحات"}
-										/>
-										<button
-											disabled={loading}
-											type="button"
-											onClick={() => !loading && updateConflict()}
-											className={`btn flex w-[300px] items-center justify-center ${
-												loading
-													? "bg-gray-400"
-													: "bg-blue-500 hover:bg-blue-700"
-											} max-h-[40px] cursor-pointer select-none rounded-md px-4 py-2 text-white`}
-										>
-											{loading ? (
-												<Loading className="item-center flex" size={"sm"} />
-											) : (
-												"ثبت"
-											)}
-										</button>
-									</div>
 									<div className="mx-2">
 										<div className="col-span-9 col-start-1 flex flex-col items-center rounded-xl border-x-4 border-gray-100 bg-gray-100 p-1 py-[2rem]">
 											<input
 												onChange={(event) => setFileName(event.target.value)}
 												className={`group relative mx-[1rem] mb-[1rem] mt-[1rem] w-[300px] text-ellipsis rounded rounded-2xl border-2 border-white bg-white px-2 py-2 pl-[2.8rem] pr-[.5rem] text-[.9rem] placeholder-gray-400 focus:border-blue-500 focus:text-black focus:outline-0`}
-												placeholder={`نام ${
-													category === "ممیزی داخلی" ? "/ شماره عدم انطباق" : ""
-												}`}
+												placeholder="عنوان فایل"
 											/>
-											<input
-												readOnly
+											<button
+												type="button"
 												onClick={handleClick}
-												value={file ? file?.name : undefined}
-												className={`group relative mx-[1rem] mb-[1rem] mt-[1rem] w-[300px] text-ellipsis rounded rounded-2xl border-2 border-white bg-white px-2 py-2 pl-[2.8rem] pr-[.5rem] text-[.9rem] placeholder-gray-400 focus:border-blue-500 focus:text-black focus:outline-0`}
-												placeholder={"پیوست"}
-											/>
+												className={`group relative mx-[1rem] mb-[1rem] mt-[1rem] w-[300px] truncate rounded rounded-2xl border-2 border-white bg-white px-2 py-2 text-[.9rem] text-gray-600 hover:border-blue-500 hover:text-blue-500 focus:border-blue-500 focus:outline-0`}
+											>
+												{file?.name || "انتخاب فایل"}
+											</button>
 											<input
 												style={{ display: "none" }}
 												ref={inputRef}
@@ -292,6 +272,65 @@ export default function ConflictModal({
 									</Panel.Root>
 								</Layout.Content>
 							</div>
+							</div>
+							{!readonly && (
+									<div className="mx-2 mb-4 flex w-full flex-col gap-4 rounded-xl border-x-4 border-gray-100 bg-gray-100 p-4">
+										<div className="w-full text-right">
+											<label className="mb-1 block text-right text-[.85rem] text-gray-600">{category === "ممیزی داخلی" ? "شرح عدم انطباق" : "عنوان مغایرت"}</label>
+											<input
+												value={conflict}
+												onChange={(event) => setConflict(event.target.value)}
+												className={`w-full text-right text-ellipsis rounded rounded-2xl border-2 border-white bg-white px-3 py-2 text-[.9rem] placeholder-gray-400 focus:border-blue-500 focus:text-black focus:outline-0`}
+												placeholder={`${
+													category === "ممیزی داخلی"
+														? "شرح عدم انطباق"
+														: "عنوان مغایرت"
+												}`}
+											/>
+										</div>
+										<div className="w-full text-right">
+											<label className="mb-1 block text-right text-[.85rem] text-gray-600">تاریخ</label>
+											<DatePicker
+												containerClassName="w-full"
+												calendar={persian}
+												locale={persian_fa}
+												inputClass="w-full text-right text-ellipsis rounded rounded-2xl border-2 border-white bg-white px-3 py-2 text-[.9rem] placeholder-gray-400 focus:border-blue-500 focus:text-black focus:outline-0"
+												placeholder="تاریخ"
+												calendarPosition="bottom-right"
+												onFocusedDateChange={(dateFocused, dateClicked) =>
+													setConflictDate(dateClicked?.toDate() ?? null)
+												}
+												value={conflictDate}
+												hideOnScroll
+											/>
+										</div>
+										<div className="w-full text-right">
+											<label className="mb-1 block text-right text-[.85rem] text-gray-600">توضیحات</label>
+											<textarea
+												value={description}
+												onChange={(event) => setDescription(event.target.value)}
+												className={`w-full text-right text-ellipsis rounded-2xl border-r-2 border-none bg-white px-3 py-2 text-[13px] max-h-[16rem] min-h-[4.5rem] placeholder-gray-400 focus:bg-blue-300 focus:text-white focus:placeholder-white focus:outline-0`}
+												placeholder={"توضیحات"}
+											/>
+										</div>
+										<button
+											disabled={loading}
+											type="button"
+											onClick={() => !loading && updateConflict()}
+											className={`btn flex w-full items-center justify-center ${
+												loading
+													? "bg-gray-400"
+													: "bg-blue-500 hover:bg-blue-700"
+											} max-h-[40px] cursor-pointer select-none rounded-md px-4 py-2 text-white`}
+										>
+											{loading ? (
+												<Loading className="item-center flex" size={"sm"} />
+											) : (
+												"ثبت"
+											)}
+										</button>
+									</div>
+							)}
 						</div>
 					}
 					name="addCategory"

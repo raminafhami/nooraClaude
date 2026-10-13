@@ -62,6 +62,13 @@ export class AssetRequirement extends Document {
   conflict: string;
 
   @Prop({
+    type: Date,
+    required: false,
+    default: null,
+  })
+  conflictDate: Date;
+
+  @Prop({
     type: Boolean,
     required: true,
     default: false,

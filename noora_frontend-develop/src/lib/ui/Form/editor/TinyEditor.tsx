@@ -57,8 +57,13 @@ export function TinyEditor({ id, init, value, onMutate, ...props }: Props) {
           "bold italic forecolor | alignleft aligncenter " +
           "alignright alignjustify | bullist numlist outdent indent | " +
           "removeformat | code",
-        content_style:
-          "@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap'); body { direction: rtl;font-family:'Vazirmatn'; font-size:14px }",
+        // Self-hosted (was a Google Fonts @import) so the editor iframe
+        // doesn't depend on reaching fonts.googleapis.com.
+        content_style: `
+          @font-face { font-family: 'Vazirmatn'; font-weight: 400; font-style: normal; src: url('${process.env.NEXT_PUBLIC_APP_URL}/fonts/vazirmatn/Vazirmatn-Regular.woff2') format('woff2'); }
+          @font-face { font-family: 'Vazirmatn'; font-weight: 700; font-style: normal; src: url('${process.env.NEXT_PUBLIC_APP_URL}/fonts/vazirmatn/Vazirmatn-Bold.woff2') format('woff2'); }
+          body { direction: rtl; font-family: 'Vazirmatn'; font-size: 14px }
+        `,
         ...(init ?? {}),
       }}
       {...props}

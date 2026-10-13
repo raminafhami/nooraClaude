@@ -566,7 +566,10 @@ export class ProcessInstanceService {
     },
   ): Promise<CustomResponse | CustomError> {
     let filters = {};
-    if (user.type !== 'system') {
+    const isAdmin =
+      user.groups?.includes('system-admin') ||
+      user.groups?.includes('super-admin');
+    if (user.type !== 'system' && !isAdmin) {
       filters = {
         _id: processDefinitionId,
         $or: [
@@ -657,7 +660,10 @@ export class ProcessInstanceService {
     }
     const processDefinitionId = instance.processDefinitionId;
     let filters = {};
-    if (user.type !== 'system') {
+    const isAdmin =
+      user.groups?.includes('system-admin') ||
+      user.groups?.includes('super-admin');
+    if (user.type !== 'system' && !isAdmin) {
       filters = {
         _id: processDefinitionId,
         $or: [

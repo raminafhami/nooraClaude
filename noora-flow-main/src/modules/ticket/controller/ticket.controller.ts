@@ -75,13 +75,13 @@ export class TicketController {
     @Query() queryDto: GetQueryDto,
     @ActiveUser() user: ActiveUserData,
   ) {
-    // const filter = JSON.parse(queryDto.filters || '{}');
-    // filter.$or = [
-    //   { createdBy: user.id },
-    //   { assignee: user.id },
-    //   { group: { $in: user.groups } },
-    // ];
-    // queryDto.filters = JSON.stringify(filter);
+    const filter = JSON.parse(queryDto.filters || '{}');
+    filter.$or = [
+      { createdBy: user.id },
+      { assignee: user.id },
+      { group: { $in: user.groups } },
+    ];
+    queryDto.filters = JSON.stringify(filter);
 
     queryDto.populate = [
       'lastMessage',

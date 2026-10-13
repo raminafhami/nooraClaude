@@ -1,3 +1,4 @@
+import { Permission, PermissionApi } from "@/identity/permissions/models/Permission";
 import { User, UserApi } from "@/identity/users/models/User";
 
 import { UserGroupType } from "./GroupType";
@@ -12,6 +13,7 @@ export interface UserGroup {
 
   children?: UserGroup[];
   users?: User[];
+  permissions?: (string | Permission)[];
 }
 
 export interface UserGroupApi {
@@ -24,6 +26,7 @@ export interface UserGroupApi {
   parent?: UserGroupApi;
   children?: UserGroupApi[];
   users?: UserApi[];
+  permissions?: (string | PermissionApi)[];
 }
 
 export interface UserGroupDb extends Omit<UserGroupApi, "id"> {

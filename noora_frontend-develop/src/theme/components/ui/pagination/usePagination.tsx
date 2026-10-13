@@ -97,10 +97,13 @@ function usePagination<T = any>(
 	);
 
 	const handleRefetch = useCallback(
-		(page?: number) => {
-			setQueuedPage({ page: page ?? 0, pageSize });
+		(nextPage?: number) => {
+			setQueuedPage((previous) => ({
+				page: nextPage ?? previous?.page ?? page,
+				pageSize,
+			}));
 		},
-		[pageSize],
+		[page, pageSize],
 	);
 
 	useEffect(() => {

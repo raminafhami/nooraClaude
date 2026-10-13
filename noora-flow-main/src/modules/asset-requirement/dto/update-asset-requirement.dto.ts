@@ -10,6 +10,9 @@ export class UpdateAssetRequirementDto extends PartialType(
   conflict: string;
 
   @IsOptional()
+  conflictDate: string | null;
+
+  @IsOptional()
   @IsString()
   description: string;
 }

@@ -6,6 +6,8 @@ import { Server, Socket } from 'socket.io';
 import { ProjectTaskRepositoryImpl } from './repositories/project-task.repository';
 import { AuthenticationService } from '../iam/authentication/authentication.service';
 import { WsException } from '@nestjs/websockets';
+import { TasksService } from '../tasks/tasks.service';
+import CustomResponse from 'src/common/providers/custom-response.service';
 
 @Injectable()
 export class ProjectTaskService extends CrudService<ProjectTaskDocument> {
@@ -16,6 +18,7 @@ export class ProjectTaskService extends CrudService<ProjectTaskDocument> {
   constructor(
     private readonly projectTaskRepositoryImpl: ProjectTaskRepositoryImpl,
     private authService: AuthenticationService,
+    private tasksService: TasksService,
   ) {
     super(projectTaskRepositoryImpl);
   }
@@ -35,5 +38,15 @@ export class ProjectTaskService extends CrudService<ProjectTaskDocument> {
     return user;
   }
 
-  async getProjectTaskCount(user: any): Promise<any> {}
+  async getProjectTaskCount(user: any): Promise<number> {
+    const response = await this.tasksService.findAllUserAssignedTasksByStatus(
+      user,
+      {
+        page: 0,
+        size: 1,
+        filters: JSON.stringify({ status: 'todo' }),
+      } as any,
+    );
+    return response instanceof CustomResponse ? response.result.count : 0;
+  }
 }

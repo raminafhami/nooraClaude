@@ -1,0 +1,8 @@
+.env
+.env.bak-*
+*.bak
+*.bak-*
+certs/
+compose_*.log
+node_modules/
+.next/

@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import { Metadata } from "next";
-import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import { PropsWithChildren } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -11,9 +11,16 @@ import { Loading } from "@/ui/Loader";
 import RootLayoutBody from "./_module/RootLayoutBody";
 import Providers from "./providers";
 
-const vazirmatnFont = Vazirmatn({
-	subsets: ["arabic", "latin"],
-	weight: ["400", "500", "600", "700"],
+// Self-hosted instead of next/font/google: the Google Fonts build-time fetch
+// times out from this server's network (same reason the docker-compose
+// elasticsearch image was switched to the Docker Hub mirror).
+const vazirmatnFont = localFont({
+	src: [
+		{ path: "../../public/fonts/vazirmatn/Vazirmatn-Regular.woff2", weight: "400", style: "normal" },
+		{ path: "../../public/fonts/vazirmatn/Vazirmatn-Medium.woff2", weight: "500", style: "normal" },
+		{ path: "../../public/fonts/vazirmatn/Vazirmatn-SemiBold.woff2", weight: "600", style: "normal" },
+		{ path: "../../public/fonts/vazirmatn/Vazirmatn-Bold.woff2", weight: "700", style: "normal" },
+	],
 	variable: "--font-family-vazirmatn",
 });
 

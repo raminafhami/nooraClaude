@@ -49,6 +49,10 @@ export class AppConfigService {
     return this.configService.get<string>('app.customerNaitcoUrl');
   }
 
+  public get frontendUrl(): string {
+    return this.configService.get<string>('app.frontendUrl');
+  }
+
   public get recaptchaSecretKey(): string {
     return this.configService.get<string>('app.recaptchaSecretKey');
   }

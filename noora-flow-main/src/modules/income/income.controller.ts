@@ -142,10 +142,4 @@ export class IncomeController {
     return this.incomeService.remove(incomeId, activeUser, req['mongoSession']);
   }
 
-  @CheckPermissions({
-    action: PermissionAction.READ,
-    subject: Subjects.INCOMES,
-  })
-  @Get('test/income/test')
-  async addCharge() {}
 }

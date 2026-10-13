@@ -355,27 +355,32 @@ export class ProcessDefinitionService {
     //   condition = {};
     // }
 
-    condition.$and.push({
-      $and: [
-        {
-          $or: [
-            { 'candidateStarter.users': user.id },
-            { 'candidateStarter.users': user.phoneNo },
-            { 'candidateStarter.groups': { $in: user.groups } }, // todo need change
-            {
-              $and: [
-                { 'candidateStarter.groups': { $size: 0 } },
-                { 'candidateStarter.users': { $size: 0 } },
-              ],
-            },
-          ],
-        },
-        { $or: [{ displayable: true }, { displayable: { $exists: false } }] },
-      ],
-    });
+    const isAdmin =
+      user.groups?.includes('system-admin') ||
+      user.groups?.includes('super-admin');
 
-    const count = await this.processDefinitionRepositoryImpl.count(condition);
-    const data = await this.processDefinitionRepositoryImpl.find(
+    if (!isAdmin) {
+      condition.$and.push({
+        $and: [
+          {
+            $or: [
+              { 'candidateStarter.users': user.id },
+              { 'candidateStarter.users': user.phoneNo },
+              { 'candidateStarter.groups': { $in: user.groups } }, // todo need change
+              {
+                $and: [
+                  { 'candidateStarter.groups': { $size: 0 } },
+                  { 'candidateStarter.users': { $size: 0 } },
+                ],
+              },
+            ],
+          },
+          { $or: [{ displayable: true }, { displayable: { $exists: false } }] },
+        ],
+      });
+    }
+
+    const allMatching = await this.processDefinitionRepositoryImpl.find(
       condition,
       {
         name: 1,
@@ -388,9 +393,28 @@ export class ProcessDefinitionService {
         candidateStarter: 1,
         useCN: 1,
       },
-      query.page,
-      query.size,
+      undefined,
+      undefined,
+      { version: -1 },
     );
+
+    // Older re-uploaded versions of the same process definition stay in the
+    // database for history, but only the latest version should be selectable.
+    const seenKeys = new Set<string>();
+    const latestOnly = allMatching.filter((item: any) => {
+      if (seenKeys.has(item.key)) return false;
+      seenKeys.add(item.key);
+      return true;
+    });
+
+    const count = latestOnly.length;
+    const page = query.page ?? 0;
+    const size = query.size ?? count;
+    const data =
+      query.page !== undefined && query.size !== undefined
+        ? latestOnly.slice(page * size, page * size + size)
+        : latestOnly;
+
     return { data, count };
   }
 

@@ -99,27 +99,27 @@ export default function AddAudit({
 								auditNo: (() => {
 									switch (category) {
 										case "دستورالعمل":
-											return `NAIT-WI-${auditNo}`;
+											return `APK-WI-${auditNo}`;
 										case "روش اجرایی":
-											return `NAIT-PR-${auditNo}`;
+											return `APK-PR-${auditNo}`;
 										case "قرارداد":
-											return `NAIT-CT-${auditNo}`;
+											return `APK-CT-${auditNo}`;
 										case "خط مشی کیفیت":
-											return `NAIT-QP-${auditNo}`;
+											return `APK-QP-${auditNo}`;
 										case "اهداف کیفیت":
-											return `NAIT-QG-${auditNo}`;
+											return `APK-QG-${auditNo}`;
 										case "تعهدنامه بی طرفی":
-											return `NAIT-IS-${auditNo}`;
+											return `APK-IS-${auditNo}`;
 										case "منشور اخلاقی":
-											return `NAIT-CO-${auditNo}`;
+											return `APK-CO-${auditNo}`;
 										case "چارت سازمانی":
-											return `NAIT-OC-${auditNo}`;
+											return `APK-OC-${auditNo}`;
 										case "ممیزی داخلی":
-											return `NAIT-RI-${auditNo}`;
+											return `APK-RI-${auditNo}`;
 										case "فرم":
-											return `NAIT-FR-${auditNo}`;
+											return `APK-FR-${auditNo}`;
 										case "نظامنامه کیفیت":
-											return `NAIT-QM-${auditNo}`;
+											return `APK-QM-${auditNo}`;
 										default:
 											return "";
 									}
@@ -147,27 +147,27 @@ export default function AddAudit({
 										: (() => {
 												switch (category) {
 													case "دستورالعمل":
-														return `NAIT-WI-${auditNo}`;
+														return `APK-WI-${auditNo}`;
 													case "روش اجرایی":
-														return `NAIT-PR-${auditNo}`;
+														return `APK-PR-${auditNo}`;
 													case "قرارداد":
-														return `NAIT-CT-${auditNo}`;
+														return `APK-CT-${auditNo}`;
 													case "خط مشی کیفیت":
-														return `NAIT-QP-${auditNo}`;
+														return `APK-QP-${auditNo}`;
 													case "اهداف کیفیت":
-														return `NAIT-QG-${auditNo}`;
+														return `APK-QG-${auditNo}`;
 													case "تعهدنامه بی طرفی":
-														return `NAIT-IS-${auditNo}`;
+														return `APK-IS-${auditNo}`;
 													case "منشور اخلاقی":
-														return `NAIT-CO-${auditNo}`;
+														return `APK-CO-${auditNo}`;
 													case "چارت سازمانی":
-														return `NAIT-OC-${auditNo}`;
+														return `APK-OC-${auditNo}`;
 													case "ممیزی داخلی":
-														return `NAIT-RI-${auditNo}`;
+														return `APK-RI-${auditNo}`;
 													case "فرم":
-														return `NAIT-FR-${auditNo}`;
+														return `APK-FR-${auditNo}`;
 													case "نظامنامه کیفیت":
-														return `NAIT-QM-${auditNo}`;
+														return `APK-QM-${auditNo}`;
 													default:
 														return "";
 												}

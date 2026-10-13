@@ -10,6 +10,22 @@
 # Every value comes from the .env next to this file; no secret is stored here.
 
 services:
+  gateway:
+    container_name: noora-gateway
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - noora
+
   backend:
     container_name: noora-backend
     build:
@@ -24,8 +40,6 @@ services:
       MONGO_URI: mongodb://mongo:27017
       REDIS_HOST: redis
       ELASTIC_NODE: http://elasticsearch:9200
-    ports:
-      - "${BACKEND_PORT:-4000}:4000"
     volumes:
       - ./noora-flow-main/assets:/app/assets
       - backend-statics:/app/statics
@@ -44,6 +58,7 @@ services:
         condition: service_started
     networks:
       - noora
+    # Not published: reachable only through the gateway.
 
   frontend:
     container_name: noora-frontend
@@ -59,12 +74,11 @@ services:
         NEXT_PUBLIC_ENABLE_OTP_LOGIN: ${NEXT_PUBLIC_ENABLE_OTP_LOGIN:-false}
     image: noora-front:${IMAGE_TAG:-latest}
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       - backend
     networks:
       - noora
+    # Not published: reachable only through the gateway.
 
   mongo:
     container_name: noora-mongo

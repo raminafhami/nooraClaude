@@ -236,7 +236,7 @@ export class EmailService extends CrudService<EmailDocument> {
       emailConfig = await this.usersService.getEmailConfig(userId);
     }
     const client = new ImapFlow({
-      host: 'mail.naitco.ir',
+      host: this.emailConfigService.host,
       port: 993,
       secure: true,
       auth: emailConfig,

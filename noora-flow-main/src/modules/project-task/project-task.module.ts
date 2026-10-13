@@ -10,6 +10,7 @@ import { UsersModule } from '../users/users.module';
 import { IndicatorModule } from '../indicator/indicator.module';
 import { AppConfigModule } from 'src/config/app/config.module';
 import { IamModule } from '../iam/iam.module';
+import { TasksModule } from '../tasks/tasks.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { IamModule } from '../iam/iam.module';
     IndicatorModule,
     AppConfigModule,
     IamModule,
+    TasksModule,
   ],
   controllers: [ProjectTaskController],
   providers: [ProjectTaskService, ProjectTaskRepositoryImpl],

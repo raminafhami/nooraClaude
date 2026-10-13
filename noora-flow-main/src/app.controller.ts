@@ -67,29 +67,6 @@ export class AppController {
     private readonly processInstanceService: ProcessInstanceService,
   ) {}
 
-  // @Post('sms')
-  // async sendMessage(@Body() messageDate: CreateMessageDto) {
-  //   const result = await firstValueFrom(
-  //     this.httpService.request({
-  //       method: 'post',
-  //       url: 'https://api.sms.ir/v1/send/bulk',
-  //       headers: {
-  //         'X-API-KEY':
-  //           'YKpcbBpImBHPEPjSJCSKsDIm1eOWUa3NZyfxSLuXYln3iy8dv3BmzbAzrv0HyA0j',
-  //         'Content-Type': 'application/json',
-  //       },
-  //       data: {
-  //         lineNumber: 100091304500,
-  //         messageText: messageDate.text,
-  //         mobiles: [messageDate.phoneNumber],
-  //         sendDateTime: null,
-  //       },
-  //     }),
-  //   );
-
-  //   return result.data;
-  // }
-
   @Post('template/generate')
   async exportToPdfFromVariables(
     @Res({ passthrough: true }) res: Response,

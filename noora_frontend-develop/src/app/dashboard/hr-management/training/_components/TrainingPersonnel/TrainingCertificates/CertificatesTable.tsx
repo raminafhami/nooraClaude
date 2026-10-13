@@ -3,9 +3,10 @@
 import moment from "moment-jalaali";
 import { memo, useContext } from "react";
 import { FaTimes } from "react-icons/fa";
-import { FaCheck, FaEye, FaPencil } from "react-icons/fa6";
+import { FaCheck, FaEye, FaPencil, FaTrash } from "react-icons/fa6";
 import { toast } from "sonner";
 
+import { useDialogs } from "@/components/ui/dialog/use-dialogs";
 import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
 import { getCertificateFile } from "@/hrm/personnelExpertise/services/getCertificateFile";
 import { Head } from "@/ui/Head";
@@ -13,10 +14,34 @@ import { Panel } from "@/ui/Panel";
 import { Table } from "@/ui/Table";
 import downloadBlob from "@/utils/downloadBlob";
 
+import { TrainingContext } from "../TrainingContext";
+import { CertificateDeleteDialog } from "./CertificateDeleteDialog";
 import { CertificatesContext } from "./CertificatesContext";
 
+const CERTIFICATE_EXTENSIONS: Record<string, string> = {
+	"application/pdf": "pdf",
+	"image/jpeg": "jpg",
+	"image/png": "png",
+	"image/heic": "heic",
+	"application/zip": "zip",
+	"application/vnd.ms-excel": "xls",
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+	"text/csv": "csv",
+	"application/msword": "doc",
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		"docx",
+	"video/mp4": "mp4",
+};
+
+function getCertificateExtension(mimeType: string): string {
+	return CERTIFICATE_EXTENSIONS[mimeType] || mimeType.split("/")[1] || "bin";
+}
+
 export const CertificatesTable = memo(function CertificatesTable() {
-	const { personnel, certificates } = useContext(CertificatesContext);
+	const { personnel, certificates, removeCertificate } =
+		useContext(CertificatesContext);
+	const { updateExpertise } = useContext(TrainingContext);
+	const dialogs = useDialogs();
 
 	async function handleDownload(expertise: PersonnelExpertise) {
 		if (!expertise.certificate?.id) {
@@ -25,14 +50,27 @@ export const CertificatesTable = memo(function CertificatesTable() {
 
 		try {
 			const blob = await getCertificateFile(expertise.certificate.id);
+			const extension = getCertificateExtension(blob.type);
 
 			downloadBlob({
 				blob,
-				filename: `${personnel?.fullname} - ${expertise.title}.pdf`,
+				filename: `${personnel?.fullname} - ${expertise.title}.${extension}`,
 			});
 		} catch (err) {
 			console.error(err);
 			toast.error("خطایی هنگام دانلود فایل گواهینامه رخ داد.");
+		}
+	}
+
+	async function handleDelete(expertise: PersonnelExpertise) {
+		const result = await dialogs.open(CertificateDeleteDialog, expertise);
+
+		if (result) {
+			removeCertificate(expertise.id);
+
+			if (personnel) {
+				updateExpertise(personnel.id, result);
+			}
 		}
 	}
 
@@ -76,11 +114,18 @@ export const CertificatesTable = memo(function CertificatesTable() {
 														<FaPencil />
 													</Table.Action>
 												) : (
-													<Table.Action
-														onClick={() => handleDownload(expertise)}
-													>
-														<FaEye />
-													</Table.Action>
+													<>
+														<Table.Action
+															onClick={() => handleDownload(expertise)}
+														>
+															<FaEye />
+														</Table.Action>
+														<Table.Action
+															onClick={() => handleDelete(expertise)}
+														>
+															<FaTrash />
+														</Table.Action>
+													</>
 												)}
 											</Table.Actions>
 										</Table.Cell>

@@ -11,6 +11,7 @@ export default registerAs('app', () => ({
   currencyApiKey: process.env.CURRENCY_API_KEY,
   currencyApiUrl: process.env.CURRENCY_API_URL,
   customerNaitcoUrl: process.env.CUSTOMER_NAITCO_URL,
+  frontendUrl: process.env.FRONTEND_URL,
   recaptchaSecretKey: process.env.RECAPTCHA_SECRET_KEY,
   recaptchaVerifyUrl: process.env.RECAPTCHA_VERIFY_URL,
   processWithoutFileThreshold: process.env.PROCESS_WITHOUT_FILE_THRESHOLD,

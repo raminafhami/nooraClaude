@@ -91,24 +91,34 @@ function TaskCreateDialog({
 	);
 }
 
-const schema = z.object({
-	title: z.string().min(1, messages.validation.required),
-	description: z.string(),
-	assignee: z
-		.string({ required_error: messages.validation.required })
-		.min(1, messages.validation.required),
-	deadline: z.string().min(1, messages.validation.required),
-	priority: z
-		.string({ required_error: messages.validation.required })
-		.min(1, messages.validation.required),
-	status: z
-		.string({ required_error: messages.validation.required })
-		.min(1, messages.validation.required),
-	labels: z.custom<ProjectTaskLabel>().array(),
-	reminder: z.string(),
-	isConfidential: z.boolean().optional(),
-	reminderMethod: z.custom<ProjectTaskReminderMethod>().optional(),
-});
+const schema = z
+	.object({
+		title: z.string().min(1, messages.validation.required),
+		description: z.string(),
+		assignee: z
+			.string({ required_error: messages.validation.required })
+			.min(1, messages.validation.required),
+		deadline: z.string().min(1, messages.validation.required),
+		priority: z
+			.string({ required_error: messages.validation.required })
+			.min(1, messages.validation.required),
+		status: z
+			.string({ required_error: messages.validation.required })
+			.min(1, messages.validation.required),
+		labels: z.custom<ProjectTaskLabel>().array(),
+		reminder: z.string(),
+		isConfidential: z.boolean().optional(),
+		reminderMethod: z.custom<ProjectTaskReminderMethod>().optional(),
+	})
+	.superRefine(({ reminder, reminderMethod }, ctx) => {
+		if (reminder && !reminderMethod) {
+			ctx.addIssue({
+				path: ["reminderMethod"],
+				code: z.ZodIssueCode.custom,
+				message: messages.validation.required,
+			});
+		}
+	});
 
 type FormSchema = z.infer<typeof schema>;
 

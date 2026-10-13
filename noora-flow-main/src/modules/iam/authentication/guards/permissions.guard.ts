@@ -42,9 +42,6 @@ export class PermissionsGuard implements CanActivate {
 
     const canAccess = await this.authenticationGuard.canActivate(context);
 
-    // todo need to be deleted
-    return canAccess;
-
     if (!canAccess) {
       return false;
     }

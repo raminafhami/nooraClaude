@@ -125,7 +125,7 @@ export function AssetRequirementTable({
 					setTimeout(() => {
 						getData();
 						setFormAttribuite(undefined);
-						toast.success("بند جدید با موفقیت حذف شد!");
+						toast.success("بند جدید با موفقیت اضافه شد!");
 						setLoading(false);
 					}, 1000);
 				}
@@ -311,57 +311,59 @@ export function AssetRequirementTable({
 																asset.paraNumber.length === 4) ||
 														  (getPosition(asset.paraNumber, "-", 1) === 2 &&
 																asset.paraNumber.length === 4)
-														? "pr-10"
+														? "pr-5"
 														: asset.paraNumber.length === 5 ||
 															  (getPosition(asset.paraNumber, "-", 2) === 4 &&
 																	asset.paraNumber.length === 6)
-															? "pr-20"
+															? "pr-10"
 															: asset.paraNumber.length === 7 ||
 																  (getPosition(asset.paraNumber, "-", 2) ===
 																		4 &&
 																		asset.paraNumber.length === 8)
-																? "pr-32"
+																? "pr-16"
 																: asset.paraNumber.length === 9
-																	? "pr-44"
+																	? "pr-20"
 																	: ""
 											}`}
 										>
-											<textarea
-												name={`${asset.questionDescription}`}
-												key={asset?.id}
-												onChange={(event) =>
-													setFormAttribuite((prev: any) => ({
-														...prev,
-														newTitle: event.target.value,
-														id: asset.id,
-													}))
-												}
-												disabled={readonly}
-												onKeyDown={() => null}
-												value={
-													formAttribuite?.id === asset?.id
-														? toFarsiNum(formAttribuite?.newTitle)
-														: toFarsiNum(asset.questionDescription)
-															? toFarsiNum(asset.questionDescription)
-															: ""
-												}
-												className={`group relative max-h-[15rem] min-h-[5rem] w-full text-ellipsis rounded border-r-2 border-none bg-transparent px-2 py-2 text-[13px] focus:bg-blue-300 focus:text-white focus:placeholder-white focus:outline-0`}
-												placeholder={"بدون عنوان"}
-											/>
-											{!readonly && (
-												<TbSquareRoundedCheck
-													onClick={() =>
-														formAttribuite &&
-														formAttribuite?.newTitle !==
-															asset.questionDescription &&
-														formAttribuite?.id === asset?.id
-															? updateTitle(asset.id, formAttribuite.newTitle)
-															: toast.warning("لطفا عنوان جدیدی وارد کنید!")
+											<div className="flex items-start gap-2">
+												<textarea
+													name={`${asset.questionDescription}`}
+													key={asset?.id}
+													onChange={(event) =>
+														setFormAttribuite((prev: any) => ({
+															...prev,
+															newTitle: event.target.value,
+															id: asset.id,
+														}))
 													}
-													className="absolute top-5 mr-2 hidden cursor-pointer text-green-500 group-hover:inline"
-													size={20}
+													disabled={readonly}
+													onKeyDown={() => null}
+													value={
+														formAttribuite?.id === asset?.id
+															? toFarsiNum(formAttribuite?.newTitle)
+															: toFarsiNum(asset.questionDescription)
+																? toFarsiNum(asset.questionDescription)
+																: ""
+													}
+													className={`min-w-0 flex-1 max-h-[15rem] min-h-[5rem] text-ellipsis rounded border-r-2 border-none bg-transparent px-2 py-2 text-[13px] focus:bg-blue-300 focus:text-white focus:placeholder-white focus:outline-0`}
+													placeholder={"بدون عنوان"}
 												/>
-											)}
+												{!readonly && (
+													<TbSquareRoundedCheck
+														onClick={() =>
+															formAttribuite &&
+															formAttribuite?.newTitle !==
+																asset.questionDescription &&
+															formAttribuite?.id === asset?.id
+																? updateTitle(asset.id, formAttribuite.newTitle)
+																: toast.warning("لطفا عنوان جدیدی وارد کنید!")
+														}
+														className="mt-2 shrink-0 cursor-pointer text-green-500 hover:text-green-700"
+														size={20}
+													/>
+												)}
+											</div>
 										</Table.Cell>
 
 										<Table.Cell>
@@ -480,6 +482,7 @@ export function AssetRequirementTable({
 														!loading && setConflictModal(true);
 														setConflict({
 															conflict: asset.conflict,
+															conflictDate: asset.conflictDate,
 															description: asset.description,
 														});
 														setId(asset.id);

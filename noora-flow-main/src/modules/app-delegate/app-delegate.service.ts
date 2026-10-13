@@ -66,4 +66,16 @@ export class AppDelegateService {
     }
     return parameters;
   }
+
+  async sendWelcomeSms(instance: any, params: any, output: string) {
+    const parameters = instance?.parameters;
+    if (params?.phoneNumber && params?.templateId) {
+      await this.smsService.sendSmsDynamicTemplateAndParamters(
+        params.phoneNumber,
+        params.templateId,
+        [],
+      );
+    }
+    return parameters;
+  }
 }

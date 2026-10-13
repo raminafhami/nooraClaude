@@ -20,6 +20,7 @@ export function parseGroup(
     parent: (from.parent && parseGroup(from.parent)) || from.parentId,
     children: from.children && parseGroup(from.children),
     users: from.users && parseUser(from.users),
+    permissions: from.permissions,
   };
 
   return result;

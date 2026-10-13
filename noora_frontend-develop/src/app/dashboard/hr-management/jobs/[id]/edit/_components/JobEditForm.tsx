@@ -486,17 +486,19 @@ function ExpertiseWidget({
 
 			<div className="col-span-6 col-start-1 rounded-xl border-s-4 border-gray-200 bg-gray-50 px-6 py-3">
 				{expertises.length !== 0 ? (
-					expertises.map((expertise: Expertise) => (
-						<div className="mt-1.5 first:mt-0" key={expertise.title}>
+					expertises.map((expertise: Expertise, index) => (
+						<div className="mt-1.5 first:mt-0" key={`${expertise.title}-${index}`}>
 							<div className="flex items-center">
 								<div>
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
+											const all = fields["requirements"].expertises;
+											const removeAt = all.indexOf(expertise);
+
 											setValue("requirements.expertises", [
-												...fields["requirements"].expertises.filter(
-													(x) => x.title !== expertise.title,
-												),
+												...all.slice(0, removeAt),
+												...all.slice(removeAt + 1),
 											]);
 										}}
 									/>
@@ -605,23 +607,16 @@ function DegreeWidget() {
 
 			<div className="col-span-6 col-start-1 rounded-xl border-s-4 border-gray-200 bg-gray-50 px-6 py-3">
 				{degrees.length !== 0 ? (
-					degrees.map((degree) => (
-						<div
-							className="mt-1.5 first:mt-0"
-							key={`${degree.level}.${degree.name}.${degree.field}`}
-						>
+					degrees.map((degree, index) => (
+						<div className="mt-1.5 first:mt-0" key={`${degree.level}.${degree.name}.${degree.field}-${index}`}>
 							<div className="flex items-center">
 								<div>
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
 											setValue("requirements.degree", [
-												...fields["requirements"].degree.filter(
-													(x) =>
-														x.level !== degree.level ||
-														x.name !== degree.name ||
-														x.field !== degree.field,
-												),
+												...degrees.slice(0, index),
+												...degrees.slice(index + 1),
 											]);
 										}}
 									/>
@@ -694,15 +689,16 @@ function DutiesWidget() {
 
 			<div className="col-span-6 col-start-1 rounded-xl border-s-4 border-gray-200 bg-gray-50 px-6 py-3">
 				{duties && duties.length !== 0 ? (
-					duties.map((duty) => (
-						<div className="mt-1.5 first:mt-0" key={duty}>
+					duties.map((duty, index) => (
+						<div className="mt-1.5 first:mt-0" key={`${duty}-${index}`}>
 							<div className="flex items-center">
 								<div>
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
 											setValue("duties", [
-												...fields["duties"].filter((x) => x !== duty),
+												...duties.slice(0, index),
+												...duties.slice(index + 1),
 											]);
 										}}
 									/>
@@ -772,15 +768,16 @@ function AuthoritiesWidget() {
 
 			<div className="col-span-6 col-start-1 rounded-xl border-s-4 border-gray-200 bg-gray-50 px-6 py-3">
 				{authorities && authorities.length !== 0 ? (
-					authorities.map((authority) => (
-						<div className="mt-1.5 first:mt-0" key={authority}>
+					authorities.map((authority, index) => (
+						<div className="mt-1.5 first:mt-0" key={`${authority}-${index}`}>
 							<div className="flex items-center">
 								<div>
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
 											setValue("authorities", [
-												...authorities.filter((x) => x !== authority),
+												...authorities.slice(0, index),
+												...authorities.slice(index + 1),
 											]);
 										}}
 									/>

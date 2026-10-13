@@ -67,29 +67,23 @@ export class AssetRequirementController {
     @ActiveUser() activeUser: ActiveUserData,
   ) {
     queryDto.populate = 'filesList';
-    let result = [];
-    const data = await this.assetRequirementService.findAll(queryDto);
-    const filters = {};
-    if (
-      !activeUser.groups.includes('super-admin') &&
-      !activeUser.groups.includes('qa-manager') &&
-      !activeUser.groups.includes('ceo')
-    ) {
-      for (let assetReq of data.data) {
-        filters['mimetype'] = 'application/pdf';
-        filters['assetId'] = assetReq.id;
-        const files = await this.assetRequirementService.findAssetFiles(
-          filters,
-        );
-        result.push({
-          ...JSON.parse(JSON.stringify(assetReq)),
-          files: files.map((f) => {
-            return { id: f.id, title: f.title };
-          }),
-        });
-        data.data = result;
-      }
+    const result = [];
+    const data = await this.assetRequirementService.findAll(queryDto, {
+      locale: 'en',
+      numericOrdering: true,
+    });
+    for (let assetReq of data.data) {
+      const files = await this.assetRequirementService.findAssetFiles({
+        assetId: assetReq.id,
+      });
+      result.push({
+        ...JSON.parse(JSON.stringify(assetReq)),
+        files: files.map((f) => {
+          return { id: f.id, title: f.title };
+        }),
+      });
     }
+    data.data = result;
 
     return data;
   }
@@ -117,17 +111,9 @@ export class AssetRequirementController {
     if (!assetReq) {
       throw new NotFoundException('asset requirement not exist');
     }
-    const filters = {};
-    filters['assetId'] = assetReq.id;
-
-    if (
-      !activeUser.groups.includes('super-admin') &&
-      !activeUser.groups.includes('qa-manager') &&
-      !activeUser.groups.includes('ceo')
-    ) {
-      filters['mimetype'] = 'application/pdf';
-    }
-    const files = await this.assetRequirementService.findAssetFiles(filters);
+    const files = await this.assetRequirementService.findAssetFiles({
+      assetId: assetReq.id,
+    });
     assetReq.files = files.map((f) => f.id);
 
     return assetReq;

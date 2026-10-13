@@ -49,7 +49,7 @@ export class PaymentController {
   async verify(@Body() body: any, @Req() req: Request, @Res() res: Response) {
     const payment = await this.paymentService.verify(body, req['mongoSession']);
 
-    const redirectUrl = `http://192.168.120.143:3000/payment/${encrypt(
+    const redirectUrl = `${this.appConfigService.frontendUrl}/payment/${encrypt(
       payment.invoiceId.toString(),
       this.appConfigService.invoiceCryptoSecretKey,
     )}?success=${payment.isVerified}`;
@@ -58,17 +58,7 @@ export class PaymentController {
   }
 
   @Get(':paymentId')
-  async get(@Param() paymentId: string) {
+  async get(@Param('paymentId') paymentId: string) {
     return this.paymentService.findById(paymentId);
-  }
-
-  @Post('test/test/etestse/df/etsfgs')
-  async test(@ActiveUser() activeUser: ActiveUserData) {
-    return this.paymentService.pay('67ab48a107372dff73c4455c', activeUser);
-  }
-
-  @Get(':paymentId')
-  async getOne(@Param('paymentId') paymentId: string) {
-    return await this.paymentService.findById(paymentId);
   }
 }

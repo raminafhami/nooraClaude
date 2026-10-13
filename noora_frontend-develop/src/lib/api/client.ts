@@ -1,4 +1,5 @@
 import { Options } from "ky";
+import { routes } from "@/routes";
 
 import { getKy } from "./ky";
 import {
@@ -11,7 +12,7 @@ import { EntityQuery } from "./models/EntityQuery";
 import { RequestParams } from "./models/RequestParams";
 import { isApiResponse } from "./utils/isApiResponse";
 
-const ky = getKy(process.env.NEXT_PUBLIC_EXTERNAL_API_URL);
+const ky = getKy(routes.externalApi);
 
 async function send<T = any>(
 	params: Exclude<RequestParams, "responseType"> & { responseType: "json" },
@@ -84,25 +85,54 @@ async function send<T = any>(
 		} else if (responseType === "blob") {
 			return await response.blob();
 		} else {
-			const jsonResponse = await response.json<ApiSuccessResponse<T>>();
+			let jsonResponse: ApiSuccessResponse<T>;
+			try {
+				jsonResponse = await response.json<ApiSuccessResponse<T>>();
+			} catch {
+				throw buildUnreadableResponseError(response.status);
+			}
 			return { ...jsonResponse, success: true };
 		}
 	} catch (error: any) {
+		if (isApiFailureResponse(error)) {
+			throw error;
+		}
+
 		if (error.name === "HTTPError") {
-			const { statusCode, message, errors } = await error.response.json();
+			try {
+				const { statusCode, message, errors } = await error.response.json();
 
-			const response: ApiFailureResponse = {
-				success: false,
-				statusCode,
-				message,
-				errors: errors ?? [],
-			};
+				const response: ApiFailureResponse = {
+					success: false,
+					statusCode,
+					message,
+					errors: errors ?? [],
+				};
 
-			throw response;
+				throw response;
+			} catch (parseError: any) {
+				if (isApiFailureResponse(parseError)) {
+					throw parseError;
+				}
+				throw buildUnreadableResponseError(error.response?.status);
+			}
 		}
 
 		throw error;
 	}
+}
+
+function isApiFailureResponse(value: any): value is ApiFailureResponse {
+	return Boolean(value) && value.success === false && "statusCode" in value;
+}
+
+function buildUnreadableResponseError(statusCode?: number): ApiFailureResponse {
+	return {
+		success: false,
+		statusCode: statusCode ?? 0,
+		message: "خطا در برقراری ارتباط با سرور. لطفاً دوباره تلاش کنید.",
+		errors: [],
+	};
 }
 
 async function get<T = any>(

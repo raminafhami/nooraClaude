@@ -135,7 +135,7 @@ function LoginCredentialsForm() {
 												<Image
 													src={ProfileIcon}
 													alt=""
-													width={18}
+													width={12}
 													height={18}
 												/>
 											</div>
@@ -172,7 +172,7 @@ function LoginCredentialsForm() {
 											</FormControl>
 
 											<div className="absolute top-1 flex size-10 -translate-y-1 items-center justify-center">
-												<Image src={LockIcon} alt="" width={18} height={18} />
+												<Image src={LockIcon} alt="" width={12} height={18} />
 											</div>
 
 											<div
@@ -194,7 +194,7 @@ function LoginCredentialsForm() {
 
 						<div>
 							<Button
-								className="h-12 w-full rounded-full border-none bg-gradient-to-r from-[#ef9b20] to-[#ffbf62] text-sm font-medium text-[#0b273c]"
+								className="h-12 w-full rounded-full border-none bg-gradient-to-r from-[#2b388f] to-[#26a9e0] text-sm font-medium text-white"
 								disabled={isSubmitSuccessful || isSubmitting}
 								variant="outline"
 							>

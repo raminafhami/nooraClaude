@@ -40,7 +40,7 @@ export class TicketMessageService extends CrudService<TicketMessage> {
       ticketId,
     });
     await this.ticketMessageFileRepositoryImpl.model.deleteMany({ ticketId });
-    fs.rmSync(path.resolve('tickets', ticketId), {
+    fs.rmSync(path.resolve('tickts', ticketId), {
       recursive: true,
       force: true,
     });

@@ -67,7 +67,7 @@ export const saveBufferToFile = async (
       streamData = null;
     };
 
-    const dir = `./tickets/${directory}`;
+    const dir = `./tickts/${directory}`;
     await createFolderIfNotExists(dir);
     const filename = generateRandomName(name);
     const finalPath = path.join(dir, filename);

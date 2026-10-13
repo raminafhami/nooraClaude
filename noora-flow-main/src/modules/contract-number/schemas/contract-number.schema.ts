@@ -57,7 +57,12 @@ export class ContractNumber extends Document {
   })
   proforma: string;
 
-  @Prop({ type: SchemaTypes.Types.ObjectId, required: true, ref: Branch.name })
+  @Prop({
+    type: SchemaTypes.Types.ObjectId,
+    required: false,
+    default: null,
+    ref: Branch.name,
+  })
   branchId: string;
 
   @Prop({

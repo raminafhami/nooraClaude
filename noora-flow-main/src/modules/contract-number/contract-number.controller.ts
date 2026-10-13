@@ -36,10 +36,7 @@ export class ContractNumberController {
   ) {
     const CN = await this.contractNumberService.createCN({
       ...createContractNumberDto,
-      branchId:
-        activeUser.branchId == null
-          ? '67fe755a7ce42f0991088d91'
-          : activeUser.branchId,
+      branchId: activeUser.branchId ?? null,
       createdBy: activeUser.id,
     });
     return CN;

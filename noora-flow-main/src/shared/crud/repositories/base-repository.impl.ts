@@ -43,6 +43,7 @@ export abstract class BaseRepositoryImpl<T> implements BaseRepository<T> {
     limit?: number,
     sort?: string | { [key: string]: SortValues },
     populate?: any,
+    collation?: { locale: string; [key: string]: any },
   ): Promise<T[]> {
     let mongoQuery = this.model.find(where, projection).populate(populate);
     if (page !== undefined && limit !== undefined) {
@@ -50,6 +51,9 @@ export abstract class BaseRepositoryImpl<T> implements BaseRepository<T> {
     }
     if (sort) {
       mongoQuery = mongoQuery.sort(sort);
+    }
+    if (collation) {
+      mongoQuery = mongoQuery.collation(collation);
     }
     mongoQuery.allowDiskUse(true);
     return mongoQuery.exec();

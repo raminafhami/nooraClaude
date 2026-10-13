@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { isApiResponse } from "@/api/utils/isApiResponse";
 import PostNewTickets from "@/api/ticketsapi/postNewTickets";
 import { UserGroupType } from "@/identity/groups/models/GroupType";
 import { getGroups } from "@/identity/groups/services/getGroups";
@@ -123,7 +124,7 @@ export default function AddNewTicket({
 			console.log(e);
 
 			setLoading(false);
-			toast.error(e?.response?.data?.message);
+			toast.error(isApiResponse(e) ? e.message : "خطای نامشخصی رخ داد.");
 		}
 	}
 

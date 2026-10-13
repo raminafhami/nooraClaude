@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,14 @@ import { Select } from "@/form/select";
 import { useRoles } from "@/identity/groups/hooks/useRoles";
 import { UserGroup } from "@/identity/groups/models/Group";
 import { getGroupById } from "@/identity/groups/services/getGroupById";
+import { setGroupPermissions } from "@/identity/groups/services/setGroupPermissions";
 import { updateGroup } from "@/identity/groups/services/updateGroup";
+import { Permission } from "@/identity/permissions/models/Permission";
 import { messages } from "@/messages";
 import { Loading } from "@/ui/Loader";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
+
+import { RolePermissionsField } from "../../../_components/RolePermissionsField";
 
 interface Props {
 	id: string;
@@ -30,6 +34,7 @@ export function RoleEditForm({ id }: Props) {
 	const router = useRouter();
 
 	const { groups: roles } = useRoles();
+	const [permissions, setPermissions] = useState<string[]>([]);
 
 	const {
 		formState,
@@ -48,7 +53,7 @@ export function RoleEditForm({ id }: Props) {
 
 	useEffect(() => {
 		(async () => {
-			const role = await getGroupById(id);
+			const role = await getGroupById(id, "permissions");
 
 			if (!role) {
 				router.replace("/dashboard/admin/roles");
@@ -60,6 +65,12 @@ export function RoleEditForm({ id }: Props) {
 				name: role.name,
 				parent: role.parent && (role.parent as UserGroup).id,
 			});
+
+			setPermissions(
+				(role.permissions ?? []).map((x) =>
+					typeof x === "string" ? x : (x as Permission).id,
+				),
+			);
 		})();
 	}, []);
 
@@ -74,10 +85,13 @@ export function RoleEditForm({ id }: Props) {
 			<form
 				onSubmit={handleSubmit(async (data) => {
 					try {
-						const role = await updateGroup(id, {
+						await updateGroup(id, {
 							...data,
 							metadata: {},
 						});
+
+						await setGroupPermissions(id, permissions);
+
 						router.push(getDynamicUrl(`/dashboard/admin/roles/${id}`));
 					} catch (err) {
 						setError("root.server", { message: "Something went wrong..." });
@@ -140,6 +154,16 @@ export function RoleEditForm({ id }: Props) {
 							/>
 						</div>
 						<FieldError error={errors["parent"]} />
+					</div>
+
+					<div className="col-span-full col-start-1">
+						<label>دسترسی‌ها:</label>
+						<div className="mt-2">
+							<RolePermissionsField
+								value={permissions}
+								onChange={setPermissions}
+							/>
+						</div>
 					</div>
 				</div>
 

@@ -193,7 +193,7 @@ function ExpertiseUpsertForm({
 						)}
 
 						<div className="flex flex-col gap-3 xs:flex-row-reverse">
-							<Button className="min-w-24" type="button" variant="primary">
+							<Button className="min-w-24" type="submit" variant="primary">
 								<Spinner color="white" loading={isSubmitting} size="sm">
 									{expertise?.id ? "بروزرسانی" : "افزودن"}
 								</Spinner>

@@ -6,6 +6,7 @@ interface PutAssetRequirementProps {
   paraNumber?: string;
   state?: boolean;
   conflict?: string;
+  conflictDate?: string | null;
   description?: string;
 }
 
@@ -16,6 +17,7 @@ export default async function PutAssetRequirement({
   state,
   description,
   conflict,
+  conflictDate,
 }: PutAssetRequirementProps) {
   let response;
   let link = `asset-requirement/${id}`;
@@ -28,6 +30,7 @@ export default async function PutAssetRequirement({
       state,
       description,
       conflict,
+      conflictDate,
     },
   });
 

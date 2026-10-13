@@ -9,6 +9,7 @@ interface CertificatesContextType {
   personnel: Personnel | null;
   certificates: PersonnelExpertise[];
   addCertificate: (personnelId: string, expertise: PersonnelExpertise) => void;
+  removeCertificate: (expertiseId: string) => void;
 }
 
 export const CertificatesContext = createContext<CertificatesContextType>(

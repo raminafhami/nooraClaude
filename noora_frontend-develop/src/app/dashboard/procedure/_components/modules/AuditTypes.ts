@@ -1,6 +1,5 @@
 import { AiOutlineAudit } from "react-icons/ai";
-import { HiOutlineNewspaper } from "react-icons/hi";
-import { TbProgressHelp } from "react-icons/tb";
+import { FaClipboardCheck } from "react-icons/fa6";
 
 const CategoryTypes = [
 	{
@@ -59,9 +58,9 @@ export const ProcedureTabs = [
 		value: "audit",
 	},
 	{
-		name: "روش های اجرایی و دستورالعملها",
+		name: "اجراییات",
 		color: "",
-		icon: TbProgressHelp,
+		icon: FaClipboardCheck,
 		value: "instructions",
 	},
 	// {
@@ -70,12 +69,12 @@ export const ProcedureTabs = [
 	//   icon: FaPlus,
 	//   value: "riskIdentification",
 	// },
-	{
-		name: "پایش ها",
-		color: "",
-		icon: HiOutlineNewspaper,
-		value: "monitors",
-	},
+	// {
+	//   name: "پایش ها",
+	//   color: "",
+	//   icon: HiOutlineNewspaper,
+	//   value: "monitors",
+	// },
 	// {
 	//   name: "فهرست تامین کنندگان",
 	//   color: "",

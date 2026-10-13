@@ -26,6 +26,10 @@ export function TrainingCertificates({ personnel, show, onClose }: Props) {
 		[],
 	);
 
+	const handleCertificateRemove = useCallback((expertiseId: string) => {
+		setCertificates((previous) => previous.filter((x) => x.id !== expertiseId));
+	}, []);
+
 	useEffect(() => {
 		if (personnel) {
 			setCertificates(
@@ -45,6 +49,7 @@ export function TrainingCertificates({ personnel, show, onClose }: Props) {
 					personnel,
 					certificates,
 					addCertificate: handleCertificateAdd,
+					removeCertificate: handleCertificateRemove,
 				}}
 			>
 				<Modal

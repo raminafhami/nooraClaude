@@ -8,6 +8,7 @@ export type FileObject = {
 export type AssesstType = {
   description: null | string;
   conflict: null | string;
+  conflictDate: null | string;
   files: string[];
   questionDescription: string;
   paraNumber: string;
@@ -43,5 +44,6 @@ export type AuditType = {
 
 export type ConflictModalType = {
   conflict: string;
+  conflictDate: string;
   description: string;
 };
