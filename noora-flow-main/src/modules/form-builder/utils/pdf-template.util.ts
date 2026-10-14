@@ -51,7 +51,7 @@ const BASE_STYLES = `
   .question { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; page-break-inside: avoid; }
   .question-title { font-weight: bold; margin-bottom: 4px; }
   .question-desc { color: #6b7280; font-size: 11px; margin-bottom: 6px; }
-  .options { margin: 0; padding-right: 18px; }
+  .options { margin: 6px 0 0; padding-right: 4px; list-style: none; line-height: 1.9; }
   .answer-line { border-bottom: 1px solid #9ca3af; min-height: 20px; margin-top: 6px; }
   .answer-box { border: 1px solid #9ca3af; border-radius: 4px; min-height: 60px; margin-top: 6px; }
   .answer-value { font-weight: bold; margin-top: 4px; }
@@ -89,6 +89,12 @@ function formatAnswerValue(question: any, value: unknown): string {
       .join('، ');
   }
   if (typeof value === 'boolean') return value ? 'بله' : 'خیر';
+  if (question?.type === FormQuestionType.AMOUNT && typeof value === 'number') {
+    const currency = question.settings?.currency;
+    return escapeHtml(
+      `${value.toLocaleString('en-US')}${currency ? ` ${currency}` : ''}`,
+    );
+  }
   if (typeof value === 'object') {
     const v = value as any;
     return escapeHtml([v.date, v.time].filter(Boolean).join(' '));
@@ -114,8 +120,10 @@ function renderQuestionBlock(
 
   if (isChoice) {
     body = `<ul class="options">${options
-      .map((o) => `<li>${escapeHtml(o.title)}</li>`)
+      .map((o) => `<li>☐ ${escapeHtml(o.title)}</li>`)
       .join('')}</ul>`;
+  } else if (question.type === FormQuestionType.BOOLEAN) {
+    body = `<div class="answer-value" style="font-weight:normal">☐ بله &nbsp;&nbsp;&nbsp; ☐ خیر</div>`;
   } else if (question.type === FormQuestionType.LONG_TEXT) {
     body = `<div class="answer-box"></div>`;
   } else {
@@ -213,7 +221,11 @@ export function buildCompletedFormHtml(params: {
         <span>کد فرم: ${escapeHtml(code)}</span>
         <span>دسته‌بندی: ${escapeHtml(category || '-')}</span>
         <span>نسخه: ${versionNo}</span>
-        ${periodKey ? `<span>دوره: ${escapeHtml(periodKey)}</span>` : ''}
+        ${
+          periodKey
+            ? `<span>دوره: <bdi dir="ltr">${escapeHtml(periodKey)}</bdi></span>`
+            : ''
+        }
       </div>
       <div class="meta">
         <span>تکمیل‌کننده: ${escapeHtml(completerName)}</span>
