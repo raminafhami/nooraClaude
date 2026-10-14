@@ -23,6 +23,7 @@ import { FormService } from './form.service';
 import { FormAssignmentService } from './form-assignment.service';
 import { FormResponseService } from './form-response.service';
 import { FormReportService } from './form-report.service';
+import { FormAnswerFileService } from './form-answer-file.service';
 import { CreateFormCategoryDto } from './dto/create-form-category.dto';
 import { UpdateFormCategoryDto } from './dto/update-form-category.dto';
 import { CreateFormDto } from './dto/create-form.dto';
@@ -41,6 +42,7 @@ export class FormBuilderController {
     private readonly formAssignmentService: FormAssignmentService,
     private readonly formResponseService: FormResponseService,
     private readonly formReportService: FormReportService,
+    private readonly formAnswerFileService: FormAnswerFileService,
   ) {}
 
   @CheckPermissions({
@@ -90,6 +92,23 @@ export class FormBuilderController {
       'Content-Disposition': `attachment; filename="${filename}"`,
     });
     return new StreamableFile(buffer);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.FORM_BUILDER,
+  })
+  @Get('reports/occurrences/:occurrenceId/files/:fileId')
+  async downloadAnswerFileAsAdmin(
+    @Param('occurrenceId') occurrenceId: string,
+    @Param('fileId') fileId: string,
+    @Res() res: Response,
+  ) {
+    const file = await this.formAnswerFileService.getForAdmin(
+      occurrenceId,
+      fileId,
+    );
+    return res.download(file.path, file.originalName);
   }
 
   @CheckPermissions({

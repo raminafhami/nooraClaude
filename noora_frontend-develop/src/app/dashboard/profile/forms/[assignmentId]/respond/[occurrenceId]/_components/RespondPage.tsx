@@ -13,6 +13,7 @@ import { Layout } from "@/ui/Layout";
 import { FormQuestionType } from "@/formBuilder/enums/FormQuestionType";
 import { FormQuestion } from "@/formBuilder/models/FormQuestion";
 import { FormResponse } from "@/formBuilder/models/FormResponse";
+import { ownerAnswerFileDownloader } from "@/formBuilder/services/answerFiles";
 import { downloadOccurrenceCompletedFormPdf } from "@/formBuilder/services/downloadFormPdf";
 import { finalizeOccurrenceResponse } from "@/formBuilder/services/finalizeOccurrenceResponse";
 import { getOccurrenceResponse } from "@/formBuilder/services/getOccurrenceResponse";
@@ -241,6 +242,8 @@ function RespondPage({ occurrenceId }: { occurrenceId: string }) {
 										updateAnswer(question.id as string, value)
 									}
 									disabled={isCompleted}
+									occurrenceId={occurrenceId}
+									download={ownerAnswerFileDownloader(occurrenceId)}
 								/>
 							)}
 						</div>

@@ -353,6 +353,7 @@ export class FormService
         title: form.title,
         code: form.code,
         category: (form as any).category?.title,
+        description: form.description,
       },
       version,
     );

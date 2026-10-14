@@ -1,25 +1,48 @@
 "use client";
 
-import { DateInput } from "@/components/ui/date-input";
+import { useLayoutEffect, useRef } from "react";
+
 import { Checkbox } from "@/components/ui/checkbox";
+import { DateInput } from "@/components/ui/date-input";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { FormQuestionType } from "@/formBuilder/enums/FormQuestionType";
 import { FormQuestion } from "@/formBuilder/models/FormQuestion";
+
+import { FileAnswerField } from "./FileAnswerField";
+
+// Grows with its content while typing (spec 7.2: متن بلند با ارتفاع خودکار).
+function AutoGrowTextarea(props: React.ComponentProps<typeof Textarea>) {
+	const ref = useRef<HTMLTextAreaElement>(null);
+
+	useLayoutEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		el.style.height = "auto";
+		el.style.height = `${el.scrollHeight}px`;
+	}, [props.value]);
+
+	return <Textarea ref={ref} className="resize-none overflow-hidden" {...props} />;
+}
 
 function QuestionResponseField({
 	question,
 	value,
 	onChange,
 	disabled,
+	occurrenceId,
+	download,
 }: {
 	question: FormQuestion;
 	value: unknown;
 	onChange: (value: unknown) => void;
 	disabled?: boolean;
+	// FILE questions: occurrenceId enables upload/remove (completer only);
+	// download is the viewer-specific downloader for attached files.
+	occurrenceId?: string;
+	download?: (fileId: string) => Promise<Blob>;
 }) {
 	const settings = question.settings ?? {};
 
@@ -35,26 +58,32 @@ function QuestionResponseField({
 			);
 		case FormQuestionType.LongText:
 			return (
-				<Textarea
+				<AutoGrowTextarea
 					disabled={disabled}
-					rows={4}
+					rows={3}
 					value={(value as string) ?? ""}
 					maxLength={settings.maxLength ?? undefined}
 					onChange={(e) => onChange(e.target.value)}
 				/>
 			);
 		case FormQuestionType.Boolean:
+			// Explicit choice: an unanswered question must not look like "خیر".
 			return (
-				<div className="flex items-center gap-2">
-					<Switch
-						disabled={disabled}
-						checked={Boolean(value)}
-						onCheckedChange={(checked) => onChange(checked)}
-					/>
-					<span className="text-sm text-muted-foreground">
-						{value ? "بله" : "خیر"}
-					</span>
-				</div>
+				<RadioGroup
+					disabled={disabled}
+					className="flex gap-6"
+					value={typeof value === "boolean" ? String(value) : ""}
+					onValueChange={(v) => onChange(v === "true")}
+				>
+					<div className="flex items-center gap-2">
+						<RadioGroupItem value="true" />
+						<span className="text-sm">بله</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<RadioGroupItem value="false" />
+						<span className="text-sm">خیر</span>
+					</div>
+				</RadioGroup>
 			);
 		case FormQuestionType.Number:
 		case FormQuestionType.Percent:
@@ -194,9 +223,14 @@ function QuestionResponseField({
 		}
 		case FormQuestionType.File:
 			return (
-				<p className="rounded-xl bg-gray-50 p-3 text-xs text-muted-foreground">
-					بارگذاری فایل برای این سوال در نسخه فعلی در دسترس نیست.
-				</p>
+				<FileAnswerField
+					question={question}
+					value={value}
+					onChange={onChange}
+					disabled={disabled}
+					occurrenceId={occurrenceId}
+					download={download}
+				/>
 			);
 		case FormQuestionType.StaticText:
 			return null;

@@ -10,6 +10,7 @@ interface FormSummary {
   title: string;
   code: string;
   category?: string;
+  description?: string | null;
 }
 
 // Pure HTML/PDF building, no DB access or auth - callers (FormService for
@@ -25,6 +26,7 @@ export class FormPdfService {
       title: form.title,
       code: form.code,
       category: form.category,
+      description: form.description ?? undefined,
       versionNo: version.versionNo,
       questions: version.questions,
     });

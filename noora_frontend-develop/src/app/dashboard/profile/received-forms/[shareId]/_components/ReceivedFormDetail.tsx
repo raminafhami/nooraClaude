@@ -10,6 +10,7 @@ import { Loading } from "@/ui/Loader";
 import { Layout } from "@/ui/Layout";
 
 import { FormQuestionType } from "@/formBuilder/enums/FormQuestionType";
+import { sharedAnswerFileDownloader } from "@/formBuilder/services/answerFiles";
 import { downloadSharedFormPdf } from "@/formBuilder/services/downloadSharedFormPdf";
 import { ShareDetail, getShareDetail } from "@/formBuilder/services/getShareDetail";
 import downloadBlob from "@/utils/downloadBlob";
@@ -78,6 +79,7 @@ function ReceivedFormDetail({ shareId }: { shareId: string }) {
 										value={answers[question.id as string]}
 										onChange={() => undefined}
 										disabled
+										download={sharedAnswerFileDownloader(shareId)}
 									/>
 								)}
 							</div>

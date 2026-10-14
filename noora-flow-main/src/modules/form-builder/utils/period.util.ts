@@ -1,6 +1,11 @@
 import * as moment from 'moment-jalaali';
 import { FormAssignmentFrequency } from '../schemas/form-assignment.schema';
 
+// Asia/Tehran (no DST since 2022). Periods are computed in Tehran local time
+// regardless of the server/container time zone, so a Jalali month starts at
+// 00:00 Tehran time, not 00:00 UTC.
+export const TEHRAN_UTC_OFFSET_MINUTES = 210;
+
 export interface ResolvedPeriod {
   periodKey: string;
   periodStart: Date;
@@ -16,7 +21,7 @@ export function resolvePeriod(
   frequency: FormAssignmentFrequency,
   referenceDate: Date,
 ): ResolvedPeriod | null {
-  const m = moment(referenceDate);
+  const m = moment(referenceDate).utcOffset(TEHRAN_UTC_OFFSET_MINUTES);
 
   switch (frequency) {
     case FormAssignmentFrequency.DAILY: {

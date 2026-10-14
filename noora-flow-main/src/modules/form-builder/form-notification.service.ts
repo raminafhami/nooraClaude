@@ -9,6 +9,7 @@ import { FormRepositoryImpl } from './repository/form.repository';
 import { FormReminderLogRepositoryImpl } from './repository/form-reminder-log.repository';
 import { FormOccurrenceStatus } from './schemas/form-occurrence.schema';
 import { FormReminderType } from './schemas/form-reminder-log.schema';
+import { TEHRAN_UTC_OFFSET_MINUTES } from './utils/period.util';
 
 // Days before the due date to send the "upcoming" reminder (spec only says
 // "یادآوری قبل از سررسید" without a fixed number, so this picks a sane
@@ -37,8 +38,12 @@ export class FormNotificationService implements OnModuleInit {
 
   private resolveReminderType(dueDate: Date): FormReminderType | null {
     const daysUntilDue = moment(dueDate)
+      .utcOffset(TEHRAN_UTC_OFFSET_MINUTES)
       .startOf('day')
-      .diff(moment().startOf('day'), 'days');
+      .diff(
+        moment().utcOffset(TEHRAN_UTC_OFFSET_MINUTES).startOf('day'),
+        'days',
+      );
 
     if (daysUntilDue === REMINDER_BEFORE_DUE_DAYS) {
       return FormReminderType.BEFORE_DUE;

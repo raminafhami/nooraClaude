@@ -11,6 +11,9 @@
       {
         "include": "i18n/**/*",
         "watchAssets": true
+      },
+      {
+        "include": "modules/form-builder/fonts/*.woff2"
       }
     ]
   }

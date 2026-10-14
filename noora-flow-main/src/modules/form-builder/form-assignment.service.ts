@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -386,21 +387,32 @@ export class FormAssignmentService
       return latest;
     }
 
-    const [created] = await this.formOccurrenceRepositoryImpl.create(
-      {
-        assignmentId,
-        formId: assignment.formId,
-        userId,
-        versionId: form.publishedVersionId,
-        frequency: assignment.frequency,
-        periodKey: null,
-        periodStart: null,
-        periodEnd: null,
-        dueDate: null,
-        status: FormOccurrenceStatus.PENDING,
-      },
-      session,
-    );
-    return created;
+    try {
+      const [created] = await this.formOccurrenceRepositoryImpl.create(
+        {
+          assignmentId,
+          formId: assignment.formId,
+          userId,
+          versionId: form.publishedVersionId,
+          frequency: assignment.frequency,
+          periodKey: null,
+          periodStart: null,
+          periodEnd: null,
+          dueDate: null,
+          status: FormOccurrenceStatus.PENDING,
+          openSlot: 'open',
+        },
+        session,
+      );
+      return created;
+    } catch (err: any) {
+      // A concurrent request already opened the occurrence (unique openSlot).
+      if (err?.code === 11000) {
+        throw new ConflictException(
+          'نوبت جدید همین الان در حال ایجاد است؛ لطفاً دوباره تلاش کنید.',
+        );
+      }
+      throw err;
+    }
   }
 }

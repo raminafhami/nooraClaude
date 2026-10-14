@@ -27,6 +27,12 @@ import {
   FormReminderLogSchema,
 } from './schemas/form-reminder-log.schema';
 import { FormShare, FormShareSchema } from './schemas/form-share.schema';
+import {
+  FormAnswerFile,
+  FormAnswerFileSchema,
+} from './schemas/form-answer-file.schema';
+import { FormAnswerFileRepositoryImpl } from './repository/form-answer-file.repository';
+import { FormAnswerFileService } from './form-answer-file.service';
 import { FormCategoryRepositoryImpl } from './repository/form-category.repository';
 import { FormRepositoryImpl } from './repository/form.repository';
 import { FormVersionRepositoryImpl } from './repository/form-version.repository';
@@ -57,6 +63,7 @@ import { FormResponseController } from './form-response.controller';
       { name: FormResponse.name, schema: FormResponseSchema },
       { name: FormReminderLog.name, schema: FormReminderLogSchema },
       { name: FormShare.name, schema: FormShareSchema },
+      { name: FormAnswerFile.name, schema: FormAnswerFileSchema },
     ]),
     IndicatorModule,
     UserFilesModule,
@@ -72,6 +79,8 @@ import { FormResponseController } from './form-response.controller';
     FormResponseRepositoryImpl,
     FormReminderLogRepositoryImpl,
     FormShareRepositoryImpl,
+    FormAnswerFileRepositoryImpl,
+    FormAnswerFileService,
     FormCategoryService,
     FormService,
     FormAssignmentService,

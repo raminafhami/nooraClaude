@@ -109,6 +109,15 @@ export class FormOccurrence extends Document {
     default: null,
   })
   public responseId: string;
+
+  // NO_SCHEDULE only: 'open' while the occurrence is not finalized, removed
+  // on finalize. The partial unique index below allows at most one open
+  // occurrence per assignment even under concurrent "تکمیل فرم جدید" clicks.
+  @Prop({
+    type: String,
+    default: undefined,
+  })
+  public openSlot?: string;
 }
 
 export type FormOccurrenceDocument = FormOccurrence & Document;
@@ -118,4 +127,9 @@ export const FormOccurrenceSchema =
 FormOccurrenceSchema.index(
   { assignmentId: 1, periodKey: 1 },
   { unique: true, partialFilterExpression: { periodKey: { $type: 'string' } } },
+);
+
+FormOccurrenceSchema.index(
+  { assignmentId: 1, openSlot: 1 },
+  { unique: true, partialFilterExpression: { openSlot: { $type: 'string' } } },
 );

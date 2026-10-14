@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -8,9 +9,11 @@ import {
   Req,
   Res,
   StreamableFile,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { ActiveUser } from '../iam/authentication/decorators/active-user.decorator';
 import { ActiveUserData } from '../iam/authentication/interfaces/active-user-data.interface';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
@@ -21,6 +24,8 @@ import { FormShareService } from './form-share.service';
 import { SaveResponseAnswersDto } from './dto/save-response-answers.dto';
 import { FinalizeResponseDto } from './dto/finalize-response.dto';
 import { CreateFormShareDto } from './dto/create-form-share.dto';
+import { FormAnswerFileService } from './form-answer-file.service';
+import { FormAnswerFileInterceptor } from './interceptors/form-answer-file.interceptor';
 
 @ApiTags('form builder - employee workflow')
 @ApiBearerAuth('token')
@@ -30,6 +35,7 @@ export class FormResponseController {
     private readonly formAssignmentService: FormAssignmentService,
     private readonly formResponseService: FormResponseService,
     private readonly formShareService: FormShareService,
+    private readonly formAnswerFileService: FormAnswerFileService,
   ) {}
 
   @CheckPermissions({
@@ -133,6 +139,80 @@ export class FormResponseController {
       user.fullName,
       req['mongoSession'],
     );
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FormAnswerFileInterceptor)
+  @Post('occurrences/:occurrenceId/files')
+  async uploadAnswerFile(
+    @Param('occurrenceId') occurrenceId: string,
+    @UploadedFile() file: any,
+    @Body('questionId') questionId: string,
+    @ActiveUser() user: ActiveUserData,
+    @Req() req: any,
+  ) {
+    return this.formAnswerFileService.upload(
+      occurrenceId,
+      user.id,
+      questionId,
+      file,
+      req['mongoSession'],
+    );
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
+  @Delete('occurrences/:occurrenceId/files/:fileId')
+  async removeAnswerFile(
+    @Param('occurrenceId') occurrenceId: string,
+    @Param('fileId') fileId: string,
+    @ActiveUser() user: ActiveUserData,
+  ) {
+    await this.formAnswerFileService.remove(occurrenceId, fileId, user.id);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
+  @Get('occurrences/:occurrenceId/files/:fileId')
+  async downloadAnswerFile(
+    @Param('occurrenceId') occurrenceId: string,
+    @Param('fileId') fileId: string,
+    @ActiveUser() user: ActiveUserData,
+    @Res() res: Response,
+  ) {
+    const file = await this.formAnswerFileService.getForOwner(
+      occurrenceId,
+      fileId,
+      user.id,
+    );
+    return res.download(file.path, file.originalName);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
+  @Get('shares/:shareId/files/:fileId')
+  async downloadSharedAnswerFile(
+    @Param('shareId') shareId: string,
+    @Param('fileId') fileId: string,
+    @ActiveUser() user: ActiveUserData,
+    @Res() res: Response,
+  ) {
+    const file = await this.formAnswerFileService.getForShare(
+      shareId,
+      fileId,
+      user.id,
+    );
+    return res.download(file.path, file.originalName);
   }
 
   @CheckPermissions({

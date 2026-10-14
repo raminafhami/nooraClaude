@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Loading } from "@/ui/Loader";
 
 import { FormQuestionType } from "@/formBuilder/enums/FormQuestionType";
+import { adminAnswerFileDownloader } from "@/formBuilder/services/answerFiles";
 import {
 	OccurrenceAdminDetail,
 	getOccurrenceDetailAsAdmin,
@@ -76,6 +77,9 @@ function ViewOccurrenceAnswersDialog({
 													}
 													onChange={() => undefined}
 													disabled
+													download={adminAnswerFileDownloader(
+														payload.occurrenceId,
+													)}
 												/>
 											)}
 										</div>

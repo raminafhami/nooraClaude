@@ -12,13 +12,15 @@ import { FormVersionRepositoryImpl } from './repository/form-version.repository'
 import { FormRepositoryImpl } from './repository/form.repository';
 import { FormResponseStatus } from './schemas/form-response.schema';
 import { FormOccurrenceStatus } from './schemas/form-occurrence.schema';
-import {
-  FormQuestion,
-  NON_ANSWERABLE_QUESTION_TYPES,
-} from './schemas/form-version.schema';
+import { FormQuestionType } from './schemas/form-version.schema';
 import { SaveResponseAnswersDto } from './dto/save-response-answers.dto';
 import { UserFilesService } from '../user-files/user-files.service';
 import { FormPdfService } from './form-pdf.service';
+import { FormAnswerFileService } from './form-answer-file.service';
+import {
+  isAnswerEmpty,
+  validateAnswer,
+} from './utils/answer-validation.util';
 
 @Injectable()
 export class FormResponseService {
@@ -29,6 +31,7 @@ export class FormResponseService {
     private readonly formRepositoryImpl: FormRepositoryImpl,
     private readonly userFilesService: UserFilesService,
     private readonly formPdfService: FormPdfService,
+    private readonly formAnswerFileService: FormAnswerFileService,
   ) {}
 
   private async getOwnedOccurrenceOrFail(occurrenceId: string, userId: string) {
@@ -103,6 +106,18 @@ export class FormResponseService {
       );
     }
 
+    // Draft answers may be incomplete, but must only reference questions of
+    // this occurrence's version.
+    const version = await this.formVersionRepositoryImpl.findById(
+      occurrence.versionId,
+    );
+    const questionIds = new Set(
+      (version?.questions ?? []).map((q: any) => q.id),
+    );
+    if (Object.keys(dto.answers).some((key) => !questionIds.has(key))) {
+      throw new BadRequestException('پاسخ‌ها با ساختار فرم مطابقت ندارند.');
+    }
+
     const existing = await this.formResponseRepositoryImpl.findOne({
       occurrenceId: occurrence.id,
     });
@@ -163,16 +178,6 @@ export class FormResponseService {
     return created;
   }
 
-  private isAnswerMissing(question: FormQuestion, value: unknown): boolean {
-    if (NON_ANSWERABLE_QUESTION_TYPES.includes(question.type)) {
-      return false;
-    }
-    if (value === undefined || value === null) return true;
-    if (typeof value === 'string' && value.trim() === '') return true;
-    if (Array.isArray(value) && value.length === 0) return true;
-    return false;
-  }
-
   // Final submission is one atomic operation (spec 13/14): validate required
   // answers, pull the employee's own on-file signature as an immutable
   // snapshot, and flip both the response and its occurrence to COMPLETED.
@@ -213,16 +218,22 @@ export class FormResponseService {
       throw new NotFoundException('نسخه فرم یافت نشد.');
     }
 
-    const hasMissingRequiredAnswer = version.questions.some(
-      (question: any) =>
-        question.required &&
-        this.isAnswerMissing(
-          question,
-          (response.answers as Record<string, unknown>)[question.id],
-        ),
-    );
-    if (hasMissingRequiredAnswer) {
-      throw new BadRequestException('لطفاً به تمام سوالات اجباری پاسخ دهید.');
+    // Required + type validation of every answer against the occurrence's
+    // own version (spec 7 / 13: validated on the server, Persian messages).
+    const answers = (response.answers ?? {}) as Record<string, unknown>;
+    for (const question of version.questions as any[]) {
+      const value = answers[question.id];
+      const error = validateAnswer(question, value);
+      if (error) {
+        throw new BadRequestException(`سوال «${question.title}»: ${error}`);
+      }
+      if (question.type === FormQuestionType.FILE && !isAnswerEmpty(value)) {
+        await this.formAnswerFileService.assertFilesBelong(
+          occurrence.id,
+          question.id,
+          value as { id: string }[],
+        );
+      }
     }
 
     const signatureBase64 = await this.userFilesService.getUserSignature(
@@ -248,7 +259,7 @@ export class FormResponseService {
 
     await this.formOccurrenceRepositoryImpl.updateById(
       occurrence.id,
-      { status: FormOccurrenceStatus.COMPLETED },
+      { status: FormOccurrenceStatus.COMPLETED, $unset: { openSlot: 1 } },
       session,
     );
 
@@ -265,6 +276,7 @@ export class FormResponseService {
       title: form?.title ?? '',
       code: form?.code ?? '',
       category: (form as any)?.category?.title,
+      description: form?.description,
     };
   }
 

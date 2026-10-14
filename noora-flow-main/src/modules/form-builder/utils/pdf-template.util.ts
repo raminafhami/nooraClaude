@@ -1,5 +1,29 @@
 import * as moment from 'moment-jalaali';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { FormQuestion, FormQuestionType } from '../schemas/form-version.schema';
+
+// Vazirmatn is embedded into the HTML (copied to dist by nest-cli assets) so
+// PDF rendering never depends on reaching a font CDN from the server.
+function fontFace(weight: 'normal' | 'bold', file: string): string {
+  try {
+    const data = readFileSync(join(__dirname, '..', 'fonts', file)).toString(
+      'base64',
+    );
+    return `@font-face { font-family: 'Vazirmatn'; font-weight: ${weight};
+      src: url(data:font/woff2;base64,${data}) format('woff2'); }`;
+  } catch {
+    return '';
+  }
+}
+
+let fontFacesCache: string | null = null;
+function fontFaces(): string {
+  fontFacesCache ??=
+    fontFace('normal', 'Vazirmatn-Regular.woff2') +
+    fontFace('bold', 'Vazirmatn-Bold.woff2');
+  return fontFacesCache;
+}
 
 export function escapeHtml(value: unknown): string {
   if (value === null || value === undefined) return '';
@@ -12,11 +36,6 @@ export function escapeHtml(value: unknown): string {
 }
 
 const BASE_STYLES = `
-  @font-face {
-    font-family: 'Vazirmatn';
-    src: url('https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-Regular.woff2') format('woff2');
-    font-weight: normal;
-  }
   * { box-sizing: border-box; }
   body {
     font-family: 'Vazirmatn', Tahoma, sans-serif;
@@ -62,7 +81,13 @@ function questionTypeLabel(type: FormQuestionType): string {
 
 function formatAnswerValue(question: any, value: unknown): string {
   if (value === undefined || value === null || value === '') return '-';
-  if (Array.isArray(value)) return value.map(escapeHtml).join('، ');
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '-';
+    // File answers are stored as [{ id, name }]; the PDF lists the names.
+    return value
+      .map((v) => escapeHtml(v && typeof v === 'object' ? (v as any).name : v))
+      .join('، ');
+  }
   if (typeof value === 'boolean') return value ? 'بله' : 'خیر';
   if (typeof value === 'object') {
     const v = value as any;
@@ -135,7 +160,7 @@ export function buildRawFormHtml(params: {
   return `
     <!DOCTYPE html>
     <html lang="fa" dir="rtl">
-    <head><meta charset="utf-8" /><style>${BASE_STYLES}</style></head>
+    <head><meta charset="utf-8" /><style>${fontFaces()}${BASE_STYLES}</style></head>
     <body>
       <h1>${escapeHtml(title)}</h1>
       <div class="meta">
@@ -181,7 +206,7 @@ export function buildCompletedFormHtml(params: {
   return `
     <!DOCTYPE html>
     <html lang="fa" dir="rtl">
-    <head><meta charset="utf-8" /><style>${BASE_STYLES}</style></head>
+    <head><meta charset="utf-8" /><style>${fontFaces()}${BASE_STYLES}</style></head>
     <body>
       <h1>${escapeHtml(title)}</h1>
       <div class="meta">
@@ -195,6 +220,7 @@ export function buildCompletedFormHtml(params: {
         <span>تاریخ ثبت نهایی: ${escapeHtml(
           submittedAt ? moment(submittedAt).format('jYYYY/jMM/jDD HH:mm') : '-',
         )}</span>
+        <span>وضعیت: ثبت نهایی و امضا شده</span>
       </div>
       ${[...questions]
         .sort((a: any, b: any) => a.order - b.order)
