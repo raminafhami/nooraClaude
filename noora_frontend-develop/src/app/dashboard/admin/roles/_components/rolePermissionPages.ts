@@ -16,6 +16,14 @@ export const ROLE_PERMISSION_PAGES: RolePermissionPage[] = [
 		subjects: ["audit", "asset_requirement"],
 	},
 	{
+		label: "تضمین کیفیت (فرم‌ساز)",
+		subjects: [
+			"form_builder",
+			"form_builder_assignment",
+			"form_builder_response",
+		],
+	},
+	{
 		label: "تسک‌ها",
 		subjects: ["task", "project", "project_task", "project_task_label"],
 	},

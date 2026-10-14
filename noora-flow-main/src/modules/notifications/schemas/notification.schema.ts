@@ -54,6 +54,11 @@ export class Notification extends Document {
   @Prop({ type: Recipient })
   recipient: Recipient;
 
+  // See NotificationMessage.link - carried from here into each fan-out
+  // message by NotificationsService.sendNotification.
+  @Prop({ type: String, default: null })
+  link: string;
+
   @Prop({
     type: String,
     enum: NotificationPriority,

@@ -5,6 +5,8 @@ import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import { AuditType } from "../../procedure/[id]/_components/types/auditType";
 import ProcedureIdClientPage from "../../procedure/[id]/ClientPage";
 import AuditPage from "../../procedure/_components/audit/page";
+import { MyAssignedForms } from "./MyAssignedForms";
+import { ReceivedForms } from "./ReceivedForms";
 
 export default function AuditProfile() {
   const { identity } = useLoggedInUser();
@@ -35,6 +37,12 @@ export default function AuditProfile() {
           <ProcedureIdClientPage auditId={selectedAudit.id} />
         </div>
       )}
+      <div className="mt-6">
+        <MyAssignedForms />
+      </div>
+      <div className="mt-6">
+        <ReceivedForms />
+      </div>
     </>
   );
 }

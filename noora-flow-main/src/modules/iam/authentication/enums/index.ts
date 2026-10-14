@@ -66,4 +66,7 @@ export enum Subjects {
   CATEGORY_BUDGET = 'category-budget',
   PETTY_COST = 'petty-cost',
   BRANCH = 'branch',
+  FORM_BUILDER = 'form_builder',
+  FORM_BUILDER_ASSIGNMENT = 'form_builder_assignment',
+  FORM_BUILDER_RESPONSE = 'form_builder_response',
 }

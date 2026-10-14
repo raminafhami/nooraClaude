@@ -54,6 +54,13 @@ export class NotificationMessage extends Document {
   @Prop({ type: Date, default: null })
   readedAt: Date;
 
+  // Optional deep-link (frontend route) the notification should open when
+  // clicked - added for the form-builder due-date/overdue reminders so they
+  // can route straight to the relevant occurrence. Backward compatible:
+  // existing notifications simply have no link.
+  @Prop({ type: String, default: null })
+  link: string;
+
   @Prop({
     type: SchemaTypes.Types.ObjectId,
     ref: User.name,

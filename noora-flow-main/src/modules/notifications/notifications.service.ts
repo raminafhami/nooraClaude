@@ -53,6 +53,7 @@ export class NotificationsService extends CrudService<NotificationDocument> {
       description: notification.description,
       category: notification.category,
       priority: notification.priority,
+      link: notification.link ?? null,
     };
     const data = userIds.map((userId: string) => {
       return {

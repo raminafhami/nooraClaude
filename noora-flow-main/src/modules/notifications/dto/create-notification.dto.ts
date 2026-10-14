@@ -41,4 +41,8 @@ export class CreateNotificationDto {
 
   @IsBoolean()
   sendNotification = false;
+
+  @IsOptional()
+  @IsString()
+  link?: string;
 }

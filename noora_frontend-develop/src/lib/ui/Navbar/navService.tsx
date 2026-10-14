@@ -243,7 +243,8 @@ export function getNavItems(identity: Identity, path: string): NavItemProps[] {
 			type: "LINK",
 			label: "تضمین کیفیت",
 			url: "/dashboard/procedure",
-			groups: ["system-admin", "qa-manager"],
+			// ceo/admins: form-builder managers per the form-builder spec.
+			groups: ["system-admin", "qa-manager", "ceo", "admins"],
 			icon: (
 				<Image
 					src={path?.includes("/dashboard/procedure") ? ListActive : List}

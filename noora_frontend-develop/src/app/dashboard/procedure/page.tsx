@@ -8,6 +8,7 @@ import { toFarsiNum } from "@/utils/string/toFarsiNum";
 
 import AuditPage from "./_components/audit/page";
 import EvalutaionPage from "./_components/evaluation-form/page";
+import FormsPage from "./_components/forms/page";
 import { ProcedureTabs } from "./_components/modules/AuditTypes";
 import SubContractorsPage from "./_components/subcontractors/page";
 
@@ -39,6 +40,9 @@ export default function ProcedurePage() {
 					</TabsContent>
 					<TabsContent value="audit" dir="rtl">
 						<AuditPage isRisk filters={{ category: "ممیزی داخلی" }} />
+					</TabsContent>
+					<TabsContent value="forms" dir="rtl">
+						<FormsPage />
 					</TabsContent>
 					<TabsContent value="monitors" dir="rtl">
 						<EvalutaionPage />

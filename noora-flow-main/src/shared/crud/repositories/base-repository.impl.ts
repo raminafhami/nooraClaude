@@ -59,23 +59,32 @@ export abstract class BaseRepositoryImpl<T> implements BaseRepository<T> {
     return mongoQuery.exec();
   }
 
+  // `session` lets a caller read its own uncommitted writes inside the
+  // per-request transaction (see TransactionInterceptor).
   async findOne(
     where: FilterQuery<T>,
     projection?: ProjectionType<T>,
     populate?: any,
+    session?: ClientSession,
   ) {
+    const query = this.model.findOne(where, projection).session(session ?? null);
     if (populate) {
-      return this.model.findOne(where, projection).populate(populate).exec();
+      return query.populate(populate).exec();
     } else {
-      return this.model.findOne(where, projection).exec();
+      return query.exec();
     }
   }
 
-  async findById(id: string, populate?: any): Promise<any> {
+  async findById(
+    id: string,
+    populate?: any,
+    session?: ClientSession,
+  ): Promise<any> {
+    const query = this.model.findById(id).session(session ?? null);
     if (populate) {
-      return this.model.findById(id).populate(populate).exec();
+      return query.populate(populate).exec();
     } else {
-      return this.model.findById(id).exec();
+      return query.exec();
     }
   }
 

@@ -97,6 +97,7 @@ import { PettyCashModule } from './modules/petty-cash/petty-cash.module';
 import { PettyCostModule } from './modules/petty-costs/petty-cost.module';
 import { BranchModule } from './modules/branch/branch.module';
 import { CategoryBudgetModule } from './modules/category-budget/category-budget.module';
+import { FormBuilderModule } from './modules/form-builder/form-builder.module';
 
 @Module({
   imports: [
@@ -236,6 +237,7 @@ import { CategoryBudgetModule } from './modules/category-budget/category-budget.
     CategoryBudgetModule,
     PettyCostModule,
     BranchModule,
+    FormBuilderModule,
   ],
   controllers: [AppController],
   providers: [

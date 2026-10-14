@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   CallHandler,
   ExecutionContext,
   Injectable,
@@ -7,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { catchError, finalize, Observable, tap } from 'rxjs';
+import { catchError, concatMap, finalize } from 'rxjs';
 
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
@@ -19,20 +18,22 @@ export class TransactionInterceptor implements NestInterceptor {
 
     request.mongoSession = session; // Attach the session to the request context
     return next.handle().pipe(
-      tap(async () => {
-        // Commit transaction if no error occurs
+      // Commit before the response is emitted, so the client never sees a
+      // success for writes that are not committed yet (a follow-up request,
+      // e.g. the next autosave, must observe them).
+      concatMap(async (data) => {
         await session.commitTransaction();
-        await session.endSession();
+        return data;
       }),
       catchError(async (error) => {
-        await session.abortTransaction();
-        await session.endSession();
+        if (session.inTransaction()) {
+          await session.abortTransaction();
+        }
         throw error;
-        // throw new BadRequestException('Request failed');
       }),
-      finalize(async () => {
+      finalize(() => {
         // Always end the session to avoid leaks
-        // await session.endSession();
+        session.endSession();
       }),
     );
   }

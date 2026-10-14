@@ -1,5 +1,5 @@
 import { AiOutlineAudit } from "react-icons/ai";
-import { FaClipboardCheck } from "react-icons/fa6";
+import { FaClipboardCheck, FaFileLines } from "react-icons/fa6";
 
 const CategoryTypes = [
 	{
@@ -62,6 +62,12 @@ export const ProcedureTabs = [
 		color: "",
 		icon: FaClipboardCheck,
 		value: "instructions",
+	},
+	{
+		name: "فرم‌ها",
+		color: "",
+		icon: FaFileLines,
+		value: "forms",
 	},
 	// {
 	//   name: "شناسایی مخاطرات",
