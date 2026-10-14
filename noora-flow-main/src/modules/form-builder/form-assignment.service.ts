@@ -367,6 +367,9 @@ export class FormAssignmentService
     if (!form || !form.publishedVersionId) {
       throw new BadRequestException('این فرم در حال حاضر قابل تکمیل نیست.');
     }
+    // Archived: existing (already opened) occurrences stay usable below, but
+    // no new occurrence is ever created (spec 5.3).
+    const isArchived = form.status === FormStatus.ARCHIVED;
 
     if (assignment.frequency !== FormAssignmentFrequency.NO_SCHEDULE) {
       const current = await this.getCurrentOccurrenceForAssignment(assignment);
@@ -385,6 +388,11 @@ export class FormAssignmentService
     );
     if (latest && latest.status !== FormOccurrenceStatus.COMPLETED) {
       return latest;
+    }
+    if (isArchived) {
+      throw new BadRequestException(
+        'این فرم بایگانی شده و نوبت جدیدی برای آن ایجاد نمی‌شود.',
+      );
     }
 
     try {
