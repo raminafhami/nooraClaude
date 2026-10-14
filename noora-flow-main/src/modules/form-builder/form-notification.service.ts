@@ -78,35 +78,57 @@ export class FormNotificationService implements OnModuleInit {
           continue;
         }
 
-        const alreadySent = await this.formReminderLogRepositoryImpl.findOne({
-          occurrenceId: occurrence.id,
-          reminderType,
-        });
-        if (alreadySent) continue;
-
         const form = await this.formRepositoryImpl.findById(occurrence.formId);
         if (!form) continue;
 
-        const notification = await this.notificationsService.create({
-          title: 'یادآوری تکمیل فرم',
-          description: `فرم ${form.title} را در اسرع وقت تکمیل نمایید. با تشکر.`,
-          category: 'form-builder',
-          priority:
-            reminderType === FormReminderType.OVERDUE
-              ? NotificationPriority.HIGH
-              : NotificationPriority.MEDIUM,
-          recipient: { users: [occurrence.userId], groups: [] },
-          link: `/dashboard/profile/forms/${occurrence.assignmentId}/respond/${occurrence.id}`,
-          isPublished: true,
-          createdBy: occurrence.userId,
-        });
-        await this.notificationsService.sendNotification(notification);
+        // Claim the (occurrence, reminderType) slot first: the unique index
+        // makes a re-run or a concurrent run skip instead of re-sending.
+        try {
+          await this.formReminderLogRepositoryImpl.create({
+            occurrenceId: occurrence.id,
+            reminderType,
+            sentAt: new Date(),
+          });
+        } catch (err: any) {
+          if (err?.code === 11000) continue;
+          throw err;
+        }
 
-        await this.formReminderLogRepositoryImpl.create({
-          occurrenceId: occurrence.id,
-          reminderType,
-          sentAt: new Date(),
-        });
+        let notification;
+        try {
+          notification = await this.notificationsService.create({
+            title: 'یادآوری تکمیل فرم',
+            description: `فرم ${form.title} را در اسرع وقت تکمیل نمایید. با تشکر.`,
+            category: 'form-builder',
+            priority:
+              reminderType === FormReminderType.OVERDUE
+                ? NotificationPriority.HIGH
+                : NotificationPriority.MEDIUM,
+            recipient: { users: [occurrence.userId], groups: [] },
+            link: `/dashboard/profile/forms/${occurrence.assignmentId}/respond/${occurrence.id}`,
+            isPublished: true,
+            createdBy: occurrence.userId,
+          });
+        } catch (err) {
+          // Nothing was stored for the user: release the slot so the next
+          // run retries this reminder.
+          await this.formReminderLogRepositoryImpl.deleteOne({
+            occurrenceId: occurrence.id,
+            reminderType,
+          });
+          throw err;
+        }
+
+        try {
+          // Stores the user's inbox message, then pushes it over the socket.
+          await this.notificationsService.sendNotification(notification);
+        } catch (err) {
+          // Not retried: a retry would duplicate an already stored message.
+          console.error(
+            `[form-builder] reminder push failed for occurrence ${occurrence.id}`,
+            err,
+          );
+        }
       } catch (err) {
         console.error(
           `[form-builder] failed sending reminder for occurrence ${occurrence.id}`,
