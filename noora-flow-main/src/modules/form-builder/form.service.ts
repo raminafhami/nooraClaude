@@ -22,7 +22,7 @@ import { UpsertFormVersionDto } from './dto/upsert-form-version.dto';
 import { FormPdfService } from './form-pdf.service';
 
 const FORM_CODE_INDICATOR_KEY = 'form-code';
-const FORM_CODE_PREFIX = 'FR-APK';
+const FORM_CODE_PREFIX = 'APK-FR';
 
 @Injectable()
 export class FormService
@@ -58,7 +58,7 @@ export class FormService
       FORM_CODE_INDICATOR_KEY,
       session,
     );
-    return `${FORM_CODE_PREFIX}-${String(counter).padStart(4, '0')}`;
+    return `${FORM_CODE_PREFIX}-${String(counter).padStart(3, '0')}`;
   }
 
   private validateQuestions(
