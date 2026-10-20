@@ -73,7 +73,7 @@ const STYLES = `
 
   table.page { width: 100%; border-collapse: collapse; }
   table.page > thead > tr > td { padding: 58pt 64.2pt 0 62.4pt; }
-  table.page > tfoot > tr > td { height: 42pt; }
+  table.page > tfoot > tr > td { height: 34pt; }
   table.page > tbody > tr > td { padding: 0 64.2pt 0 62.4pt; vertical-align: top; }
 
   .header { display: flex; align-items: center; height: 58pt; margin-bottom: 48pt; }
@@ -114,11 +114,13 @@ const STYLES = `
   .meta { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8.7pt; }
   .meta .row .label { flex-basis: 45%; }
 
-  .signature { margin-top: 18pt; display: flex; justify-content: flex-start; break-inside: avoid; page-break-inside: avoid; }
-  .signature .card { width: 190pt; border: 0.9pt solid ${BRAND}; border-radius: 4pt; padding: 8pt 10pt; text-align: center; }
-  .signature .caption { font-weight: bold; margin-bottom: 4pt; }
-  .signature img { max-height: 70pt; max-width: 100%; }
-  .signature .name { color: #4b4b4b; margin-top: 4pt; }
+  .signature { margin-top: 10pt; display: flex; justify-content: flex-start; break-inside: avoid; page-break-inside: avoid; }
+  .signature .card { width: 250pt; border: 0.9pt solid ${BRAND}; border-radius: 4pt; padding: 6pt 10pt; display: flex; align-items: center; gap: 10pt; }
+  .signature .who { flex: 1; }
+  .signature .caption { font-weight: bold; }
+  .signature .name { color: #4b4b4b; margin-top: 3pt; }
+  .signature .sig { flex: 0 0 120pt; height: 50pt; display: flex; align-items: center; justify-content: center; }
+  .signature img { max-height: 50pt; max-width: 120pt; }
 `;
 
 function questionLabel(question: any, index: number): string {
@@ -367,13 +369,15 @@ export function buildCompletedFormHtml(params: {
   </div>`;
 
   const signature = `<div class="signature"><div class="card">
-    <div class="caption">امضای تکمیل‌کننده</div>
-    ${
+    <div class="who">
+      <div class="caption">امضای تکمیل‌کننده</div>
+      <div class="name">${escapeHtml(params.completerName || '')}</div>
+    </div>
+    <div class="sig">${
       params.signatureBase64
         ? `<img src="data:image/png;base64,${params.signatureBase64}" alt="امضا" />`
-        : '<div class="value empty">بدون امضا</div>'
-    }
-    <div class="name">${escapeHtml(params.completerName || '')}</div>
+        : '<span class="value empty">بدون امضا</span>'
+    }</div>
   </div></div>`;
 
   return documentHtml({
