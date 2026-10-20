@@ -10,6 +10,7 @@ import { FormResponseRepositoryImpl } from './repository/form-response.repositor
 import { FormOccurrenceRepositoryImpl } from './repository/form-occurrence.repository';
 import { FormVersionRepositoryImpl } from './repository/form-version.repository';
 import { FormRepositoryImpl } from './repository/form.repository';
+import { FormAssignmentRepositoryImpl } from './repository/form-assignment.repository';
 import { FormResponseStatus } from './schemas/form-response.schema';
 import { FormOccurrenceStatus } from './schemas/form-occurrence.schema';
 import { FormQuestionType } from './schemas/form-version.schema';
@@ -32,6 +33,7 @@ export class FormResponseService {
     private readonly userFilesService: UserFilesService,
     private readonly formPdfService: FormPdfService,
     private readonly formAnswerFileService: FormAnswerFileService,
+    private readonly formAssignmentRepositoryImpl: FormAssignmentRepositoryImpl,
   ) {}
 
   private async getOwnedOccurrenceOrFail(occurrenceId: string, userId: string) {
@@ -292,6 +294,39 @@ export class FormResponseService {
       throw new NotFoundException('نسخه فرم یافت نشد.');
     }
     const form = await this.getFormSummary(occurrence.formId);
+    const buffer = await this.formPdfService.buildRawFormPdf(form, version);
+    return { buffer, filename: `${form.code}.pdf` };
+  }
+
+  // The exact (confirmed) signature finalize would attach - shown to the
+  // employee in the final-submission confirmation.
+  async getMySignature(userId: string) {
+    const signatureBase64 = await this.userFilesService.getUserSignature(
+      userId,
+    );
+    return { signatureBase64: signatureBase64 ?? null };
+  }
+
+  // Raw (blank) form for the employee's assignment page - available before
+  // any occurrence exists, from the currently published version.
+  async generateRawFormPdfForAssignment(assignmentId: string, userId: string) {
+    const assignment = await this.formAssignmentRepositoryImpl.findById(
+      assignmentId,
+    );
+    if (!assignment || assignment.userId.toString() !== userId) {
+      throw new NotFoundException('تخصیص مورد نظر یافت نشد.');
+    }
+    const formDoc = await this.formRepositoryImpl.findById(assignment.formId);
+    if (!formDoc?.publishedVersionId) {
+      throw new BadRequestException('این فرم نسخه منتشرشده ندارد.');
+    }
+    const version = await this.formVersionRepositoryImpl.findById(
+      formDoc.publishedVersionId,
+    );
+    if (!version) {
+      throw new NotFoundException('نسخه فرم یافت نشد.');
+    }
+    const form = await this.getFormSummary(assignment.formId);
     const buffer = await this.formPdfService.buildRawFormPdf(form, version);
     return { buffer, filename: `${form.code}.pdf` };
   }

@@ -21,6 +21,7 @@ import { getOccurrenceVersion } from "@/formBuilder/services/getOccurrenceVersio
 import { saveOccurrenceAnswers } from "@/formBuilder/services/saveOccurrenceAnswers";
 import downloadBlob from "@/utils/downloadBlob";
 
+import { FinalizeConfirmDialog } from "./FinalizeConfirmDialog";
 import { QuestionResponseField } from "./QuestionResponseField";
 import { ShareFormDialog } from "./ShareFormDialog";
 
@@ -159,11 +160,9 @@ function RespondPage({ occurrenceId }: { occurrenceId: string }) {
 			clearTimeout(saveTimeoutRef.current);
 			saveTimeoutRef.current = undefined;
 		}
-		if (
-			!window.confirm(
-				"با ثبت نهایی، پاسخ‌ها و امضای شما ثبت می‌شود و دیگر قابل ویرایش نخواهد بود. ادامه می‌دهید؟",
-			)
-		) {
+		// Shows the employee's own signature before they confirm.
+		const confirmed = await dialogs.open(FinalizeConfirmDialog);
+		if (!confirmed) {
 			return;
 		}
 		try {
@@ -261,7 +260,7 @@ function RespondPage({ occurrenceId }: { occurrenceId: string }) {
 								<img
 									src={`data:image/png;base64,${response.signatureBase64}`}
 									alt="امضا"
-									className="h-16 w-auto"
+									className="h-28 w-full max-w-sm rounded-lg border bg-white object-contain p-2"
 								/>
 							)}
 							<div className="flex gap-2">

@@ -51,6 +51,15 @@ export class FormResponseController {
     action: PermissionAction.READ,
     subject: Subjects.FORM_BUILDER_RESPONSE,
   })
+  @Get('me/signature')
+  async getMySignature(@ActiveUser() user: ActiveUserData) {
+    return this.formResponseService.getMySignature(user.id);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
   @Get('assignments/:assignmentId/detail')
   async getMyAssignmentDetail(
     @Param('assignmentId') assignmentId: string,
@@ -213,6 +222,28 @@ export class FormResponseController {
       user.id,
     );
     return res.download(file.path, file.originalName);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.FORM_BUILDER_RESPONSE,
+  })
+  @Get('assignments/:assignmentId/pdf/raw')
+  async downloadAssignmentRawFormPdf(
+    @Param('assignmentId') assignmentId: string,
+    @ActiveUser() user: ActiveUserData,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { buffer, filename } =
+      await this.formResponseService.generateRawFormPdfForAssignment(
+        assignmentId,
+        user.id,
+      );
+    response.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+    return new StreamableFile(buffer);
   }
 
   @CheckPermissions({

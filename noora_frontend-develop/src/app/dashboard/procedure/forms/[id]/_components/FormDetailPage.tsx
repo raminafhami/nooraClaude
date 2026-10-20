@@ -96,8 +96,11 @@ function FormDetailPage({ formId }: { formId: string }) {
 
 	async function handlePreview() {
 		if (!form) return;
-		const questions = draftVersion?.questions ?? publishedVersion?.questions ?? [];
-		await dialogs.open(FormPreviewDialog, { title: form.title, questions });
+		await dialogs.open(FormPreviewDialog, {
+			formId: form.id,
+			title: form.title,
+			code: form.code,
+		});
 	}
 
 	async function handlePublish() {

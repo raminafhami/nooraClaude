@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -7,144 +10,78 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { Loading } from "@/ui/Loader";
+import downloadBlob from "@/utils/downloadBlob";
 
-import { FormQuestionType } from "@/formBuilder/enums/FormQuestionType";
-import { FormQuestion } from "@/formBuilder/models/FormQuestion";
+import { downloadRawFormPdf } from "@/formBuilder/services/downloadFormPdf";
 
-function PreviewField({ question }: { question: FormQuestion }) {
-	const settings = question.settings ?? {};
-
-	switch (question.type) {
-		case FormQuestionType.StaticText:
-			return (
-				<p className="rounded-xl bg-gray-50 p-3 text-sm text-muted-foreground">
-					{question.description || question.title}
-				</p>
-			);
-		case FormQuestionType.LongText:
-			return <Textarea disabled rows={3} placeholder="پاسخ متنی" />;
-		case FormQuestionType.Boolean:
-			return (
-				<div className="flex items-center gap-2">
-					<Switch disabled />
-					<span className="text-sm text-muted-foreground">بله / خیر</span>
-				</div>
-			);
-		case FormQuestionType.SingleChoice:
-			return (
-				<RadioGroup disabled>
-					{(settings.options ?? []).map((option, index) => (
-						<div key={index} className="flex items-center gap-2">
-							<RadioGroupItem value={option.title || `${index}`} disabled />
-							<span className="text-sm">{option.title || "گزینه"}</span>
-						</div>
-					))}
-				</RadioGroup>
-			);
-		case FormQuestionType.MultiChoice:
-			return (
-				<div className="flex flex-col gap-2">
-					{(settings.options ?? []).map((option, index) => (
-						<div key={index} className="flex items-center gap-2">
-							<Checkbox disabled />
-							<span className="text-sm">{option.title || "گزینه"}</span>
-						</div>
-					))}
-				</div>
-			);
-		case FormQuestionType.Date:
-		case FormQuestionType.Time:
-		case FormQuestionType.DateTime:
-			return (
-				<Input
-					disabled
-					placeholder={
-						question.type === FormQuestionType.Time
-							? "ساعت"
-							: question.type === FormQuestionType.DateTime
-								? "تاریخ و ساعت"
-								: "تاریخ"
-					}
-				/>
-			);
-		case FormQuestionType.Rating:
-			return (
-				<div className="flex gap-1 text-lg text-muted-foreground">
-					{Array.from({
-						length: (settings.scaleMax ?? 5) - (settings.scaleMin ?? 1) + 1,
-					}).map((_, i) => (
-						<span key={i}>☆</span>
-					))}
-				</div>
-			);
-		case FormQuestionType.File:
-			return (
-				<Input disabled type="file" />
-			);
-		case FormQuestionType.Amount:
-			return (
-				<div className="flex items-center gap-2">
-					<Input disabled placeholder="مبلغ" />
-					{settings.currency && (
-						<span className="text-sm text-muted-foreground">
-							{settings.currency}
-						</span>
-					)}
-				</div>
-			);
-		default:
-			return <Input disabled placeholder="پاسخ" />;
-	}
-}
-
+// Preview = the server-rendered form in the organization layout (the same
+// PDF as the download), built from the open draft when there is one.
 function FormPreviewDialog({
 	payload,
 	open,
 	onClose,
 }: {
-	payload: { title: string; questions: FormQuestion[] };
+	payload: { formId: string; title: string; code: string };
 	open: boolean;
 	onClose: () => Promise<void>;
 }) {
+	const [blob, setBlob] = useState<Blob | null>(null);
+	const [url, setUrl] = useState<string | null>(null);
+	const [failed, setFailed] = useState(false);
+
+	useEffect(() => {
+		let objectUrl: string | null = null;
+		downloadRawFormPdf(payload.formId, { draft: true })
+			.then((pdf) => {
+				objectUrl = URL.createObjectURL(pdf);
+				setBlob(pdf);
+				setUrl(objectUrl);
+			})
+			.catch(() => setFailed(true));
+
+		return () => {
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+		};
+	}, [payload.formId]);
+
 	return (
 		<Dialog open={open} onOpenChange={() => onClose()}>
-			<DialogContent className="max-h-[80vh] overflow-y-auto">
+			<DialogContent className="max-w-screen-lg">
 				<DialogHeader>
 					<DialogTitle>پیش‌نمایش فرم: {payload.title}</DialogTitle>
 					<DialogDescription>
-						این پیش‌نمایش فقط ظاهر فرم را نشان می‌دهد و امکان ثبت پاسخ ندارد.
+						نمای فرم در قالب سازمانی (همان فایل دانلودی).
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex flex-col gap-5">
-					{[...payload.questions]
-						.sort((a, b) => a.order - b.order)
-						.map((question, index) => (
-							<div key={index} className="flex flex-col gap-2">
-								{question.type !== FormQuestionType.StaticText && (
-									<Label>
-										{index + 1}. {question.title}
-										{question.required && (
-											<span className="text-destructive"> *</span>
-										)}
-									</Label>
-								)}
-								{question.description &&
-									question.type !== FormQuestionType.StaticText && (
-										<p className="text-xs text-muted-foreground">
-											{question.description}
-										</p>
-									)}
-								<PreviewField question={question} />
-							</div>
-						))}
+				<div className="h-[75vh] overflow-hidden rounded-xl border bg-gray-50">
+					{url ? (
+						<iframe title="پیش‌نمایش فرم" src={url} className="size-full" />
+					) : failed ? (
+						<p className="p-6 text-center text-sm text-destructive">
+							خطا در ساخت پیش‌نمایش فرم.
+						</p>
+					) : (
+						<div className="flex h-full items-center justify-center">
+							<Loading size="sm">در حال ساخت پیش‌نمایش...</Loading>
+						</div>
+					)}
 				</div>
+
+				{blob && (
+					<div className="flex justify-end">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() =>
+								downloadBlob({ blob, filename: `${payload.code}.pdf` })
+							}
+						>
+							دانلود همین فایل
+						</Button>
+					</div>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

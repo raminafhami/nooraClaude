@@ -28,8 +28,8 @@ import { Layout } from "@/ui/Layout";
 import { FORM_ASSIGNMENT_FREQUENCY_LABELS } from "@/formBuilder/enums/FormAssignmentFrequency";
 import { FormOccurrenceStatus, FORM_OCCURRENCE_STATUS_LABELS } from "@/formBuilder/enums/FormOccurrenceStatus";
 import {
+	downloadAssignmentRawFormPdf,
 	downloadOccurrenceCompletedFormPdf,
-	downloadOccurrenceRawFormPdf,
 } from "@/formBuilder/services/downloadFormPdf";
 import { ensureRespondableOccurrence } from "@/formBuilder/services/ensureRespondableOccurrence";
 import {
@@ -75,9 +75,9 @@ function AssignmentDetailPage({ assignmentId }: { assignmentId: string }) {
 		}
 	}
 
-	async function handleDownloadRawPdf(occurrenceId: string) {
+	async function handleDownloadRawPdf() {
 		try {
-			const blob = await downloadOccurrenceRawFormPdf(occurrenceId);
+			const blob = await downloadAssignmentRawFormPdf(assignmentId);
 			downloadBlob({ blob, filename: `${detail?.form.code ?? "form"}.pdf` });
 		} catch {
 			toast.error("خطا در دانلود PDF فرم خام.");
@@ -158,15 +158,13 @@ function AssignmentDetailPage({ assignmentId }: { assignmentId: string }) {
 										{openOccurrence ? "ادامه تکمیل فرم" : "تکمیل فرم جدید"}
 									</Button>
 								)}
-								{occurrences.length > 0 && (
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => handleDownloadRawPdf(occurrences[0].id)}
-									>
-										دانلود فرم خام
-									</Button>
-								)}
+								<Button
+									type="button"
+									variant="outline"
+									onClick={handleDownloadRawPdf}
+								>
+									دانلود فرم خام
+								</Button>
 							</div>
 						</CardContent>
 					</Card>
@@ -176,6 +174,7 @@ function AssignmentDetailPage({ assignmentId }: { assignmentId: string }) {
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-gray-100 text-right">
+									<TableHead className="text-right">تاریخ ایجاد</TableHead>
 									<TableHead className="text-right">دوره</TableHead>
 									<TableHead className="text-right">سررسید</TableHead>
 									<TableHead className="text-right">وضعیت</TableHead>
@@ -186,7 +185,14 @@ function AssignmentDetailPage({ assignmentId }: { assignmentId: string }) {
 								{occurrences.length ? (
 									occurrences.map((occurrence) => (
 										<TableRow key={occurrence.id}>
-											<TableCell>{occurrence.periodKey ?? "-"}</TableCell>
+											<TableCell>
+												{moment(occurrence.createdAt).format("jYYYY/jMM/jDD HH:mm")}
+											</TableCell>
+											<TableCell dir="ltr" className="text-right">
+												{occurrence.periodKey && occurrence.periodKey !== "once"
+													? occurrence.periodKey
+													: "-"}
+											</TableCell>
 											<TableCell>
 												{occurrence.dueDate
 													? moment(occurrence.dueDate).format("jYYYY/jMM/jDD")
@@ -210,21 +216,37 @@ function AssignmentDetailPage({ assignmentId }: { assignmentId: string }) {
 														ادامه
 													</Button>
 												) : (
-													<Button
-														type="button"
-														variant="ghost"
-														size="sm"
-														onClick={() => handleDownloadCompletedPdf(occurrence.id)}
-													>
-														دانلود PDF
-													</Button>
+													<div className="flex gap-1">
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() =>
+																router.push(
+																	`/dashboard/profile/forms/${assignmentId}/respond/${occurrence.id}`,
+																)
+															}
+														>
+															مشاهده
+														</Button>
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() => handleDownloadCompletedPdf(occurrence.id)}
+														>
+															دانلود PDF
+														</Button>
+													</div>
 												)}
 											</TableCell>
 										</TableRow>
 									))
 								) : (
 									<TableRow>
-										<TableCell colSpan={4}>نوبتی ثبت نشده است.</TableCell>
+										<TableCell colSpan={5}>
+											هنوز فرمی ثبت نشده است. با «تکمیل فرم جدید» شروع کنید.
+										</TableCell>
 									</TableRow>
 								)}
 							</TableBody>

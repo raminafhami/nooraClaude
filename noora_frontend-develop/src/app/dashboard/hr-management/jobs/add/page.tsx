@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function Page() {
 	return (
 		<Layout.Root>
-			<Layout.Head title="افزودن شرح شغل">
+			<Layout.Head back={false} title="افزودن شرح شغل">
 				<PageNavigation />
 			</Layout.Head>
 			<Layout.Content>

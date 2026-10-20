@@ -39,7 +39,11 @@ function EditFormMetaDialog({
 }) {
 	const [categories, setCategories] = useState<FormCategory[]>([]);
 	const [title, setTitle] = useState(payload.title);
-	const [categoryId, setCategoryId] = useState(payload.categoryId);
+	// The API drops `categoryId` once `category` is populated, so fall back to
+	// the populated category to pre-select the form's current category.
+	const [categoryId, setCategoryId] = useState(
+		payload.categoryId ?? payload.category?.id ?? "",
+	);
 	const [description, setDescription] = useState(payload.description ?? "");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,7 +91,7 @@ function EditFormMetaDialog({
 						<Label>دسته‌بندی</Label>
 						<Select value={categoryId} onValueChange={setCategoryId}>
 							<SelectTrigger>
-								<SelectValue />
+								<SelectValue placeholder={payload.category?.title ?? "انتخاب دسته‌بندی"} />
 							</SelectTrigger>
 							<SelectContent>
 								{categories.map((category) => (

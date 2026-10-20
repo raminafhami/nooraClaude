@@ -39,7 +39,7 @@ export enum FormStatus {
 // Named FormBuilderForm (not Form) so its Mongoose model/collection never
 // collides with the legacy `Form` model of the old form module.
 export class FormBuilderForm extends Document {
-  // Fixed prefix per spec section 5.1 (FR-APK-0001, FR-APK-0002, ...),
+  // Fixed prefix (APK-FR-0001, APK-FR-0002, ...),
   // generated server-side via the shared IndicatorService and never reused.
   @Prop({
     type: String,

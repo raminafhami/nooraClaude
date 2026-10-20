@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function Page() {
 	return (
 		<Layout.Root>
-			<Layout.Head title="افزودن نقش">
+			<Layout.Head back={false} title="افزودن نقش">
 				<div className="ms-6 flex grow">
 					<DynamicLink
 						className="flex items-center rounded-lg border border-gray-200 bg-white px-3 py-1 text-black transition hover:bg-gray-100 focus:bg-gray-100"

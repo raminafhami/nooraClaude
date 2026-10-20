@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
+import { BackButton } from "./BackButton";
+
 interface RootProps {
 	children: ReactNode;
 }
@@ -13,11 +15,15 @@ interface HeadProps {
 	children?: ReactNode;
 	title: React.ReactNode;
 	titleClassName?: string;
+	// Inner pages get a back button automatically (see BackButton); pages
+	// that render their own back link pass back={false}.
+	back?: boolean;
 }
 
-export function Head({ children, title, titleClassName }: HeadProps) {
+export function Head({ children, title, titleClassName, back = true }: HeadProps) {
 	return (
 		<div className="flex items-center gap-x-4 py-10">
+			{back && <BackButton />}
 			<div className={twMerge("text-lg", titleClassName)}>{title}</div>
 			{children}
 		</div>

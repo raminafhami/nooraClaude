@@ -198,9 +198,15 @@ export class FormBuilderController {
   @Get('forms/:id/pdf/raw')
   async downloadRawFormPdf(
     @Param('id') id: string,
+    @Query('draft') draft: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { buffer, filename } = await this.formService.generateRawFormPdf(id);
+    // ?draft=true: manager preview of the open draft (falls back to the
+    // published version); default: the published (official) version.
+    const { buffer, filename } = await this.formService.generateRawFormPdf(
+      id,
+      draft === 'true',
+    );
     response.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename}"`,

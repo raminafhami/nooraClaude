@@ -104,6 +104,9 @@ export class FormAssignmentService
     }
 
     const results: AssignmentResult[] = [];
+    // Frequency and start date are optional (no schedule / starts now).
+    const frequency = dto.frequency ?? FormAssignmentFrequency.NO_SCHEDULE;
+    const startDate = dto.startDate ? new Date(dto.startDate) : new Date();
 
     for (const userId of dto.userIds) {
       try {
@@ -122,7 +125,7 @@ export class FormAssignmentService
         }
 
         const dueDate =
-          dto.frequency === FormAssignmentFrequency.ONCE && dto.dueDate
+          frequency === FormAssignmentFrequency.ONCE && dto.dueDate
             ? new Date(dto.dueDate)
             : null;
 
@@ -131,8 +134,8 @@ export class FormAssignmentService
             formId,
             userId,
             assignedBy: assignedById,
-            frequency: dto.frequency,
-            startDate: new Date(dto.startDate),
+            frequency,
+            startDate,
             dueDate,
             endDate: dto.endDate ? new Date(dto.endDate) : null,
             notifyEnabled: dto.notifyEnabled ?? true,
@@ -140,15 +143,15 @@ export class FormAssignmentService
           session,
         );
 
-        if (dto.frequency === FormAssignmentFrequency.ONCE) {
+        if (frequency === FormAssignmentFrequency.ONCE) {
           await this.upsertOccurrence(
             assignment,
             form.publishedVersionId,
             { periodKey: 'once', periodStart: null, periodEnd: null, dueDate },
             session,
           );
-        } else if (RECURRING_FREQUENCIES.includes(dto.frequency)) {
-          const period = resolvePeriod(dto.frequency, new Date());
+        } else if (RECURRING_FREQUENCIES.includes(frequency)) {
+          const period = resolvePeriod(frequency, new Date());
           if (period) {
             await this.upsertOccurrence(
               assignment,
@@ -345,9 +348,8 @@ export class FormAssignmentService
 
   // Resolves the occurrence the employee should land on when they click
   // "تکمیل فرم جدید" / open the assigned form - reusing an open draft if one
-  // exists (spec 11/16.2: never silently replace an in-progress occurrence),
-  // and only minting a new NO_SCHEDULE occurrence once the prior one is
-  // finalized.
+  // exists (never silently replace an in-progress occurrence), and minting a
+  // new free-standing occurrence once the prior ones are finalized.
   async ensureRespondableOccurrence(
     assignmentId: string,
     userId: string,
@@ -371,23 +373,26 @@ export class FormAssignmentService
     // no new occurrence is ever created (spec 5.3).
     const isArchived = form.status === FormStatus.ARCHIVED;
 
+    // While an assignment is active the employee can always fill the form
+    // again: an open draft is continued, otherwise a new free-standing
+    // submission is created - for every frequency. The frequency only drives
+    // the scheduled (period) occurrences, reminders and overdue tracking.
     if (assignment.frequency !== FormAssignmentFrequency.NO_SCHEDULE) {
       const current = await this.getCurrentOccurrenceForAssignment(assignment);
-      if (!current) {
-        throw new BadRequestException('نوبت فعالی برای این تخصیص یافت نشد.');
+      if (current && current.status !== FormOccurrenceStatus.COMPLETED) {
+        return current;
       }
-      return current;
     }
 
-    const [latest] = await this.formOccurrenceRepositoryImpl.find(
-      { assignmentId },
+    const [open] = await this.formOccurrenceRepositoryImpl.find(
+      { assignmentId, status: { $ne: FormOccurrenceStatus.COMPLETED } },
       null,
       0,
       1,
       { createdAt: -1 },
     );
-    if (latest && latest.status !== FormOccurrenceStatus.COMPLETED) {
-      return latest;
+    if (open) {
+      return open;
     }
     if (isArchived) {
       throw new BadRequestException(

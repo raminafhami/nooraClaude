@@ -16,11 +16,16 @@ export class CreateFormAssignmentDto {
   @IsMongoId({ each: true })
   userIds: string[];
 
+  // Optional: without a frequency the form is "no schedule" (filled whenever
+  // needed, no due dates or reminders).
+  @IsOptional()
   @IsEnum(FormAssignmentFrequency)
-  frequency: FormAssignmentFrequency;
+  frequency?: FormAssignmentFrequency;
 
+  // Optional: defaults to the assignment time.
+  @IsOptional()
   @IsDateString()
-  startDate: string;
+  startDate?: string;
 
   // Only used for ONCE assignments; ignored otherwise.
   @IsOptional()

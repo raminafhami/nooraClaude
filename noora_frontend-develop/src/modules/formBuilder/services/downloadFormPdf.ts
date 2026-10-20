@@ -1,9 +1,13 @@
 import apiClient from "@/api/client";
 
-async function downloadRawFormPdf(formId: string): Promise<Blob> {
+async function downloadRawFormPdf(
+	formId: string,
+	options: { draft?: boolean } = {},
+): Promise<Blob> {
 	return apiClient.send({
 		method: "get",
 		url: `form-builder/forms/${formId}/pdf/raw`,
+		searchParams: options.draft ? { draft: "true" } : undefined,
 		responseType: "blob",
 	});
 }
@@ -12,6 +16,16 @@ async function downloadOccurrenceRawFormPdf(occurrenceId: string): Promise<Blob>
 	return apiClient.send({
 		method: "get",
 		url: `form-builder/occurrences/${occurrenceId}/pdf/raw`,
+		responseType: "blob",
+	});
+}
+
+async function downloadAssignmentRawFormPdf(
+	assignmentId: string,
+): Promise<Blob> {
+	return apiClient.send({
+		method: "get",
+		url: `form-builder/assignments/${assignmentId}/pdf/raw`,
 		responseType: "blob",
 	});
 }
@@ -35,6 +49,7 @@ async function downloadOccurrencePdfAsAdmin(occurrenceId: string): Promise<Blob>
 }
 
 export {
+	downloadAssignmentRawFormPdf,
 	downloadRawFormPdf,
 	downloadOccurrenceRawFormPdf,
 	downloadOccurrenceCompletedFormPdf,

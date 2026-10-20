@@ -52,8 +52,9 @@ function AssignFormDialog({
 	onClose: (result?: AssignmentResult[]) => Promise<void>;
 }) {
 	const [selectedUsers, setSelectedUsers] = useState<Person[]>([]);
+	// Optional: "no schedule" means the form is filled whenever needed.
 	const [frequency, setFrequency] = useState<FormAssignmentFrequency>(
-		FormAssignmentFrequency.Monthly,
+		FormAssignmentFrequency.NoSchedule,
 	);
 	const [startDate, setStartDate] = useState("");
 	const [dueDate, setDueDate] = useState("");
@@ -65,18 +66,13 @@ function AssignFormDialog({
 			toast.warning("حداقل یک نفر از پرسنل را انتخاب کنید.");
 			return;
 		}
-		const isoStartDate = toIsoDate(startDate);
-		if (!isoStartDate) {
-			toast.warning("تاریخ شروع را مشخص کنید.");
-			return;
-		}
-
 		try {
 			setIsSubmitting(true);
 			const results = await createFormAssignments(payload.formId, {
 				userIds: selectedUsers.map((u) => u.id),
 				frequency,
-				startDate: isoStartDate,
+				// Optional: the server starts the assignment now when omitted.
+				startDate: toIsoDate(startDate),
 				dueDate:
 					frequency === FormAssignmentFrequency.Once
 						? toIsoDate(dueDate)
@@ -119,7 +115,7 @@ function AssignFormDialog({
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label>برنامه تکمیل</Label>
+						<Label>تناوب (اختیاری)</Label>
 						<Select
 							value={frequency}
 							onValueChange={(v) => setFrequency(v as FormAssignmentFrequency)}
@@ -138,7 +134,7 @@ function AssignFormDialog({
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label>تاریخ شروع</Label>
+						<Label>تاریخ شروع (اختیاری - پیش‌فرض: امروز)</Label>
 						<DateInput
 							value={startDate}
 							onChange={(v) => setStartDate(v as string)}

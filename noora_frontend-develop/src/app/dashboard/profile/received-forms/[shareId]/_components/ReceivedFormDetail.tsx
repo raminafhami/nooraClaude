@@ -96,7 +96,7 @@ function ReceivedFormDetail({ shareId }: { shareId: string }) {
 							<img
 								src={`data:image/png;base64,${response.signatureBase64}`}
 								alt="امضا"
-								className="h-16 w-auto"
+								className="h-28 w-full max-w-sm rounded-lg border bg-white object-contain p-2"
 							/>
 						)}
 						<Button

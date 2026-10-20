@@ -67,7 +67,7 @@ export const BranchWidget = memo(function BranchWidget({
 	return (
 		<BranchContext.Provider value={branchContextValue}>
 			<Layout.Root>
-				<Layout.Head title={`شعبه ${branch.title}`}>
+				<Layout.Head back={false} title={`شعبه ${branch.title}`}>
 					<DynamicLink
 						className="flex items-center px-3 py-1 text-black transition"
 						href="/dashboard/admin"

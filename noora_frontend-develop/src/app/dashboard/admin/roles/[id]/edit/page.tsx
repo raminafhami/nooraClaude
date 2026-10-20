@@ -21,7 +21,7 @@ interface Props {
 export default async function Page({ params: { id } }: Props) {
 	return (
 		<Layout.Root>
-			<Layout.Head title="ویرایش نقش">
+			<Layout.Head back={false} title="ویرایش نقش">
 				<div className="ms-6 flex grow">
 					<DynamicLink
 						className="flex items-center rounded-lg border border-gray-200 bg-white px-3 py-1 text-black transition hover:bg-gray-100 focus:bg-gray-100"

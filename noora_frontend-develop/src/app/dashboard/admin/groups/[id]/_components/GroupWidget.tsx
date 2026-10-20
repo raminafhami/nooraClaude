@@ -87,7 +87,7 @@ export const GroupWidget = memo(function GroupWidget({
 				}}
 			>
 				<Layout.Root>
-					<Layout.Head title={`گروه ${group.title}`}>
+					<Layout.Head back={false} title={`گروه ${group.title}`}>
 						<DynamicLink
 							className="py-1items-center flex px-3 transition"
 							href="/dashboard/admin"

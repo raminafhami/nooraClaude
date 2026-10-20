@@ -60,7 +60,13 @@ function MyAssignedForms() {
 				<TableBody>
 					{assignments.length ? (
 						assignments.map((row) => (
-							<TableRow key={row.assignmentId}>
+							<TableRow
+								key={row.assignmentId}
+								className="cursor-pointer"
+								onClick={() =>
+									router.push(`/dashboard/profile/forms/${row.assignmentId}`)
+								}
+							>
 								<TableCell>{row.form.title}</TableCell>
 								<TableCell dir="ltr">{row.form.code}</TableCell>
 								<TableCell>{row.form.category?.title ?? "-"}</TableCell>

@@ -22,7 +22,8 @@ import { UpsertFormVersionDto } from './dto/upsert-form-version.dto';
 import { FormPdfService } from './form-pdf.service';
 
 const FORM_CODE_INDICATOR_KEY = 'form-code';
-const FORM_CODE_PREFIX = 'FR-APK';
+// Company prefix first, then form type, then the sequence: APK-FR-0001.
+const FORM_CODE_PREFIX = 'APK-FR';
 
 @Injectable()
 export class FormService
@@ -334,12 +335,14 @@ export class FormService
     return this.findFormById(formId);
   }
 
-  async generateRawFormPdf(formId: string) {
+  async generateRawFormPdf(formId: string, preferDraft = false) {
     const form = await this.formRepositoryImpl.findById(formId, 'category');
     if (!form) {
       throw new NotFoundException('فرم مورد نظر یافت نشد.');
     }
-    const versionId = form.publishedVersionId || form.draftVersionId;
+    const versionId = preferDraft
+      ? form.draftVersionId || form.publishedVersionId
+      : form.publishedVersionId || form.draftVersionId;
     if (!versionId) {
       throw new BadRequestException('این فرم هنوز نسخه‌ای ندارد.');
     }

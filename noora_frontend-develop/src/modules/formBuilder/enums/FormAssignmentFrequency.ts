@@ -17,7 +17,7 @@ const FORM_ASSIGNMENT_FREQUENCY_LABELS: Record<FormAssignmentFrequency, string> 
 	[FormAssignmentFrequency.Quarterly]: "هر سه ماه",
 	[FormAssignmentFrequency.SemiAnnual]: "هر شش ماه",
 	[FormAssignmentFrequency.Annual]: "سالانه",
-	[FormAssignmentFrequency.NoSchedule]: "بدون بازه",
+	[FormAssignmentFrequency.NoSchedule]: "بدون تناوب (هر زمان نیاز بود)",
 };
 
 export { FormAssignmentFrequency, FORM_ASSIGNMENT_FREQUENCY_LABELS };

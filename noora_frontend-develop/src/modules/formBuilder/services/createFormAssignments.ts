@@ -4,8 +4,8 @@ import { FormAssignmentFrequency } from "../enums/FormAssignmentFrequency";
 
 type CreateFormAssignmentsInput = {
 	userIds: string[];
-	frequency: FormAssignmentFrequency;
-	startDate: string;
+	frequency?: FormAssignmentFrequency;
+	startDate?: string;
 	dueDate?: string;
 	endDate?: string;
 };
