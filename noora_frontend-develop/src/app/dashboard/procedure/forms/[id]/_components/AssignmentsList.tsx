@@ -1,6 +1,7 @@
 "use client";
 
 import moment from "moment-jalaali";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,7 @@ import { getFormAssignments } from "@/formBuilder/services/getFormAssignments";
 import { FormAssignment } from "@/formBuilder/models/FormAssignment";
 
 function AssignmentsList({ formId, refreshKey }: { formId: string; refreshKey: unknown }) {
+	const router = useRouter();
 	const [assignments, setAssignments] = useState<FormAssignment[]>([]);
 	const [loading, setLoading] = useState(true);
 
@@ -72,8 +74,17 @@ function AssignmentsList({ formId, refreshKey }: { formId: string; refreshKey: u
 			<TableBody>
 				{assignments.length ? (
 					assignments.map((assignment) => (
-						<TableRow key={assignment.id}>
-							<TableCell>
+						<TableRow
+							key={assignment.id}
+							className="cursor-pointer hover:bg-gray-50"
+							title="مشاهده سابقه تخصیص و فرم‌های تکمیل‌شده"
+							onClick={() =>
+								router.push(
+									`/dashboard/procedure/forms/${formId}/users/${assignment.userId}`,
+								)
+							}
+						>
+							<TableCell className="text-primary">
 								{assignment.user
 									? `${assignment.user.name} ${assignment.user.lastname}`
 									: "-"}
@@ -100,7 +111,10 @@ function AssignmentsList({ formId, refreshKey }: { formId: string; refreshKey: u
 										type="button"
 										variant="ghost"
 										size="sm"
-										onClick={() => handleDeactivate(assignment.id)}
+										onClick={(e) => {
+											e.stopPropagation();
+											handleDeactivate(assignment.id);
+										}}
 									>
 										غیرفعال‌سازی
 									</Button>

@@ -134,6 +134,16 @@ export class FormReportService {
           data: [
             { $skip: (filters.page ?? 0) * (filters.size ?? 10) },
             { $limit: filters.size ?? 10 },
+            // Raw aggregation rows only carry `_id`; the client addresses
+            // occurrences by `id` (detail/PDF). Answers and the signature are
+            // fetched per occurrence, so the listing stays light.
+            { $addFields: { id: '$_id' } },
+            {
+              $project: {
+                'response.answers': 0,
+                'response.signatureBase64': 0,
+              },
+            },
           ],
           metadata: [{ $count: 'count' }],
         },

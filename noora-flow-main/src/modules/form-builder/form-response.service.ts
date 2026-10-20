@@ -397,6 +397,27 @@ export class FormResponseService {
     const version = await this.formVersionRepositoryImpl.findById(
       occurrence.versionId,
     );
-    return { occurrence, response, version };
+    const form = await this.formRepositoryImpl.findById(
+      occurrence.formId,
+      'category',
+    );
+    const assignment = await this.formAssignmentRepositoryImpl.findById(
+      occurrence.assignmentId,
+      'user',
+    );
+    return {
+      occurrence,
+      response,
+      version,
+      form: form
+        ? {
+            id: form.id,
+            title: form.title,
+            code: form.code,
+            category: (form as any).category,
+          }
+        : null,
+      user: (assignment as any)?.user ?? null,
+    };
   }
 }

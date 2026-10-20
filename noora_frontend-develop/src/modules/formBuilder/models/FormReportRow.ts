@@ -3,6 +3,7 @@ import { FormOccurrenceStatus } from "../enums/FormOccurrenceStatus";
 
 type FormReportRow = {
 	id: string;
+	assignmentId: string;
 	formId: string;
 	userId: string;
 	versionId: string;
@@ -10,6 +11,7 @@ type FormReportRow = {
 	periodKey?: string | null;
 	dueDate?: string | null;
 	status: FormOccurrenceStatus;
+	createdAt: string;
 	form: {
 		title: string;
 		code: string;
@@ -17,11 +19,10 @@ type FormReportRow = {
 	};
 	user?: { id: string; name: string; lastname: string };
 	version?: { versionNo: number };
+	// The listing omits answers and the signature; the detail endpoint has them.
 	response?: {
-		answers: Record<string, unknown>;
 		submittedAt?: string | null;
 		completerName?: string | null;
-		signatureBase64?: string | null;
 	};
 };
 

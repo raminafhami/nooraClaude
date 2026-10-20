@@ -8,6 +8,13 @@ type OccurrenceAdminDetail = {
 	occurrence: FormOccurrence;
 	response: FormResponse | null;
 	version: FormVersion | null;
+	form: {
+		id: string;
+		title: string;
+		code: string;
+		category?: { title: string } | null;
+	} | null;
+	user: { id: string; name: string; lastname: string } | null;
 };
 
 async function getOccurrenceDetailAsAdmin(

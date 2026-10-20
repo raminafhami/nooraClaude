@@ -1,13 +1,13 @@
 "use client";
 
 import moment from "moment-jalaali";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useDialogs } from "@/components/ui/dialog/use-dialogs";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/ui/pagination/Pagination";
 import {
@@ -38,8 +38,6 @@ import { downloadOccurrencePdfAsAdmin } from "@/formBuilder/services/downloadFor
 import { getFormReport } from "@/formBuilder/services/getFormReport";
 import { getFormReportMetrics } from "@/formBuilder/services/getFormReportMetrics";
 
-import { ViewOccurrenceAnswersDialog } from "./ViewOccurrenceAnswersDialog";
-
 interface ReportFilters {
 	title?: string;
 	code?: string;
@@ -59,7 +57,7 @@ function MetricCard({ label, value }: { label: string; value: string | number })
 }
 
 function CompletedFormsReport() {
-	const dialogs = useDialogs();
+	const router = useRouter();
 	const [rows, setRows] = useState<FormReportRow[]>([]);
 	const [total, setTotal] = useState(0);
 	const [metrics, setMetrics] = useState<FormReportMetrics | null>(null);
@@ -113,11 +111,8 @@ function CompletedFormsReport() {
 		load();
 	}, [load]);
 
-	async function handleViewAnswers(row: FormReportRow) {
-		await dialogs.open(ViewOccurrenceAnswersDialog, {
-			occurrenceId: row.id,
-			title: row.form.title,
-		});
+	function handleViewAnswers(row: FormReportRow) {
+		router.push(`/dashboard/procedure/forms/${row.formId}/occurrences/${row.id}`);
 	}
 
 	async function handleDownloadPdf(row: FormReportRow) {
