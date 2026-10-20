@@ -84,6 +84,7 @@ export class PersonnelExpertiseController {
   @Post('certificate')
   async createWithCertificate(
     @UploadedFile() file,
+    @ActiveUser() user: ActiveUserData,
     @Body()
     createPersonnelExpertiseDto: CreatePersonnelExpertiseWithCertificateDto,
   ) {
@@ -95,7 +96,7 @@ export class PersonnelExpertiseController {
       userId: createPersonnelExpertiseDto.userId,
       expertiseId: createPersonnelExpertiseDto.expertiseId,
     });
-    if (p) {
+    if (p?.data?.certificateId) {
       fs.unlinkSync(file.path);
       throw new BadRequestException('this personnel expertise is exist');
     }
@@ -110,6 +111,17 @@ export class PersonnelExpertiseController {
       organizationName: createPersonnelExpertiseDto.organizationName,
       certificateDate: createPersonnelExpertiseDto.certificateDate,
     });
+    // The item may already be on the checklist without a certificate (added
+    // from the employee's job requirements) - attach the certificate to it.
+    if (p) {
+      return this.personnelExpertiseService.findByIdAndUpdate(p.id, {
+        'data.certificateId': certificate.id,
+        status: createPersonnelExpertiseDto.status,
+        modifyBy: user.id,
+        modifyAt: Date.now(),
+      });
+    }
+
     createPersonnelExpertiseDto.data.certificateId = certificate.id;
 
     const pe = await this.personnelExpertiseService.create(

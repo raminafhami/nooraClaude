@@ -27,6 +27,7 @@ import { PermissionAction, Subjects } from '../iam/authentication/enums';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
 import { ActiveUser } from '../iam/authentication/decorators/active-user.decorator';
 import { ActiveUserData } from '../iam/authentication/interfaces/active-user-data.interface';
+import { JobExpertiseSyncService } from '../job-description/job-expertise-sync.service';
 
 @ApiTags('personnel')
 @ApiBearerAuth('token')
@@ -37,6 +38,7 @@ export class PersonnelController {
     private personnelExpertiseService: PersonnelExpertiseService,
     private usersService: UsersService,
     private jobDescriptionService: JobDescriptionService,
+    private jobExpertiseSyncService: JobExpertiseSyncService,
   ) {}
 
   @CheckPermissions({
@@ -194,6 +196,11 @@ export class PersonnelController {
     );
     if (!newPersonnel) {
       throw new NotFoundException('personnel not exist.');
+    }
+    if (data.jobs !== undefined) {
+      await this.jobExpertiseSyncService.trySync(`personnel ${userId}`, () =>
+        this.jobExpertiseSyncService.syncUser(userId),
+      );
     }
     return newPersonnel;
   }

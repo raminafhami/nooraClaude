@@ -17,12 +17,16 @@ import { GetQueryDto } from 'src/shared/crud/dto/get-query.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PermissionAction, Subjects } from '../iam/authentication/enums';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
+import { JobExpertiseSyncService } from './job-expertise-sync.service';
 
 @ApiTags('job-description')
 @ApiBearerAuth('token')
 @Controller('job-description')
 export class JobDescriptionController {
-  constructor(private readonly jobDescriptionService: JobDescriptionService) {}
+  constructor(
+    private readonly jobDescriptionService: JobDescriptionService,
+    private readonly jobExpertiseSyncService: JobExpertiseSyncService,
+  ) {}
 
   @CheckPermissions({
     action: PermissionAction.CREATE,
@@ -74,6 +78,9 @@ export class JobDescriptionController {
     if (!newJobDes) {
       throw new NotFoundException('job description not exist');
     }
+    await this.jobExpertiseSyncService.trySync(`job ${id} updated`, () =>
+      this.jobExpertiseSyncService.syncJobHolders(id),
+    );
     return newJobDes;
   }
 
@@ -87,5 +94,8 @@ export class JobDescriptionController {
     if (!checkDeleted) {
       throw new NotFoundException('job description not exist');
     }
+    await this.jobExpertiseSyncService.trySync(`job ${id} deleted`, () =>
+      this.jobExpertiseSyncService.removeJobFromHolders(id),
+    );
   }
 }
