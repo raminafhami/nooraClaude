@@ -35,7 +35,7 @@ function assets() {
       css:
         face('normal', 'Vazirmatn-Regular.woff2') +
         face('bold', 'Vazirmatn-Bold.woff2'),
-      logo: readAsset('assets', 'apk-form-logo.png'),
+      logo: readAsset('brand', 'apk-form-logo.png'),
     };
   }
   return assetCache;

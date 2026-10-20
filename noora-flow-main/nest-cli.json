@@ -16,7 +16,7 @@
         "include": "modules/form-builder/fonts/*.woff2"
       },
       {
-        "include": "modules/form-builder/assets/*.png"
+        "include": "modules/form-builder/brand/*.png"
       }
     ]
   }
