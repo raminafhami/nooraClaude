@@ -33,7 +33,7 @@ export const ProcessPage = ({ processKey }: { processKey: string }) => {
 
 	return (
 		<Layout.Root>
-			<Layout.Head title={`${process.name}`}>
+			<Layout.Head title={`${process.name}`} back={false}>
 				<DynamicLink
 					className="ms-auto flex items-center rounded-lg border border-gray-200 bg-white px-3 py-1 text-black transition hover:bg-gray-100 focus:bg-gray-100"
 					href="/dashboard/admin?tab=business-process"

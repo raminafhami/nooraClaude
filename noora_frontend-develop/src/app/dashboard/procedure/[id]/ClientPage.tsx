@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import GetAssetRequirement from "@/api/assetRequirement/getAssetRequirement";
 import GetAudit from "@/api/assetRequirement/getAudit";
-import { DynamicLink } from "@/components/ui/dynamic-link";
 import Pagination from "@/components/ui/pagination/Pagination";
 import { Layout } from "@/ui/Layout";
 import { Panel } from "@/ui/Panel";
@@ -71,23 +70,16 @@ export default function ProcedureIdClientPage({ auditId }: ProcedurProps) {
 	return (
 		<>
 			<Layout.Root>
+				{/* The standard back button returns to the tab this was opened
+				    from (ممیزی داخلی / اجراییات); the old fixed link always went
+				    to the first tab. */}
 				<Layout.Head
 					title={toFarsiNum(
 						`${audit[0]?.category ? `${audit[0]?.category}:` : ""} ${
 							audit[0]?.title ? audit[0]?.title : ""
 						}`,
 					)}
-				>
-					{!!!readonly && (
-						<div className="mr-auto flex w-auto justify-end">
-							<DynamicLink href="/dashboard/procedure/">
-								<button className="mr-5 mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
-									بازگشت
-								</button>
-							</DynamicLink>
-						</div>
-					)}
-				</Layout.Head>
+				></Layout.Head>
 				<Layout.Content>
 					<Panel.Root>
 						<Panel.Container className="py-0">

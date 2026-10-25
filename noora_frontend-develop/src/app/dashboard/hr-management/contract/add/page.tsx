@@ -14,7 +14,7 @@ const metadata: Metadata = {
 async function ContractCreatePage() {
 	return (
 		<Layout.Root>
-			<Layout.Head title="ثبت قرارداد جدید">
+			<Layout.Head title="ثبت قرارداد جدید" back={false}>
 				<div className="ms-6 flex grow">
 					<Button asChild variant="outline">
 						<DynamicLink href="/dashboard/hr-management?tab=contracts">

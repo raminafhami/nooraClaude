@@ -42,7 +42,7 @@ function ContractPage({ id }: { id: string }) {
 
 	return (
 		<Layout.Root>
-			<Layout.Head title="جزییات قرارداد">
+			<Layout.Head title="جزییات قرارداد" back={false}>
 				<div className="ms-auto">
 					<DynamicLink href="/dashboard/inspection?view=contract" passHref>
 						<Button>

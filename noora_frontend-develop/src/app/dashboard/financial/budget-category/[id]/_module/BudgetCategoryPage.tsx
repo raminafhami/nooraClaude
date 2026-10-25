@@ -41,7 +41,7 @@ function BudgetCategoryPage({ id }: { id: string }) {
 
 	return (
 		<Layout.Root>
-			<Layout.Head title="جزییات مرکز بودجه">
+			<Layout.Head title="جزییات مرکز بودجه" back={false}>
 				<div className="sm:ms-auto">
 					<DynamicLink href="/dashboard/financial?tab=petty-category">
 						<Button>

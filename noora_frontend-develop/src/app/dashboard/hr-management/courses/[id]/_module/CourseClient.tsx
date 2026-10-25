@@ -67,7 +67,10 @@ function CourseClient({ id }: { id: string }) {
 
 	return (
 		<Layout.Root>
-			<Layout.Head title={`دوره آموزشی: ${course?.title ?? "نامشخص"}`}>
+			<Layout.Head
+				title={`دوره آموزشی: ${course?.title ?? "نامشخص"}`}
+				back={false}
+			>
 				<div className="sm:ms-auto">
 					<DynamicLink href="/dashboard/hr-management?tab=courses">
 						<Button>

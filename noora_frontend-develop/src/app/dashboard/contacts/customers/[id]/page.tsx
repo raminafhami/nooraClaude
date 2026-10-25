@@ -113,7 +113,7 @@ async function CustomerDetailsPage({
 
 	return (
 		<Layout.Root>
-			<Layout.Head title={`مدیریت مشتری: ${customer.fullname}`}>
+			<Layout.Head title={`مدیریت مشتری: ${customer.fullname}`} back={false}>
 				<div className="sm:ms-auto">
 					<DynamicLink href="/dashboard/contacts?tab=customers">
 						<Button>

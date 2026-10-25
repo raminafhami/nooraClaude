@@ -69,6 +69,7 @@ function BuyerClient({ id }: { id: string }) {
 	return (
 		<Layout.Root>
 			<Layout.Head
+				back={false}
 				title={
 					<div className="flex items-center gap-3">
 						<span>{`خریدار: ${buyer.name}`}</span>
