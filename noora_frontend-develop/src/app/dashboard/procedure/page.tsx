@@ -1,5 +1,6 @@
 "use client";
 
+import { parseAsString, useQueryState } from "nuqs";
 import React from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,11 +14,22 @@ import { ProcedureTabs } from "./_components/modules/AuditTypes";
 import SubContractorsPage from "./_components/subcontractors/page";
 
 export default function ProcedurePage() {
+	// Kept in the URL (like TabsCreator) so "back" from an inner page lands
+	// on the tab the user came from.
+	const [tab, setTab] = useQueryState(
+		"tab",
+		parseAsString.withDefault("instructions"),
+	);
+
 	return (
 		<Layout.Root>
 			<Layout.Head title={toFarsiNum("تضمین کیفیت")}></Layout.Head>
 			<Layout.Content>
-				<Tabs defaultValue="instructions" className="w-full select-none">
+				<Tabs
+					value={tab}
+					onValueChange={setTab}
+					className="w-full select-none"
+				>
 					<TabsList className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-thumb-rounded-full scrollbar-h-fit h-max w-full flex-row-reverse justify-start overflow-x-auto py-2">
 						{ProcedureTabs.map((tabs, index) => (
 							<TabsTrigger
