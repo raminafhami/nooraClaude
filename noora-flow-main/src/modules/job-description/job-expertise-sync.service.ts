@@ -120,6 +120,29 @@ export class JobExpertiseSyncService {
     }
   }
 
+  // A deleted expertise is removed from every job that required it (holders
+  // re-synced), and its remaining "unqualified" rows go too - there is
+  // nothing left to qualify for. Earned rows stay as the employee's record.
+  async removeExpertiseFromJobs(expertiseId: string) {
+    const id = new Types.ObjectId(expertiseId);
+    const jobs = await this.jobDescriptionModel
+      .find({ 'requirements.expertises': id })
+      .select('_id')
+      .lean();
+    await this.jobDescriptionModel.updateMany(
+      { 'requirements.expertises': id },
+      { $pull: { 'requirements.expertises': id } },
+    );
+    for (const job of jobs) {
+      await this.syncJobHolders(String(job._id));
+    }
+    await this.personnelExpertiseModel.deleteMany({
+      expertiseId: id,
+      status: 'unqualified',
+      'data.certificateId': { $exists: false },
+    });
+  }
+
   // The job/personnel change itself is already saved when these run, so a
   // failed sync is logged instead of failing that request; the next change
   // to the same person or job brings the checklist back in line.

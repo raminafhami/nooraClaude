@@ -19,21 +19,29 @@ export class AcademicType {
   @Prop({ type: String, required: false })
   field: string;
 }
+// A checklist row whose expertise was deleted populates `expertiseId` as null;
+// it is left out instead of throwing on `.title` and failing the whole list.
+function flattenExpertises(ret: any) {
+  if (ret.expertises) {
+    ret.expertises = ret.expertises
+      .filter((e) => e.expertiseId)
+      .map((e) => {
+        delete e.userId;
+        e.title = e.expertiseId.title;
+        e.type = e.expertiseId.type;
+        e.expertiseId = e.expertiseId.id;
+        return e;
+      });
+  }
+}
+
 @Schema({
   versionKey: false,
   toJSON: {
     virtuals: true,
     transform(doc: any, ret: any) {
       delete ret._id;
-      if (ret.expertises) {
-        ret.expertises.map((e) => {
-          delete e.userId;
-          e.title = e.expertiseId.title;
-          e.type = e.expertiseId.type;
-          e.expertiseId = e.expertiseId.id;
-          return e;
-        });
-      }
+      flattenExpertises(ret);
       return ret;
     },
   },
@@ -41,15 +49,7 @@ export class AcademicType {
     virtuals: true,
     transform(doc: any, ret: any) {
       delete ret._id;
-      if (ret.expertises) {
-        ret.expertises.map((e) => {
-          delete e.userId;
-          e.title = e.expertiseId.title;
-          e.type = e.expertiseId.type;
-          e.expertiseId = e.expertiseId.id;
-          return e;
-        });
-      }
+      flattenExpertises(ret);
       return ret;
     },
   },

@@ -17,12 +17,16 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetQueryDto } from 'src/shared/crud/dto/get-query.dto';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
 import { PermissionAction, Subjects } from '../iam/authentication/enums';
+import { JobExpertiseSyncService } from '../job-description/job-expertise-sync.service';
 
 @ApiTags('expertise')
 @ApiBearerAuth('token')
 @Controller('expertise')
 export class ExpertiseController {
-  constructor(private readonly expertiseService: ExpertiseService) {}
+  constructor(
+    private readonly expertiseService: ExpertiseService,
+    private readonly jobExpertiseSyncService: JobExpertiseSyncService,
+  ) {}
 
   @CheckPermissions({
     action: PermissionAction.CREATE,
@@ -86,5 +90,8 @@ export class ExpertiseController {
     if (!checkDeleted) {
       throw new NotFoundException('expertise not exist');
     }
+    await this.jobExpertiseSyncService.trySync(`expertise ${id} deleted`, () =>
+      this.jobExpertiseSyncService.removeExpertiseFromJobs(id),
+    );
   }
 }
