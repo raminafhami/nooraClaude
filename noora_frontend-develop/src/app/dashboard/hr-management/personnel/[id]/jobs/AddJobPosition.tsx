@@ -91,14 +91,16 @@ export function AddJobPosition() {
 	}
 
 	async function submitJobAndExpertise() {
-		const filteredCertificates = expertisesStatus.filter(
+		// Certificates sent from their own "ارسال" button are already saved.
+		const pending = expertisesStatus.filter((expertise) => !expertise.sent);
+		const filteredCertificates = pending.filter(
 			(certificate) =>
 				certificate.organizationName &&
 				certificate.file &&
 				certificate.certificateDate,
 		) as ExpertiseAndStatus[];
 
-		const missingProperties = expertisesStatus.filter(
+		const missingProperties = pending.filter(
 			(certificate) =>
 				!certificate.organizationName ||
 				!certificate.file ||

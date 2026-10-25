@@ -63,6 +63,10 @@ export function UnommonExpertises({ expertises, jobId }: UnommonExpertises) {
       const index = prevStatus.findIndex(
         (exp) => exp.expertiseId === expertise.id
       );
+      // A sent certificate is already saved as qualified.
+      if (index !== -1 && prevStatus[index].sent) {
+        return prevStatus;
+      }
       if (index !== -1) {
         // Update the status of the expertise
         const updatedStatus = [...prevStatus];
@@ -169,7 +173,12 @@ export function UnommonExpertises({ expertises, jobId }: UnommonExpertises) {
                     (exp) =>
                       exp.expertiseId === expertise.id &&
                       exp.status === "qualified"
-                  ) && <CertificateForm expertiseId={expertise.id} />}
+                  ) && (
+                    <CertificateForm
+                      expertiseId={expertise.id}
+                      title={expertise.title}
+                    />
+                  )}
               </div>
             ))}
           </div>

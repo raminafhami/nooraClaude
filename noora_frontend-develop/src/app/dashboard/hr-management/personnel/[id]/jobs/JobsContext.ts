@@ -8,6 +8,8 @@ export interface ExpertiseAndStatus {
 	organizationName?: string;
 	file?: File | undefined;
 	certificateDate?: string;
+	// Certificate already uploaded from its own "ارسال" button.
+	sent?: boolean;
 }
 interface JobsContextType {
 	expertisesStatus: ExpertiseAndStatus[];
