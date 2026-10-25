@@ -28,6 +28,8 @@ import { messages } from "@/messages";
 import { Loading } from "@/ui/Loader";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
 
+import { EditExpertiseAction } from "../../../_components/EditExpertiseAction";
+
 interface Props {
 	id: string;
 }
@@ -347,7 +349,7 @@ function ExpertiseWidget({
 	const textInp = useRef<HTMLInputElement>(null);
 	const addBtn = useRef<HTMLButtonElement>(null);
 
-	const { setValue, watch } = useFormContext<FormData>();
+	const { getValues, setValue, watch } = useFormContext<FormData>();
 	const fields = watch();
 
 	const expertises = fields["requirements"].expertises.filter(
@@ -489,7 +491,7 @@ function ExpertiseWidget({
 					expertises.map((expertise: Expertise, index) => (
 						<div className="mt-1.5 first:mt-0" key={`${expertise.title}-${index}`}>
 							<div className="flex items-center">
-								<div>
+								<div className="flex items-center gap-1">
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
@@ -501,6 +503,17 @@ function ExpertiseWidget({
 												...all.slice(removeAt + 1),
 											]);
 										}}
+									/>
+									<EditExpertiseAction
+										expertise={expertise}
+										onEdited={(updated) =>
+											setValue(
+												"requirements.expertises",
+												getValues("requirements.expertises").map((x) =>
+													x.id === updated.id ? { ...x, title: updated.title } : x,
+												),
+											)
+										}
 									/>
 								</div>
 
