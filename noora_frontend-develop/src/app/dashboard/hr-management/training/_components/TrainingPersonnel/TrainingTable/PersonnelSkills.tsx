@@ -5,24 +5,31 @@ import { FaEdit, FaTimes } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
 
 import { Personnel } from "@/hrm/personnel/models/Personnel";
-import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
 import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { updatePersonnelExpertise } from "@/hrm/personnelExpertise/services/updatePersonnelExpertise";
 import { cn } from "@/lib/utils";
 
 import { TrainingContext } from "../TrainingContext";
-import { PersonnelExpertiseGroupByStatus } from "./PersonnelExpertises";
+import {
+	ChecklistItem,
+	PersonnelExpertiseGroupByStatus,
+} from "./PersonnelExpertises";
 
 interface Props {
 	items: PersonnelExpertiseGroupByStatus;
 	personnel: Personnel;
 	showAll: boolean;
+	// Also used for the "دانش فنی" group (same toggleable checklist).
+	label?: string;
+	emptyText?: string;
 }
 
 export const PersonnelSkills = memo(function PersonnelSkills({
 	items,
 	personnel,
 	showAll,
+	label = "مهارت ها",
+	emptyText = "مهارتی یافت نشد.",
 }: Props): React.ReactNode {
 	const { updateExpertise } = useContext(TrainingContext);
 
@@ -31,10 +38,10 @@ export const PersonnelSkills = memo(function PersonnelSkills({
 			<div className="space-y-2">
 				<div>
 					<span className="rounded-xl bg-slate-600 px-2 text-xs text-white">
-						مهارت ها
+						{label}
 					</span>
 				</div>
-				{((items: PersonnelExpertise[]) =>
+				{((items: ChecklistItem[]) =>
 					items.length ? (
 						<ul className="space-y-1">
 							{items.map(
@@ -63,15 +70,16 @@ export const PersonnelSkills = memo(function PersonnelSkills({
 											<div className="flex cursor-pointer opacity-0 transition group-hover/expertise:opacity-100">
 												<FaEdit
 													onClick={async () => {
-														const updatedExpertise =
-															await updatePersonnelExpertise(item.id, {
-																status:
-																	item.status ===
-																	PersonnelExpertiseStatus.Qualified
-																		? PersonnelExpertiseStatus.Unqualified
-																		: PersonnelExpertiseStatus.Qualified,
-															});
-														updateExpertise(personnel.id, updatedExpertise);
+														const status =
+															item.status === PersonnelExpertiseStatus.Qualified
+																? PersonnelExpertiseStatus.Unqualified
+																: PersonnelExpertiseStatus.Qualified;
+														// Every copy of a merged line, so they never disagree.
+														for (const id of item.copyIds) {
+															const updatedExpertise =
+																await updatePersonnelExpertise(id, { status });
+															updateExpertise(personnel.id, updatedExpertise);
+														}
 													}}
 												/>
 											</div>
@@ -80,7 +88,7 @@ export const PersonnelSkills = memo(function PersonnelSkills({
 							)}
 						</ul>
 					) : (
-						<div className="text-xs text-gray-600">مهارتی یافت نشد.</div>
+						<div className="text-xs text-gray-600">{emptyText}</div>
 					))(Object.values(items).flatMap((x) => x))}
 			</div>
 		</>

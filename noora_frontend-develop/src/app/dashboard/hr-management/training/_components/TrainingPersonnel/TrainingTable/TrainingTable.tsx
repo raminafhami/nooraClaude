@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FaFolderOpen } from "react-icons/fa";
 
 import SearchInput from "@/hrm/expertises/models/searchInput/searchInput";
@@ -23,7 +23,19 @@ interface Props {
 }
 
 interface SearchAttributeProps {
+	searchName?: string;
 	searchJob?: string;
+}
+
+// Arabic/Persian letter variants, ZWNJ and extra spaces must not decide a match.
+function normalize(value: string | undefined): string {
+	return (value ?? "")
+		.replace(/ي/g, "ی")
+		.replace(/ك/g, "ک")
+		.replace(/‌/g, " ")
+		.replace(/\s+/g, " ")
+		.trim()
+		.toLowerCase();
 }
 
 export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
@@ -47,6 +59,33 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 		return () => clearTimeout(delayDebounceFn);
 	}, [searchAttribute, setSearch]);
 
+	// The whole personnel list is already loaded, so both searches filter it
+	// in place.
+	const visiblePersonnel = useMemo(() => {
+		const name = normalize(searchAttribute?.searchName);
+		const job = normalize(searchAttribute?.searchJob);
+		if (!name && !job) return personnelInfo;
+
+		return personnelInfo.filter((person) => {
+			if (name && !normalize(person.fullname).includes(name)) return false;
+			if (
+				job &&
+				!person.jobs.some((item) => {
+					const j = item as PersonnelJob;
+					return (
+						normalize(j.name).includes(job) ||
+						normalize(j.metadata?.goodsInspectionField).includes(job)
+					);
+				})
+			)
+				return false;
+			return true;
+		});
+	}, [personnelInfo, searchAttribute?.searchName, searchAttribute?.searchJob]);
+	const isFiltered = !!(
+		normalize(searchAttribute?.searchName) || normalize(searchAttribute?.searchJob)
+	);
+
 	return (
 		<>
 			<TrainingCertificates
@@ -66,7 +105,16 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 								ردیف
 							</Table.Cell>
 							<Table.Cell as="th" className="w-36">
-								نام
+								<SearchInput
+									placeholder="نام پرسنل"
+									onChange={(value) => {
+										setSearchAttribute((prev) => ({
+											...prev,
+											searchName: value,
+										}));
+									}}
+									value={searchAttribute?.searchName}
+								/>
 							</Table.Cell>
 							<Table.Cell as="th" className="w-36">
 								تحصیلات
@@ -85,7 +133,7 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 							</Table.Cell>
 							<Table.Cell as="th">
 								<div className="flex items-center gap-x-2">
-									<span>آموزش ها / مهارت ها</span>
+									<span>آموزش ها / مهارت ها / دانش فنی</span>
 									<span
 										className={cn(
 											"cursor-pointer rounded-xl px-2 py-0.5 text-xs transition",
@@ -104,8 +152,8 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 						</Table.Row>
 					</Table.Head>
 					<Table.Body>
-						{personnelInfo.length ? (
-							personnelInfo.map((user: Personnel, index: number) => {
+						{visiblePersonnel.length ? (
+							visiblePersonnel.map((user: Personnel, index: number) => {
 								const expertises = user.expertises!;
 
 								return (
@@ -194,7 +242,11 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 							</Table.Row>
 						) : (
 							<Table.Row key="empty">
-								<Table.Cell colSpan={100}>تخصصی یافت نشد.</Table.Cell>
+								<Table.Cell colSpan={100}>
+									{isFiltered
+										? "پرسنلی با این مشخصات یافت نشد."
+										: "تخصصی یافت نشد."}
+								</Table.Cell>
 							</Table.Row>
 						)}
 					</Table.Body>
