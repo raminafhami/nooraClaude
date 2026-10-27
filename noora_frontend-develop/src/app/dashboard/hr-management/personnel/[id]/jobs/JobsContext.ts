@@ -8,8 +8,10 @@ export interface ExpertiseAndStatus {
 	organizationName?: string;
 	file?: File | undefined;
 	certificateDate?: string;
-	// Certificate already uploaded from its own "ارسال" button.
+	// Certificate already uploaded from its own "ارسال" button, and the
+	// checklist row it was saved on (for "حذف").
 	sent?: boolean;
+	sentRowId?: string;
 }
 interface JobsContextType {
 	expertisesStatus: ExpertiseAndStatus[];

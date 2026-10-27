@@ -160,6 +160,18 @@ export class PersonnelExpertiseController {
     };
   }
 
+  // Declared before ':id' so "certificates" is not taken for an id.
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.PERSONNEL_EXPERTISE,
+  })
+  @ApiQuery({ name: 'userId', type: 'string', required: true })
+  @Get('certificates')
+  async findCertificates(@Query('userId') userId: string) {
+    if (!userId) throw new BadRequestException('userId is required');
+    return this.personnelExpertiseService.findCertificatesByUser(userId);
+  }
+
   @CheckPermissions({
     action: PermissionAction.READ,
     subject: Subjects.PERSONNEL_EXPERTISE,
@@ -280,6 +292,25 @@ export class PersonnelExpertiseController {
     });
 
     return newPE;
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.PERSONNEL_EXPERTISE,
+  })
+  @Delete(':id/certificate')
+  async removeCertificate(
+    @Param('id') id: string,
+    @ActiveUser() user: ActiveUserData,
+  ) {
+    const pe = await this.personnelExpertiseService.removeCertificate(
+      id,
+      user.id,
+    );
+    if (!pe) {
+      throw new NotFoundException('personnel expertise not exist.');
+    }
+    return pe;
   }
 
   @CheckPermissions({

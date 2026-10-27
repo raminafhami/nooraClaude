@@ -190,6 +190,13 @@ export class PersonnelController {
     @Param('userId') userId: string,
     @Body() data: UpdatePersonnelDto,
   ) {
+    // jobs held before this change, to know which ones were taken away
+    const previousJobs =
+      data.jobs !== undefined
+        ? ((await this.personnelService.findOne({ userId }))?.jobs ?? []).map(
+            (j) => String(j),
+          )
+        : [];
     const newPersonnel = await this.personnelService.findOneAndUpdate(
       { userId },
       data,
@@ -199,7 +206,11 @@ export class PersonnelController {
     }
     if (data.jobs !== undefined) {
       await this.jobExpertiseSyncService.trySync(`personnel ${userId}`, () =>
-        this.jobExpertiseSyncService.syncUser(userId),
+        this.jobExpertiseSyncService.syncAfterJobsChange(
+          userId,
+          previousJobs,
+          data.jobs,
+        ),
       );
     }
     return newPersonnel;

@@ -17,6 +17,7 @@ import { Loading } from "@/ui/Loader";
 import SignaturePad from "@/ui/SignaturePad";
 
 import { PersonnelContext } from "../_components/PersonnelContext";
+import { PersonnelCertificates } from "./PersonnelCertificates";
 
 interface FormData {
 	nationalFrontCard: File;
@@ -680,6 +681,7 @@ export function Documents() {
 					)}
 				</div>
 			</div>
+			<PersonnelCertificates userId={personnel.userId} />
 			<Tooltip id={`removeDegree`}>حذف کردن</Tooltip>
 		</>
 	);
