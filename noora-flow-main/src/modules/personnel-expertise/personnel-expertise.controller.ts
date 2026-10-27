@@ -43,6 +43,7 @@ import * as fs from 'fs';
 import type { Response } from 'express';
 import { PermissionAction, Subjects } from '../iam/authentication/enums';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
+import { JobExpertiseSyncService } from '../job-description/job-expertise-sync.service';
 
 @ApiTags('personnel-expertise')
 @ApiBearerAuth('token')
@@ -50,6 +51,7 @@ import { CheckPermissions } from '../iam/authentication/decorators/permissions.d
 export class PersonnelExpertiseController {
   constructor(
     private readonly personnelExpertiseService: PersonnelExpertiseService,
+    private readonly jobExpertiseSyncService: JobExpertiseSyncService,
   ) {}
 
   @CheckPermissions({
@@ -169,7 +171,14 @@ export class PersonnelExpertiseController {
   @Get('certificates')
   async findCertificates(@Query('userId') userId: string) {
     if (!userId) throw new BadRequestException('userId is required');
-    return this.personnelExpertiseService.findCertificatesByUser(userId);
+    const required =
+      (await this.jobExpertiseSyncService.requiredByUser([userId])).get(
+        userId,
+      ) ?? new Set<string>();
+    return this.personnelExpertiseService.findCertificatesByUser(
+      userId,
+      required,
+    );
   }
 
   @CheckPermissions({

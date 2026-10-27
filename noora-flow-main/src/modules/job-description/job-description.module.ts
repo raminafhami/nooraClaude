@@ -17,6 +17,10 @@ import {
   PersonnelExpertiseSchema,
 } from '../personnel-expertise/schemas/personnel-expertise.schema';
 import {
+  PersonnelCertificate,
+  PersonnelCertificateSchema,
+} from '../personnel-expertise/schemas/personnel-certificate.schema';
+import {
   Expertise,
   ExpertiseSchema,
 } from '../expertise/schemas/expertise.schema';
@@ -29,6 +33,7 @@ import {
       // stays free of a circular module dependency.
       { name: Personnel.name, schema: PersonnelSchema },
       { name: PersonnelExpertise.name, schema: PersonnelExpertiseSchema },
+      { name: PersonnelCertificate.name, schema: PersonnelCertificateSchema },
       { name: Expertise.name, schema: ExpertiseSchema },
     ]),
   ],

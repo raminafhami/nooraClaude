@@ -41,7 +41,16 @@ export function TrainingPersonnel() {
             : {
                 ...x,
                 expertises: x.expertises!.map((y) =>
-                  y.id !== expertise.id ? y : { ...y, status: expertise.status }
+                  y.id !== expertise.id
+                    ? y
+                    : {
+                        ...y,
+                        status: expertise.status,
+                        // given when a certificate was uploaded or removed
+                        ...(expertise.certificate !== undefined && {
+                          certificate: expertise.certificate ?? undefined,
+                        }),
+                      }
                 ),
               }
         ),

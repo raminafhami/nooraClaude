@@ -12,9 +12,11 @@ import {
   PersonnelCertificateSchema,
 } from './schemas/personnel-certificate.schema';
 import { PersonnelCertificateRepositoryImpl } from './repository/personnel-certificate.repository';
+import { JobDescriptionModule } from '../job-description/job-description.module';
 
 @Module({
   imports: [
+    JobDescriptionModule,
     MongooseModule.forFeature([
       { name: PersonnelExpertise.name, schema: PersonnelExpertiseSchema },
       { name: PersonnelCertificate.name, schema: PersonnelCertificateSchema },

@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as fs from 'fs';
 import { Model, Types } from 'mongoose';
 import { JobDescription } from './schemas/job-description.schema';
 import { Personnel } from '../personnel/schemas/personnel.schema';
 import { PersonnelExpertise } from '../personnel-expertise/schemas/personnel-expertise.schema';
+import { PersonnelCertificate } from '../personnel-expertise/schemas/personnel-certificate.schema';
 import { Expertise } from '../expertise/schemas/expertise.schema';
 
 const STATUS_RANK: Record<string, number> = {
@@ -24,16 +26,15 @@ const itemKey = (e: { type?: string; title?: string }) =>
     .trim()}`;
 
 // Keeps each employee's knowledge/training/skill checklist (PersonnelExpertise
-// rows, shown on the HR training page) in line with the requirements of the
-// jobs they currently hold:
+// rows, shown on the HR training page) and their certificates (shown under
+// «مستندات پرسنل») exactly in line with the requirements of the jobs they hold
+// right now:
 // - a requirement of any held job with no row yet is added as "unqualified"
 //   (only if that expertise still exists - rows are populated by title);
-// - an "unqualified" row with no certificate that no held job requires any
-//   more is removed;
-// - when a job is taken away from the person (syncAfterJobsChange), every
-//   row of that job goes whatever its status or certificate, unless one of
-//   their other jobs requires it. If another job has its own same-titled
-//   copy, an earned status/certificate moves to that copy first.
+// - every row no held job requires goes, whatever its status or certificate.
+//   If a held job has its own same-titled copy, an earned status/certificate
+//   moves to that copy first;
+// - a certificate no remaining row points to goes too (record and file).
 @Injectable()
 export class JobExpertiseSyncService {
   private readonly logger = new Logger(JobExpertiseSyncService.name);
@@ -47,43 +48,67 @@ export class JobExpertiseSyncService {
     private readonly personnelExpertiseModel: Model<PersonnelExpertise>,
     @InjectModel(Expertise.name)
     private readonly expertiseModel: Model<Expertise>,
+    @InjectModel(PersonnelCertificate.name)
+    private readonly personnelCertificateModel: Model<PersonnelCertificate>,
   ) {}
 
-  /** @param dropped expertise ids of jobs the person was just unassigned from */
-  async syncUser(userId: string, dropped: Iterable<string> = []) {
+  // Expertise ids (existing ones only) required by each person's current jobs.
+  async requiredByUser(userIds: string[]): Promise<Map<string, Set<string>>> {
+    const personnel = await this.personnelModel
+      .find({ userId: { $in: userIds } })
+      .select('userId jobs')
+      .lean();
+    const jobs = await this.jobDescriptionModel
+      .find({ _id: { $in: personnel.flatMap((p) => p.jobs ?? []) } })
+      .select('requirements.expertises')
+      .lean();
+    const existing = new Set(
+      (
+        await this.expertiseModel
+          .find({ _id: { $in: jobs.flatMap((j) => j.requirements?.expertises ?? []) } })
+          .select('_id')
+          .lean()
+      ).map((e) => String(e._id)),
+    );
+    const byJob = new Map(
+      jobs.map((j) => [
+        String(j._id),
+        (j.requirements?.expertises ?? []).map(String).filter((e) => existing.has(e)),
+      ]),
+    );
+    const result = new Map<string, Set<string>>();
+    for (const p of personnel) {
+      result.set(
+        String(p.userId),
+        new Set((p.jobs ?? []).flatMap((j) => byJob.get(String(j)) ?? [])),
+      );
+    }
+    return result;
+  }
+
+  async syncUser(userId: string) {
     const personnel = await this.personnelModel
       .findOne({ userId })
       .select('jobs')
       .lean();
     if (!personnel) return { added: 0, removed: 0 };
 
-    const jobs = await this.jobDescriptionModel
-      .find({ _id: { $in: personnel.jobs ?? [] } })
-      .select('requirements.expertises')
-      .lean();
-    const requiredIds = jobs.flatMap(
-      (job) => job.requirements?.expertises ?? [],
-    );
+    const required =
+      (await this.requiredByUser([userId])).get(String(userId)) ??
+      new Set<string>();
     const existingExpertises = await this.expertiseModel
-      .find({ _id: { $in: requiredIds } })
+      .find({ _id: { $in: [...required] } })
       .select('_id type title')
       .lean();
-    const required = new Set(existingExpertises.map((e) => String(e._id)));
 
     const existing = await this.personnelExpertiseModel
       .find({ userId })
       .select('expertiseId status data')
       .lean();
     const present = new Set(existing.map((e) => String(e.expertiseId)));
-    const droppedIds = new Set([...dropped].map(String));
 
     const toAdd = [...required].filter((id) => !present.has(id));
-    const removed = existing.filter((e) => {
-      const id = String(e.expertiseId);
-      if (required.has(id)) return false;
-      if (droppedIds.has(id)) return true;
-      return e.status === 'unqualified' && !e.data?.certificateId;
-    });
+    const removed = existing.filter((e) => !required.has(String(e.expertiseId)));
     const toRemove = removed.map((e) => e._id);
 
     if (toAdd.length) {
@@ -117,8 +142,37 @@ export class JobExpertiseSyncService {
     if (toRemove.length) {
       await this.personnelExpertiseModel.deleteMany({ _id: { $in: toRemove } });
     }
+    await this.removeUnusedCertificates(userId);
 
     return { added: toAdd.length, removed: toRemove.length };
+  }
+
+  // Certificates of the person that no checklist row points to any more.
+  private async removeUnusedCertificates(userId: string) {
+    const inUse = (
+      await this.personnelExpertiseModel
+        .find({ userId, 'data.certificateId': { $exists: true, $ne: null } })
+        .select('data.certificateId')
+        .lean()
+    ).map((r) => String(r.data.certificateId));
+    const unused = await this.personnelCertificateModel
+      .find({ userId, _id: { $nin: inUse } })
+      .select('_id path')
+      .lean();
+    for (const certificate of unused) {
+      if (certificate.path) {
+        try {
+          fs.unlinkSync(certificate.path);
+        } catch {
+          // already gone from disk
+        }
+      }
+    }
+    if (unused.length) {
+      await this.personnelCertificateModel.deleteMany({
+        _id: { $in: unused.map((c) => c._id) },
+      });
+    }
   }
 
   // An earned row that is going passes its status (and certificate) to a
@@ -165,27 +219,6 @@ export class JobExpertiseSyncService {
     }
   }
 
-  // The person's assigned jobs changed: everything of the jobs they lost is
-  // dropped (shared items stay, see syncUser).
-  async syncAfterJobsChange(
-    userId: string,
-    previousJobIds: Iterable<string>,
-    currentJobIds: Iterable<string>,
-  ) {
-    const current = new Set([...currentJobIds].map(String));
-    const lost = [...previousJobIds].map(String).filter((j) => !current.has(j));
-    const lostJobs = lost.length
-      ? await this.jobDescriptionModel
-          .find({ _id: { $in: lost } })
-          .select('requirements.expertises')
-          .lean()
-      : [];
-    const dropped = lostJobs.flatMap((j) =>
-      (j.requirements?.expertises ?? []).map((e) => String(e)),
-    );
-    return this.syncUser(userId, dropped);
-  }
-
   // Re-sync everyone holding a job after its requirements changed.
   async syncJobHolders(jobId: string) {
     const holders = await this.personnelModel
@@ -212,27 +245,20 @@ export class JobExpertiseSyncService {
     }
   }
 
-  // A deleted expertise is removed from every job that required it (holders
-  // re-synced), and its remaining "unqualified" rows go too - there is
-  // nothing left to qualify for. Earned rows stay as the employee's record.
+  // A deleted expertise is removed from every job that required it, and
+  // everyone with a row for it is re-synced, so those rows go.
   async removeExpertiseFromJobs(expertiseId: string) {
     const id = new Types.ObjectId(expertiseId);
-    const jobs = await this.jobDescriptionModel
-      .find({ 'requirements.expertises': id })
-      .select('_id')
-      .lean();
     await this.jobDescriptionModel.updateMany(
       { 'requirements.expertises': id },
       { $pull: { 'requirements.expertises': id } },
     );
-    for (const job of jobs) {
-      await this.syncJobHolders(String(job._id));
-    }
-    await this.personnelExpertiseModel.deleteMany({
+    const userIds = await this.personnelExpertiseModel.distinct('userId', {
       expertiseId: id,
-      status: 'unqualified',
-      'data.certificateId': { $exists: false },
     });
+    for (const userId of userIds) {
+      await this.syncUser(String(userId));
+    }
   }
 
   // The job/personnel change itself is already saved when these run, so a

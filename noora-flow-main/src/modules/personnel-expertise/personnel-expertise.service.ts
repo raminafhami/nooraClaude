@@ -86,12 +86,22 @@ export class PersonnelExpertiseService extends CrudService<PersonnelExpertiseDoc
     });
   }
 
-  // Every certificate uploaded for a person (add-job modal or training page),
-  // newest first, with the training it was uploaded for. Records stay even if
-  // the training later leaves their checklist, so this is their full archive.
-  async findCertificatesByUser(userId: string) {
+  // The person's certificates (add-job modal or training page) for items their
+  // current jobs require (`requiredIds`), newest first, with the training each
+  // was uploaded for.
+  async findCertificatesByUser(userId: string, requiredIds: Set<string>) {
+    const inUse = (
+      await this.personnelExpertiseRepositoryImpl.model
+        .find({
+          userId,
+          expertiseId: { $in: [...requiredIds] },
+          'data.certificateId': { $exists: true, $ne: null },
+        })
+        .select('data.certificateId')
+        .lean()
+    ).map((r: any) => r.data.certificateId);
     const certificates: any[] = await this.personnelCertificateRepositoryImpl.model
-      .find({ userId })
+      .find({ userId, _id: { $in: inUse } })
       .populate('expertiseId', 'title type')
       .sort({ _id: -1 })
       .lean();

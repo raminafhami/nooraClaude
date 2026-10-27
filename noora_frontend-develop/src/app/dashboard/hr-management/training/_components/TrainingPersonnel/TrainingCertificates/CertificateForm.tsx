@@ -14,8 +14,8 @@ import { FieldError } from "@/form/FieldError";
 import { Input } from "@/form/Input";
 import { ExpertiseType } from "@/hrm/expertises/enums/ExpertiseType";
 import { Expertise } from "@/hrm/expertises/models/Expertise";
-import { getExpertises } from "@/hrm/expertises/services/getExpertises";
 import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
+import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { createExpertiseCertificate } from "@/hrm/personnelExpertise/services/createExpertiseCertificate";
 import { updatePersonnelCertificate } from "@/hrm/personnelExpertise/services/updatePersonnelCertificate";
 import { messages } from "@/messages";
@@ -75,20 +75,19 @@ export const CertificateForm = memo(function CertificateForm() {
 					return;
 				}
 
-				const expertises = await getExpertises({
-					filters: {
-						title: {
-							$regex: value,
-							$options: "i",
-						},
-						type: "certificate",
-					},
-				});
-
+				// Only certificates the person's current jobs require (their
+				// checklist rows) that do not have an uploaded one yet.
+				const rows =
+					personnel.find((x) => x.id === person?.id)?.expertises ?? [];
 				setExpertises(
-					expertises.filter(
-						(x) => !certificates.find((y) => y.expertiseId === x.id),
-					),
+					rows
+						.filter(
+							(x) =>
+								x.type === ExpertiseType.Certificate &&
+								x.title?.includes(value) &&
+								!certificates.find((y) => y.expertiseId === x.expertiseId),
+						)
+						.map((x) => ({ id: x.expertiseId, title: x.title, type: x.type })),
 				);
 
 				resolve(null);
@@ -122,7 +121,12 @@ export const CertificateForm = memo(function CertificateForm() {
 
 			const date = moment(data.certificateDate, "jYYYY/jMM/jDD").toISOString();
 
-			if (!expertise) {
+			// No uploaded certificate yet: the backend attaches it to the row.
+			if (
+				!expertise ||
+				expertise.status !== PersonnelExpertiseStatus.Qualified ||
+				!expertise.certificate?.id
+			) {
 				const createdExpertise = await createExpertiseCertificate({
 					userId: person!.userId,
 					expertiseId: data.expertise.id,
@@ -132,7 +136,7 @@ export const CertificateForm = memo(function CertificateForm() {
 					file: data.certificateFile,
 				});
 
-				const expertise: PersonnelExpertise = {
+				const created: PersonnelExpertise = {
 					id: createdExpertise.id,
 					expertiseId: createdExpertise.expertiseId,
 					status: createdExpertise.status,
@@ -145,8 +149,20 @@ export const CertificateForm = memo(function CertificateForm() {
 					},
 				};
 
-				addExpertise(person!.id, expertise);
-				addCertificate(person!.id, expertise);
+				if (expertise) {
+					updateExpertise(person!.id, {
+						id: created.id,
+						userId: person!.userId,
+						expertiseId: created.expertiseId,
+						status: createdExpertise.status,
+						modifyAt: null,
+						modifyBy: null,
+						certificate: created.certificate,
+					});
+				} else {
+					addExpertise(person!.id, created);
+				}
+				addCertificate(person!.id, created);
 
 				reset(undefined);
 			} else {

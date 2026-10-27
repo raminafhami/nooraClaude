@@ -130,8 +130,26 @@ export class PersonnelController {
     }
     getQuery.filters = JSON.stringify(filter);
 
-    const data = await this.personnelService.findAll(getQuery);
-    return data;
+    const result = await this.personnelService.findAll(getQuery);
+    if (!getQuery.populate?.some((p) => p.path === 'expertises')) return result;
+    return { ...result, data: await this.onlyCurrentJobItems(result.data) };
+  }
+
+  // The checklist shows only what the person's current jobs require, even if
+  // a row outside them exists for a moment (e.g. a certificate sent from the
+  // add-job modal that was then closed without saving).
+  private async onlyCurrentJobItems(list: any[]) {
+    const plain = list.map((p) => (p?.toJSON ? p.toJSON() : p));
+    const required = await this.jobExpertiseSyncService.requiredByUser(
+      plain.map((p) => String(p.userId)),
+    );
+    for (const p of plain) {
+      const ids = required.get(String(p.userId)) ?? new Set<string>();
+      if (p.expertises) {
+        p.expertises = p.expertises.filter((e) => ids.has(String(e.expertiseId)));
+      }
+    }
+    return plain;
   }
 
   @CheckPermissions({
@@ -178,7 +196,9 @@ export class PersonnelController {
       throw new NotFoundException('personnel not exist.');
     }
 
-    return personnel;
+    const populate = query.populate as unknown as { path: string }[] | null;
+    if (!populate?.some((p) => p.path === 'expertises')) return personnel;
+    return (await this.onlyCurrentJobItems([personnel]))[0];
   }
 
   @CheckPermissions({
@@ -190,13 +210,6 @@ export class PersonnelController {
     @Param('userId') userId: string,
     @Body() data: UpdatePersonnelDto,
   ) {
-    // jobs held before this change, to know which ones were taken away
-    const previousJobs =
-      data.jobs !== undefined
-        ? ((await this.personnelService.findOne({ userId }))?.jobs ?? []).map(
-            (j) => String(j),
-          )
-        : [];
     const newPersonnel = await this.personnelService.findOneAndUpdate(
       { userId },
       data,
@@ -206,11 +219,7 @@ export class PersonnelController {
     }
     if (data.jobs !== undefined) {
       await this.jobExpertiseSyncService.trySync(`personnel ${userId}`, () =>
-        this.jobExpertiseSyncService.syncAfterJobsChange(
-          userId,
-          previousJobs,
-          data.jobs,
-        ),
+        this.jobExpertiseSyncService.syncUser(userId),
       );
     }
     return newPersonnel;

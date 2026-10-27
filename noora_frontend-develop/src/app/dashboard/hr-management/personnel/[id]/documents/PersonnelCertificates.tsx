@@ -12,9 +12,9 @@ import { Loading } from "@/ui/Loader";
 
 type Item = PersonnelCertificateRecord & { file?: File };
 
-// "مستندات پرسنل": every certificate uploaded for the person (add-job modal or
-// training page) with what was entered for it. Read-only, laid out like the
-// documents above.
+// "مستندات پرسنل": the person's certificates (add-job modal or training page)
+// for items their current jobs require, with what was entered for them.
+// Read-only, laid out like the documents above.
 export function PersonnelCertificates({ userId }: { userId: string }) {
 	const [items, setItems] = useState<Item[]>([]);
 	const [loading, setLoading] = useState(true);
