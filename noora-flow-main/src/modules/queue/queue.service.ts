@@ -75,10 +75,14 @@ export class QueueService {
     });
   }
 
+  // `buyer` / `customer`: names, given for a buyer's or customer's activity
+  // (then `type` is call / meeting / task); `link`: page the notification
+  // opens. A reminder that is missing or already past is not queued.
   async addReminder(doc: any) {
     const {
       reminderMethod,
       reminder,
+      type,
       title,
       description,
       assignee,
@@ -86,30 +90,34 @@ export class QueueService {
       deadline,
       activityId,
       buyer,
+      customer,
+      link,
     } = doc;
 
-    const delay = new Date(reminder).getTime() - Date.now();
-    const translatedTitle = buyer
-      ? this.i18nService.translate(`common.${title}`, {
-          lang: 'fa',
-        })
-      : title;
+    const delay = reminder ? new Date(reminder).getTime() - Date.now() : NaN;
+    if (!reminderMethod || !(delay > 0)) return;
 
-    const format = buyer ? 'jYYYY/jMM/jDD HH:mm' : 'jYYYY/jMM/jDD';
+    const isActivity = !!(buyer || customer);
+    const typeLabel = type
+      ? this.i18nService.translate(`common.${type}`, { lang: 'fa' })
+      : null;
+    // SMS templates: the buyer template's TITLE is the activity type
+    const translatedTitle = buyer ? typeLabel ?? title : title;
+
+    const format = isActivity ? 'jYYYY/jMM/jDD HH:mm' : 'jYYYY/jMM/jDD';
 
     const jalaliDate =
       parseInt(gregorianDateTimeToJalali(deadline)) > 0
         ? moment(deadline).utcOffset('+03:30').format(format)
         : 0;
 
-    const message = buyer
-      ? `یادآوری: شما یک فعالیت ${translatedTitle} مربوط به ${buyer} در تاریخ ${jalaliDate} دارید.`
-      : `یادآوری: شما یک تسک با عنوان ${translatedTitle} در تاریخ ${jalaliDate} دارید.`;
+    const message = isActivity
+      ? `یادآوری: شما یک ${typeLabel ?? 'فعالیت'} با عنوان «${title}» مربوط به ${buyer ?? customer} در تاریخ ${jalaliDate} دارید.`
+      : `یادآوری: شما یک تسک با عنوان ${title} در تاریخ ${jalaliDate} دارید.`;
 
     await this.reminderQueue.add(
       'send-reminder',
       {
-        // title,
         description,
         reminderMethod,
         message,
@@ -120,6 +128,7 @@ export class QueueService {
         jalaliDate,
         translatedTitle,
         buyer,
+        link,
       },
       {
         delay,

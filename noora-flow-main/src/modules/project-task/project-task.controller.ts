@@ -281,17 +281,19 @@ export class ProjectTaskController {
     }
 
     if (task.reminder || updateProjectTaskDto.reminder) {
-      const user =
-        (await this.usersService.findOne({
-          _id: updateProjectTaskDto.assignee,
-        })) ||
-        (await this.usersService.findOne({
-          _id: task.assignee,
-        }));
+      // A partial update (e.g. moving the card) keeps the task's own values.
+      const assignee = updateProjectTaskDto.assignee ?? task.assignee;
+      const user = await this.usersService.findOne({ _id: assignee });
 
       await this.queueService.addReminder({
+        title: task.title,
+        description: task.description,
+        deadline: task.deadline,
+        reminder: task.reminder,
+        reminderMethod: task.reminderMethod,
         ...updateProjectTaskDto,
-        phoneNo: user.phoneNo,
+        assignee,
+        phoneNo: user?.phoneNo,
         activityId: projectTaskId,
       });
     }
@@ -353,8 +355,11 @@ export class ProjectTaskController {
     const project = await this.projectService.findOne({
       type: ProjectType.ACTIVITY,
     });
+    // only a planned activity (first status) is reminded of
+    const isPlanned = createActivityDto.status === project?.statuses[0]?.id;
 
     if (
+      isPlanned &&
       createActivityDto.reminder &&
       new Date(createActivityDto.reminder) < new Date()
     ) {
@@ -381,10 +386,7 @@ export class ProjectTaskController {
       project: project?._id,
       createdBy: activeUser.id,
     };
-    if (
-      createActivityDto.status === project?.statuses[1]?.id ||
-      createActivityDto.status === project?.statuses[2]?.id
-    ) {
+    if (!isPlanned) {
       delete activityData.reminder;
       delete activityData.reminderMethod;
     }
@@ -394,25 +396,40 @@ export class ProjectTaskController {
     if (!activity || !activity._id) {
       throw new CustomError(500, 'Failed to create the activity.');
     }
-    if (
-      createActivityDto.reminderMethod &&
-      createActivityDto.status === project?.statuses[0]?.id
-    ) {
-      const { phoneNo } = await this.usersService.findOne({ _id: assignee });
-      const findBuyer = createActivityDto.buyerId
-        ? await this.buyerService.findOne({
-            _id: createActivityDto.buyerId,
-          })
-        : null;
+    if (isPlanned && createActivityDto.reminder && createActivityDto.reminderMethod) {
+      const user = await this.usersService.findOne({ _id: assignee });
       await this.queueService.addReminder({
         ...createActivityDto,
-        phoneNo,
+        ...(await this.activityCounterpart(
+          createActivityDto.buyerId,
+          createActivityDto.customerId,
+        )),
+        phoneNo: user?.phoneNo,
         assignee,
         activityId: activity._id,
-        buyer: findBuyer?.name,
       });
     }
     return activity;
+  }
+
+  // Name and page of the buyer / customer an activity belongs to, for its
+  // reminder.
+  private async activityCounterpart(buyerId?: any, customerId?: any) {
+    const link = customerId
+      ? `/dashboard/contacts/customers/${customerId}`
+      : buyerId
+        ? `/dashboard/contacts/buyers/${buyerId}`
+        : undefined;
+    if (buyerId) {
+      const buyer = await this.buyerService.findOne({ _id: buyerId });
+      return { buyer: buyer?.name || 'خریدار', link };
+    }
+    if (customerId) {
+      const user = await this.usersService.findOne({ _id: customerId });
+      const name = [user?.name, user?.lastname].filter(Boolean).join(' ');
+      return { customer: name || 'مشتری', link };
+    }
+    return {};
   }
 
   @CheckPermissions({
@@ -433,7 +450,6 @@ export class ProjectTaskController {
     const project = await this.projectService.findOne({
       type: ProjectType.ACTIVITY,
     });
-    const existingJob = await this.queueService.getJobByActivityId(id);
 
     //Permission check
     if (
@@ -443,48 +459,62 @@ export class ProjectTaskController {
       throw new ForbiddenException('You are not able to modify this task');
     }
 
-    if (existingJob) {
-      await existingJob.remove();
-    }
-
-    if (
-      updateActivityDto.status === project?.statuses[1]?.id ||
-      updateActivityDto.status === project?.statuses[2]?.id
-    ) {
+    // only a planned activity (first status) is reminded of
+    const isPlanned =
+      (updateActivityDto.status ?? String(activity.status)) ===
+      project?.statuses[0]?.id;
+    if (!isPlanned) {
       delete updateActivityDto.reminder;
       delete updateActivityDto.reminderMethod;
-      return await this.projectTaskService.updateById(
-        { _id: id },
-        { ...updateActivityDto },
-      );
     }
 
-    if (
-      updateActivityDto.reminder &&
-      new Date(updateActivityDto.reminder) < new Date()
-    ) {
-      throw new CustomError(HttpStatus.BAD_REQUEST, CustomMessages.BAD_REQUEST);
+    // A new reminder must be ahead; an unchanged one that has already gone
+    // off does not block saving the activity.
+    const reminder =
+      updateActivityDto.reminder === undefined
+        ? activity.reminder
+        : updateActivityDto.reminder;
+    const reminderChanged =
+      !!updateActivityDto.reminder &&
+      new Date(updateActivityDto.reminder).getTime() !==
+        new Date(activity.reminder ?? 0).getTime();
+    if (reminderChanged && new Date(updateActivityDto.reminder) < new Date()) {
+      throw new CustomError(HttpStatus.BAD_REQUEST, 'reminder is not valid');
     }
+
     const updatedActivity = await this.projectTaskService.updateById(
       { _id: id },
       { ...updateActivityDto },
     );
 
-    if (activity.reminder || updateActivityDto.reminder) {
-      const assignee = updateActivityDto.assignee;
+    // the queued reminder is replaced by one with the saved values
+    const existingJob = await this.queueService.getJobByActivityId(id);
+    if (existingJob) {
+      await existingJob.remove();
+    }
+    const reminderMethod =
+      updateActivityDto.reminderMethod === undefined
+        ? activity.reminderMethod
+        : updateActivityDto.reminderMethod;
+    if (isPlanned && reminder && reminderMethod) {
+      const assignee = updateActivityDto.assignee ?? String(activity.assignee);
       const user = await this.usersService.findOne({ _id: assignee });
-      const buyer = activity.buyerId
-        ? await this.buyerService.findOne({
-            _id: activity.buyerId,
-          })
-        : null;
 
       await this.queueService.addReminder({
+        type: activity.type,
+        title: activity.title,
+        description: activity.description,
+        deadline: activity.deadline,
         ...updateActivityDto,
+        reminder,
+        reminderMethod,
+        ...(await this.activityCounterpart(
+          updateActivityDto.buyerId ?? activity.buyerId,
+          activity.customerId,
+        )),
         assignee,
-        phoneNo: user.phoneNo,
+        phoneNo: user?.phoneNo,
         activityId: id,
-        buyer: buyer?.name,
       });
     }
     return updatedActivity;

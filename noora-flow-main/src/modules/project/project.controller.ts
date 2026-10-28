@@ -157,15 +157,23 @@ export class ProjectController {
     @Body() updateProjectDto: UpdateProjectDto,
     @ActiveUser() activeUser: ActiveUserData,
   ) {
-    if (
-      !activeUser.groups.includes('system-admin') &&
-      !activeUser.groups.includes('super-admin') &&
-      !activeUser.groups.includes('admins') &&
-      !activeUser.groups.includes('ceo')
-    ) {
+    if (!(await this.canManage(id, activeUser))) {
       throw new ForbiddenException('You are not able to update this project');
     }
     return this.projectService.updateById(id, updateProjectDto);
+  }
+
+  // The project's creator and the admin groups may edit or delete it.
+  private async canManage(id: string, activeUser: ActiveUserData) {
+    if (
+      ['system-admin', 'super-admin', 'admins', 'ceo'].some((g) =>
+        activeUser.groups.includes(g),
+      )
+    ) {
+      return true;
+    }
+    const project = await this.projectService.findById(id);
+    return !!project && String(project.createdBy) === String(activeUser.id);
   }
 
   @CheckPermissions({
@@ -177,12 +185,7 @@ export class ProjectController {
     @Param('id') id: string,
     @ActiveUser() activeUser: ActiveUserData,
   ) {
-    if (
-      !activeUser.groups.includes('system-admin') &&
-      !activeUser.groups.includes('super-admin') &&
-      !activeUser.groups.includes('admins') &&
-      !activeUser.groups.includes('ceo')
-    ) {
+    if (!(await this.canManage(id, activeUser))) {
       throw new ForbiddenException('You are not able to update this project');
     }
     return this.projectService.deleteById(id);

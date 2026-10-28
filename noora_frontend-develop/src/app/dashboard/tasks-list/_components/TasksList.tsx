@@ -28,6 +28,8 @@ import { extractProjectTaskLabels } from "@/projects/utils/extractProjectTaskLab
 
 import AddNewProject from "./modal/AddNewProject";
 
+const MANAGER_GROUPS = ["system-admin", "super-admin", "admins", "ceo"];
+
 interface TasksListProps {
 	projects?: Project[];
 	loading: boolean;
@@ -46,7 +48,20 @@ export function TasksList({
 	const [isModal, setIsModal] = useState<boolean>(false);
 	const [modalData, setModalData] = useState<any>();
 
-	async function deleteProject(id: string) {
+	// same rule as the backend: the project's creator and the admin groups
+	const isAdmin = MANAGER_GROUPS.some((g) => identity.groups.includes(g));
+	const canManage = (project: Project) => {
+		const creator =
+			typeof project.createdBy === "object"
+				? project.createdBy?.id
+				: project.createdBy;
+		return isAdmin || creator === identity.id;
+	};
+	const showActions = !!projects?.some(canManage);
+
+	async function deleteProject(project: Project) {
+		if (!window.confirm(`پروژه «${project.name}» حذف شود؟`)) return;
+		const id = project.id;
 		try {
 			setLoading(true);
 
@@ -84,9 +99,7 @@ export function TasksList({
 						<TableHead className="w-1/6">درصد پیشرفت</TableHead>
 						<TableHead className="w-1/6">اعضاء</TableHead>
 						<TableHead className="w-1/6">برچسب ها</TableHead>
-						{identity.groups.includes("system-admin") && (
-							<TableHead className="w-1/6">عملیات</TableHead>
-						)}
+						{showActions && <TableHead className="w-1/6">عملیات</TableHead>}
 					</TableRow>
 				</TableHeader>
 
@@ -163,23 +176,29 @@ export function TasksList({
 										</div>
 									</TableCell>
 
-									{identity.groups.includes("system-admin") && (
+									{showActions && (
 										<TableCell>
-											<button
-												onClick={() => {
-													setIsModal(true);
-													setModalData(project);
-												}}
-												className="flex-inline btn mx-[.5rem] items-center rounded bg-gray-100 px-1 py-1 text-black hover:bg-blue-400 hover:text-white"
-											>
-												<FaPenToSquare />
-											</button>
-											<button
-												onClick={() => deleteProject(project.id)}
-												className="flex-inline btn mx-[.5rem] items-center rounded bg-gray-100 px-1 py-1 text-black hover:text-red-500"
-											>
-												<FaTrash />
-											</button>
+											{canManage(project) && (
+												<>
+													<button
+														title="ویرایش نام، اعضا و برچسب های پروژه"
+														onClick={() => {
+															setIsModal(true);
+															setModalData(project);
+														}}
+														className="flex-inline btn mx-[.5rem] items-center rounded bg-gray-100 px-1 py-1 text-black hover:bg-blue-400 hover:text-white"
+													>
+														<FaPenToSquare />
+													</button>
+													<button
+														title="حذف پروژه"
+														onClick={() => deleteProject(project)}
+														className="flex-inline btn mx-[.5rem] items-center rounded bg-gray-100 px-1 py-1 text-black hover:text-red-500"
+													>
+														<FaTrash />
+													</button>
+												</>
+											)}
 										</TableCell>
 									)}
 								</TableRow>

@@ -19,7 +19,7 @@ export class ReminderProcessor {
     }
 
     if (job.data.reminderMethod === 'web-notification') {
-      const { assignee, message, description } = job.data;
+      const { assignee, message, description, link } = job.data;
       const createNotification: CreateNotificationDto =
         new CreateNotificationDto();
 
@@ -31,6 +31,7 @@ export class ReminderProcessor {
         groups: [],
       };
       createNotification.title = message;
+      if (link) createNotification.link = link;
 
       let notification = await this.notificationService.create({
         ...createNotification,

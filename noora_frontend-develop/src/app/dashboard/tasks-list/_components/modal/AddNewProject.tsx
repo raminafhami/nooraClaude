@@ -79,10 +79,29 @@ export default function AddNewProject({
 						id: data.id,
 					});
 					if (res) {
+						// members added in this edit are told, as on creation
+						const before = (data.members ?? []).map((m: any) =>
+							String(typeof m === "object" ? m.id : m),
+						);
+						const added = (ids ?? []).filter(
+							(id: string) => !before.includes(String(id)),
+						);
+						if (added.length) {
+							await PostNotifications({
+								title: `شما به پروژه ${formAttribuite?.name} اضافه شدید.`,
+								description: " ",
+								category: `projects:${data.id}`,
+								groups: [],
+								users: added,
+								priority: "medium",
+								sendNotification: true,
+							});
+						}
 						toast.success("با موفقیت ویرایش شد!");
 						setTimeout(() => {
 							getData();
 							setLoading(false);
+							setShow(false);
 						}, 300);
 					}
 				} else {
@@ -112,9 +131,15 @@ export default function AddNewProject({
 					}
 				}
 			}
-		} catch (e) {
+		} catch (e: any) {
 			setLoading(false);
-			setLabels([]);
+			// editing keeps the project's labels for another try
+			if (!isEdit) setLabels([]);
+			toast.error(
+				e?.statusCode === 403
+					? "ویرایش این پروژه برای شما امکان پذیر نیست."
+					: "خطایی در ذخیره پروژه رخ داد!",
+			);
 		}
 	}
 	async function updateStatuses() {

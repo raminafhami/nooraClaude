@@ -11,6 +11,11 @@ import {
 	activityTypes,
 } from "@/activities/enums/ActivityType";
 import { Activity } from "@/activities/models/Activity";
+import {
+	ACTIVITY_DATE_TIME_FORMAT,
+	isReminderInPast,
+	REMINDER_IN_PAST_MESSAGE,
+} from "@/activities/utils/reminderTime";
 import { createActivity } from "@/activities/services/createActivity";
 import { updateActivity } from "@/activities/services/updateActivity";
 import { isApiResponse } from "@/api/utils/isApiResponse";
@@ -87,6 +92,11 @@ function BuyerActivityCreateForm({
 }) {
 	const { buyer } = useBuyerContext();
 
+	const initialReminder =
+		(activity?.reminder &&
+			moment(activity.reminder).format(ACTIVITY_DATE_TIME_FORMAT)) ||
+		"";
+
 	const form = useForm<ActivityCreateFormSchema>({
 		defaultValues: {
 			type: activity?.type ?? undefined,
@@ -114,10 +124,7 @@ function BuyerActivityCreateForm({
 					moment(activity.deadline).format("jYYYY/jMM/jDD HH:mm")) ||
 				"",
 			labels: (activity?.labels as ProjectTaskLabel[]) ?? [],
-			reminder:
-				(activity?.reminder &&
-					moment(activity.reminder).format("jYYYY/jMM/jDD HH:mm")) ||
-				"",
+			reminder: initialReminder,
 			reminderMethod: activity?.reminderMethod ?? undefined,
 		},
 		resolver: zodResolver(schema),
@@ -134,6 +141,10 @@ function BuyerActivityCreateForm({
 	const { reminder } = watch();
 
 	async function handleSubmit(values: ActivityCreateFormSchema) {
+		if (isReminderInPast(values.reminder, initialReminder)) {
+			setError("reminder", { message: REMINDER_IN_PAST_MESSAGE });
+			return;
+		}
 		try {
 			let upsertedActivity: Activity;
 
@@ -176,7 +187,7 @@ function BuyerActivityCreateForm({
 			let errorMessage: string | undefined;
 			if (isApiResponse(err)) {
 				if (err.message === "reminder is not valid") {
-					errorMessage = "یادآور باید زمانی در آینده تعیین شود.";
+					errorMessage = REMINDER_IN_PAST_MESSAGE;
 				} else if (err.message === "Assignee is not a member of the project") {
 					errorMessage = "انتخاب مسئول مورد نظر امکان پذیر نیست.";
 				} else if (err.message === "You are not able to modify this task") {
@@ -411,6 +422,7 @@ function BuyerActivityCreateForm({
 										<FormControl>
 											<DateInput
 												format="YYYY/MM/DD HH:mm"
+												minDate={moment().startOf("day").toDate()}
 												openOnSelect
 												plugins={[
 													<TimePicker
