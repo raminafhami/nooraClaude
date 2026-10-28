@@ -1,22 +1,25 @@
 "use client";
 
 import { memo } from "react";
-import { FaTimes } from "react-icons/fa";
-import { FaCheck } from "react-icons/fa6";
+import { FaFolderOpen } from "react-icons/fa";
 
-import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
-import { cn } from "@/lib/utils";
-
-import { PersonnelExpertiseGroupByStatus } from "./PersonnelExpertises";
+import { ChecklistStatusIcon } from "./ChecklistStatusIcon";
+import {
+	ChecklistItem,
+	PersonnelExpertiseGroupByStatus,
+} from "./PersonnelExpertises";
 
 interface Props {
 	items: PersonnelExpertiseGroupByStatus;
 	showAll: boolean;
+	// opens the certificate dialog of this training item
+	onUpload: (item: ChecklistItem) => void;
 }
 
 export const PersonnelCertificates = memo(function PersonnelCertificates({
 	items,
 	showAll,
+	onUpload,
 }: Props): React.ReactNode {
 	return (
 		<>
@@ -26,35 +29,26 @@ export const PersonnelCertificates = memo(function PersonnelCertificates({
 						آموزش ها
 					</span>
 				</div>
-				{((items: PersonnelExpertise[]) =>
+				{((items: ChecklistItem[]) =>
 					items.length ? (
 						<ul className="space-y-1">
 							{items.map(
 								(item) =>
-									(item.status === "unqualified" ||
-										(item.status === "qualified" && showAll)) && (
+									(item.status !== "qualified" || showAll) && (
 										<li className="flex items-center gap-x-1" key={item.id}>
-											<span
-												className={cn(
-													"h-4 w-4 rounded-full p-[2px]",
-													item.status === "qualified"
-														? "bg-green-200"
-														: "bg-red-200",
-												)}
-											>
-												{item.status === "qualified" ? (
-													<FaCheck className="text-xs text-green-600" />
-												) : (
-													<FaTimes className="text-xs text-red-600" />
-												)}
-											</span>
+											<ChecklistStatusIcon status={item.status} />
 											<span className="text-xsm">{item.title}</span>
+											<FaFolderOpen
+												className="h-4 w-4 shrink-0 cursor-pointer text-gray-500 transition-colors hover:text-gray-800"
+												title="گواهینامه آموزشی"
+												onClick={() => onUpload(item)}
+											/>
 										</li>
 									),
 							)}
 						</ul>
 					) : (
-						<div className="text-xs text-gray-600">مهارتی یافت نشد.</div>
+						<div className="text-xs text-gray-600">آموزشی یافت نشد.</div>
 					))(Object.values(items).flatMap((x) => x))}
 			</div>
 		</>

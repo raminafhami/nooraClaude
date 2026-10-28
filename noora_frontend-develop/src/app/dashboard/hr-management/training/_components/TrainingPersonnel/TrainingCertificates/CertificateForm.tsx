@@ -1,7 +1,7 @@
 "use client";
 
 import moment from "moment-jalaali";
-import { memo, useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -13,25 +13,19 @@ import { DateInput } from "@/form/DateInput";
 import { FieldError } from "@/form/FieldError";
 import { Input } from "@/form/Input";
 import { ExpertiseType } from "@/hrm/expertises/enums/ExpertiseType";
-import { Expertise } from "@/hrm/expertises/models/Expertise";
 import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
 import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { createExpertiseCertificate } from "@/hrm/personnelExpertise/services/createExpertiseCertificate";
-import { updatePersonnelCertificate } from "@/hrm/personnelExpertise/services/updatePersonnelCertificate";
+import { cn } from "@/lib/utils";
 import { messages } from "@/messages";
-import Autocomplete from "@/ui/Autocomplete/Autocomplete";
 import { Head } from "@/ui/Head";
 import { Loading } from "@/ui/Loader";
-import { compareById } from "@/utils/Comparators";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { TrainingContext } from "../TrainingContext";
 import { CertificatesContext } from "./CertificatesContext";
 
 const schema = z.object({
-	expertise: z.custom<Expertise>((v) => v, {
-		message: messages.validation.required,
-	}),
 	organizationName: z
 		.string({ required_error: messages.validation.required })
 		.min(1, { message: messages.validation.required }),
@@ -46,54 +40,22 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const defaultValues: Partial<FormData> = {
-	expertise: undefined,
 	organizationName: "",
 	certificateDate: "",
 	certificateFile: undefined,
 };
 
+// Certificate of the one training item the dialog was opened for (its name
+// is filled in); saving it makes the item "دارد".
 export const CertificateForm = memo(function CertificateForm() {
-	const { personnel, addExpertise, updateExpertise } =
-		useContext(TrainingContext);
+	const { personnel, updateExpertise } = useContext(TrainingContext);
 
 	const {
 		personnel: person,
-		certificates,
+		item,
 		addCertificate,
+		removeCertificate,
 	} = useContext(CertificatesContext);
-
-	const [expertises, setExpertises] = useState<Expertise[]>([]);
-	const searchTimeout = useRef<NodeJS.Timeout>();
-	async function loadExpertises(value: string) {
-		clearTimeout(searchTimeout.current);
-
-		await new Promise((resolve) => {
-			searchTimeout.current = setTimeout(async () => {
-				if (!value) {
-					setExpertises([]);
-					resolve(null);
-					return;
-				}
-
-				// Only certificates the person's current jobs require (their
-				// checklist rows) that do not have an uploaded one yet.
-				const rows =
-					personnel.find((x) => x.id === person?.id)?.expertises ?? [];
-				setExpertises(
-					rows
-						.filter(
-							(x) =>
-								x.type === ExpertiseType.Certificate &&
-								x.title?.includes(value) &&
-								!certificates.find((y) => y.expertiseId === x.expertiseId),
-						)
-						.map((x) => ({ id: x.expertiseId, title: x.title, type: x.type })),
-				);
-
-				resolve(null);
-			}, 500);
-		});
-	}
 
 	const {
 		control,
@@ -113,97 +75,53 @@ export const CertificateForm = memo(function CertificateForm() {
 
 	const fileInp = useRef<HTMLInputElement | null>(null);
 
-	async function handleSubmit(data: FormData) {
-		try {
-			const expertise = personnel
+	// the row as it is now (it changes while the dialog is open)
+	const row = item
+		? (personnel
 				.find((x) => x.id === person?.id)
-				?.expertises?.find((x) => x.expertiseId === data.expertise.id);
+				?.expertises?.find((x) => x.id === item.id) ?? item)
+		: null;
+	const hasCertificate =
+		row?.status === PersonnelExpertiseStatus.Qualified && !!row.certificate?.id;
 
+	async function handleSubmit(data: FormData) {
+		if (!person || !row) return;
+		try {
 			const date = moment(data.certificateDate, "jYYYY/jMM/jDD").toISOString();
 
-			// No uploaded certificate yet: the backend attaches it to the row.
-			if (
-				!expertise ||
-				expertise.status !== PersonnelExpertiseStatus.Qualified ||
-				!expertise.certificate?.id
-			) {
-				const createdExpertise = await createExpertiseCertificate({
-					userId: person!.userId,
-					expertiseId: data.expertise.id,
-					status: "qualified",
+			// The backend attaches the certificate to the row and makes it دارد.
+			const created = await createExpertiseCertificate({
+				userId: person.userId,
+				expertiseId: row.expertiseId,
+				status: "qualified",
+				organizationName: data.organizationName,
+				certificateDate: date,
+				file: data.certificateFile,
+			});
+			const saved: PersonnelExpertise = {
+				...row,
+				id: created.id,
+				status: created.status,
+				certificateId: created.certificateId ?? undefined,
+				certificate: {
+					id: created.certificateId!,
 					organizationName: data.organizationName,
 					certificateDate: date,
-					file: data.certificateFile,
-				});
+				},
+			};
 
-				const created: PersonnelExpertise = {
-					id: createdExpertise.id,
-					expertiseId: createdExpertise.expertiseId,
-					status: createdExpertise.status,
-					title: data.expertise.title,
-					type: data.expertise.type,
-					certificate: {
-						id: createdExpertise.certificateId!,
-						organizationName: data.organizationName,
-						certificateDate: date,
-					},
-				};
-
-				if (expertise) {
-					updateExpertise(person!.id, {
-						id: created.id,
-						userId: person!.userId,
-						expertiseId: created.expertiseId,
-						status: createdExpertise.status,
-						modifyAt: null,
-						modifyBy: null,
-						certificate: created.certificate,
-					});
-				} else {
-					addExpertise(person!.id, created);
-				}
-				addCertificate(person!.id, created);
-
-				reset(undefined);
-			} else {
-				const updatedExpertise = await updatePersonnelCertificate(
-					expertise.id,
-					{
-						organizationName: data.organizationName,
-						certificateDate: date,
-						certificateFile: data.certificateFile as File,
-					},
-				);
-
-				updateExpertise(person!.id, {
-					id: updatedExpertise.id,
-					userId: person!.userId,
-					expertiseId: updatedExpertise.expertiseId,
-					status: updatedExpertise.status,
-					modifyAt: null,
-					modifyBy: null,
-					certificateId: updatedExpertise.certificateId as string,
-					certificate: {
-						id: updatedExpertise.certificateId!,
-						organizationName: data.organizationName,
-						certificateDate: date,
-					},
-				});
-
-				addCertificate(person!.id, {
-					id: updatedExpertise.id,
-					expertiseId: updatedExpertise.expertiseId,
-					status: updatedExpertise.status,
-					certificateId: updatedExpertise.certificateId as string,
-					type: ExpertiseType.Certificate,
-					title: expertise.title,
-					certificate: {
-						id: updatedExpertise.certificateId!,
-						organizationName: data.organizationName,
-						certificateDate: date,
-					},
-				});
-			}
+			updateExpertise(person.id, {
+				id: saved.id,
+				userId: person.userId,
+				expertiseId: saved.expertiseId,
+				status: saved.status!,
+				modifyAt: null,
+				modifyBy: null,
+				certificateId: saved.certificateId,
+				certificate: saved.certificate,
+			});
+			removeCertificate(saved.id);
+			addCertificate(person.id, { ...saved, type: ExpertiseType.Certificate });
 
 			toast.success("گواهینامه آموزشی مورد نظر با موفقیت افزوده شد.");
 		} catch (err: any) {
@@ -232,29 +150,28 @@ export const CertificateForm = memo(function CertificateForm() {
 				</DestructiveAlert>
 			)}
 
-			<form className="space-y-12" onSubmit={onSubmit(handleSubmit)}>
+			{hasCertificate && (
+				<div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
+					گواهینامه «{row?.title}» ثبت شده است. برای جایگزینی، ابتدا آن را از
+					لیست کنار حذف کنید.
+				</div>
+			)}
+
+			<form
+				className={cn("space-y-12", hasCertificate && "hidden")}
+				onSubmit={onSubmit(handleSubmit)}
+			>
 				<div className="grid gap-x-10 gap-y-6 xl:grid-cols-3 2xl:grid-cols-3">
 					<div className="col-span-3 col-start-1 flex">
 						<label className="basis-32 pt-2" htmlFor="expertise">
 							نام دوره آموزشی:
 						</label>
 						<div className="grow">
-							<Controller
-								control={control}
-								name="expertise"
-								render={({ field, fieldState }) => (
-									<>
-										<Autocomplete<Expertise>
-											compareFn={compareById}
-											id={field.name}
-											items={expertises}
-											label={(x) => x.title}
-											onInput={loadExpertises}
-											{...field}
-										/>
-										<FieldError error={fieldState.error} />
-									</>
-								)}
+							<Input
+								className="bg-gray-50"
+								id="expertise"
+								readOnly
+								value={item?.title ?? ""}
 							/>
 						</div>
 					</div>
@@ -356,7 +273,7 @@ export const CertificateForm = memo(function CertificateForm() {
 						variant="primary"
 					>
 						{isSubmitting && <Loading size="xs" />}
-						<span>افزودن</span>
+						<span>ثبت</span>
 					</Button>
 				</div>
 			</form>

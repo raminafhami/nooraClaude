@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FaFolderOpen } from "react-icons/fa";
 
 import SearchInput from "@/hrm/expertises/models/searchInput/searchInput";
 import { Personnel } from "@/hrm/personnel/models/Personnel";
@@ -13,7 +12,7 @@ import { Panel } from "@/ui/Panel";
 import { Table } from "@/ui/Table";
 
 import { TrainingCertificates } from "../TrainingCertificates/TrainingCertificates";
-import { PersonnelExpertises } from "./PersonnelExpertises";
+import { ChecklistItem, PersonnelExpertises } from "./PersonnelExpertises";
 
 interface Props {
 	personnelInfo: Personnel[];
@@ -42,9 +41,11 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 	const [showAllExpertises, setShowAllExpertises] = useState<boolean>(true);
 
 	const [showDialog, setShowDialog] = useState<boolean>(false);
+	// the training item whose certificate dialog is open, and its person
 	const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(
 		null,
 	);
+	const [selectedItem, setSelectedItem] = useState<ChecklistItem | null>(null);
 
 	const [searchAttribute, setSearchAttribute] =
 		useState<SearchAttributeProps>();
@@ -90,6 +91,7 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 		<>
 			<TrainingCertificates
 				personnel={selectedPersonnel}
+				item={selectedItem}
 				show={showDialog}
 				onClose={() => {
 					setShowDialog(false);
@@ -100,7 +102,6 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 				<Table.Root>
 					<Table.Head>
 						<Table.Row className="bg-gray-100 text-right">
-							<Table.Cell as="th" className="w-14"></Table.Cell>
 							<Table.Cell as="th" className="w-14">
 								ردیف
 							</Table.Cell>
@@ -158,18 +159,6 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 
 								return (
 									<Table.Row className="align-baseline" key={user.id}>
-										<Table.Cell>
-											<Table.Actions>
-												<Table.Action
-													onClick={() => {
-														setSelectedPersonnel(user);
-														setShowDialog(true);
-													}}
-												>
-													<FaFolderOpen />
-												</Table.Action>
-											</Table.Actions>
-										</Table.Cell>
 										<Table.Cell className="text-center">{index + 1}</Table.Cell>
 										<Table.Cell className="overflow-hidden text-ellipsis whitespace-nowrap">
 											{user.fullname}
@@ -227,6 +216,11 @@ export function TrainingTable({ personnelInfo, loading, setSearch }: Props) {
 												items={expertises}
 												personnel={user}
 												showAll={showAllExpertises}
+												onUploadCertificate={(item) => {
+													setSelectedPersonnel(user);
+													setSelectedItem(item);
+													setShowDialog(true);
+												}}
 											/>
 										</Table.Cell>
 									</Table.Row>

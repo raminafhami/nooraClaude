@@ -9,17 +9,17 @@ import { CertificatesContext } from "./CertificatesContext";
 import { CertificatesTable } from "./CertificatesTable";
 
 export function CertificatesDialog() {
-	const { personnel } = useContext(CertificatesContext);
+	const { personnel, item } = useContext(CertificatesContext);
 	const { dispatch } = useContext(ModalContext);
 
 	useEffect(() => {
 		if (personnel) {
 			dispatch({
 				type: "UPDATE",
-				title: `گواهی های آموزشی ${personnel.fullname}`,
+				title: `گواهی آموزشی «${item?.title ?? ""}» - ${personnel.fullname}`,
 			});
 		}
-	}, [personnel, dispatch]);
+	}, [personnel, item, dispatch]);
 
 	if (!personnel) {
 		return <></>;

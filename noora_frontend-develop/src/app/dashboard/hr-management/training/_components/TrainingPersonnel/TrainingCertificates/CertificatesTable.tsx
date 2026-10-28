@@ -38,7 +38,7 @@ function getCertificateExtension(mimeType: string): string {
 }
 
 export const CertificatesTable = memo(function CertificatesTable() {
-	const { personnel, certificates, removeCertificate } =
+	const { personnel, certificates, addCertificate, removeCertificate } =
 		useContext(CertificatesContext);
 	const { updateExpertise } = useContext(TrainingContext);
 	const dialogs = useDialogs();
@@ -70,6 +70,14 @@ export const CertificatesTable = memo(function CertificatesTable() {
 
 			if (personnel) {
 				updateExpertise(personnel.id, result);
+				// the item had another certificate, which now takes its place
+				if (result.certificate) {
+					addCertificate(personnel.id, {
+						...expertise,
+						status: result.status,
+						certificate: result.certificate,
+					});
+				}
 			}
 		}
 	}

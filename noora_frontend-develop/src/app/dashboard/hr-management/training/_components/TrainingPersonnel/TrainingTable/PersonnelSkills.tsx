@@ -1,15 +1,14 @@
 "use client";
 
 import { memo, useContext } from "react";
-import { FaEdit, FaTimes } from "react-icons/fa";
-import { FaCheck } from "react-icons/fa6";
+import { FaEdit } from "react-icons/fa";
 
 import { Personnel } from "@/hrm/personnel/models/Personnel";
 import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { updatePersonnelExpertise } from "@/hrm/personnelExpertise/services/updatePersonnelExpertise";
-import { cn } from "@/lib/utils";
 
 import { TrainingContext } from "../TrainingContext";
+import { ChecklistStatusIcon } from "./ChecklistStatusIcon";
 import {
 	ChecklistItem,
 	PersonnelExpertiseGroupByStatus,
@@ -46,30 +45,17 @@ export const PersonnelSkills = memo(function PersonnelSkills({
 						<ul className="space-y-1">
 							{items.map(
 								(item) =>
-									(item.status === "unqualified" ||
-										(item.status === "qualified" && showAll)) && (
+									(item.status !== "qualified" || showAll) && (
 										<li
 											className="group/expertise flex items-center gap-x-1"
 											key={item.id}
 										>
-											<span
-												className={cn(
-													"h-4 w-4 rounded-full p-[2px]",
-													item.status === "qualified"
-														? "bg-green-200"
-														: "bg-red-200",
-												)}
-											>
-												{item.status === "qualified" ? (
-													<FaCheck className="text-xs text-green-600" />
-												) : (
-													<FaTimes className="text-xs text-red-600" />
-												)}
-											</span>
+											<ChecklistStatusIcon status={item.status} />
 											<span className="text-xsm">{item.title}</span>
 											<div className="flex cursor-pointer opacity-0 transition group-hover/expertise:opacity-100">
 												<FaEdit
 													onClick={async () => {
+														// ندارد / در حال آموزش -> دارد, دارد -> ندارد
 														const status =
 															item.status === PersonnelExpertiseStatus.Qualified
 																? PersonnelExpertiseStatus.Unqualified

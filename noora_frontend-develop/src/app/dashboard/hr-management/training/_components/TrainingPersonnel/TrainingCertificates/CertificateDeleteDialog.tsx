@@ -15,7 +15,6 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
 import { PersonnelExpertise as UpdatedPersonnelExpertise } from "@/hrm/personnelExpertise/models/PersonnelExpertise";
-import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { deleteExpertiseCertificate } from "@/hrm/personnelExpertise/services/deleteExpertiseCertificate";
 
 function CertificateDeleteDialog({
@@ -50,15 +49,11 @@ function CertificateDeleteForm({
 			setIsPending(true);
 
 			// The certificate (record and file) goes; the item stays on the
-			// checklist as "ندارد" since the person's job still requires it.
-			await deleteExpertiseCertificate(expertise.id);
+			// checklist (the person's job still requires it) as "ندارد", or
+			// "دارد" with its next certificate if it had more than one.
+			const updated = await deleteExpertiseCertificate(expertise.id);
 			toast.success("گواهینامه مورد نظر با موفقیت حذف شد.");
-			onClose({
-				id: expertise.id,
-				expertiseId: expertise.expertiseId,
-				status: PersonnelExpertiseStatus.Unqualified,
-				certificate: null,
-			} as UpdatedPersonnelExpertise);
+			onClose({ ...updated, certificate: updated.certificate ?? null });
 		} catch (err) {
 			console.error(err);
 			toast.error("خطای نامشخصی در هنگام حذف گواهینامه رخ داد.");

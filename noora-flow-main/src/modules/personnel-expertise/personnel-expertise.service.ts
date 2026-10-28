@@ -56,7 +56,9 @@ export class PersonnelExpertiseService extends CrudService<PersonnelExpertiseDoc
   }
 
   // Undo an uploaded certificate (e.g. the wrong file): the file and its
-  // record go, and the checklist row is back to "unqualified".
+  // record go, and the checklist row is back to "unqualified" - unless the
+  // row still has another certificate (merged duplicates), which takes its
+  // place.
   async removeCertificate(id: string, modifyBy: string) {
     const pe = await this.findById(id);
     if (!pe) return null;
@@ -78,12 +80,27 @@ export class PersonnelExpertiseService extends CrudService<PersonnelExpertiseDoc
         );
       }
     }
-    return this.findByIdAndUpdate(id, {
-      $unset: { 'data.certificateId': 1 },
-      status: 'unqualified',
-      modifyBy,
-      modifyAt: new Date(),
-    });
+    const [next, ...rest] = pe.data?.extraCertificateIds ?? [];
+    await this.findByIdAndUpdate(
+      id,
+      next
+        ? {
+            'data.certificateId': next,
+            'data.extraCertificateIds': rest,
+            modifyBy,
+            modifyAt: new Date(),
+          }
+        : {
+            $unset: {
+              'data.certificateId': 1,
+              'data.extraCertificateIds': 1,
+            },
+            status: 'unqualified',
+            modifyBy,
+            modifyAt: new Date(),
+          },
+    );
+    return this.findById(id, 'data.certificate');
   }
 
   // The person's certificates (add-job modal or training page) for items their
@@ -97,9 +114,12 @@ export class PersonnelExpertiseService extends CrudService<PersonnelExpertiseDoc
           expertiseId: { $in: [...requiredIds] },
           'data.certificateId': { $exists: true, $ne: null },
         })
-        .select('data.certificateId')
+        .select('data.certificateId data.extraCertificateIds')
         .lean()
-    ).map((r: any) => r.data.certificateId);
+    ).flatMap((r: any) => [
+      r.data.certificateId,
+      ...(r.data.extraCertificateIds ?? []),
+    ]);
     const certificates: any[] = await this.personnelCertificateRepositoryImpl.model
       .find({ userId, _id: { $in: inUse } })
       .populate('expertiseId', 'title type')

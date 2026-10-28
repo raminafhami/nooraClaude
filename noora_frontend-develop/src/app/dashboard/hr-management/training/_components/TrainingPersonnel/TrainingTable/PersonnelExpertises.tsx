@@ -22,6 +22,8 @@ interface Props {
   items: PersonnelExpertise[];
   personnel: Personnel;
   showAll: boolean;
+  // opens the certificate dialog for one training item
+  onUploadCertificate: (item: ChecklistItem) => void;
 }
 
 const normalizeTitle = (title: string | undefined) =>
@@ -32,10 +34,16 @@ const normalizeTitle = (title: string | undefined) =>
     .replace(/\s+/g, " ")
     .trim();
 
-// Job descriptions each define their own copy of shared items, so one person
-// can hold several rows with the same type and title. Display only: show it
-// once, "دارد" if any copy is, otherwise "ندارد" ("در حال یادگیری" copies stay
-// hidden as before). The rows themselves are untouched.
+// Older job descriptions could hold their own copy of a shared item, so one
+// person may have several rows with the same type and title. Display only:
+// show it once with the furthest status of its copies (دارد, then در حال
+// آموزش, then ندارد). The rows themselves are untouched.
+const STATUS_RANK: Record<string, number> = {
+  [PersonnelExpertiseStatus.Unqualified]: 0,
+  [PersonnelExpertiseStatus.Learning]: 1,
+  [PersonnelExpertiseStatus.Qualified]: 2,
+};
+
 function mergeCopies(items: PersonnelExpertise[]): ChecklistItem[] {
   const groups = new Map<string, PersonnelExpertise[]>();
   for (const item of items) {
@@ -44,10 +52,11 @@ function mergeCopies(items: PersonnelExpertise[]): ChecklistItem[] {
   }
 
   return [...groups.values()].map((copies) => {
-    const shown =
-      copies.find((x) => x.status === PersonnelExpertiseStatus.Qualified) ??
-      copies.find((x) => x.status === PersonnelExpertiseStatus.Unqualified) ??
-      copies[0];
+    const shown = copies.reduce((best, x) =>
+      (STATUS_RANK[x.status ?? ""] ?? 0) > (STATUS_RANK[best.status ?? ""] ?? 0)
+        ? x
+        : best,
+    );
     return { ...shown, copyIds: copies.map((x) => x.id) };
   });
 }
@@ -56,6 +65,7 @@ export const PersonnelExpertises = memo(function PersonnelExpertises({
   items,
   personnel,
   showAll,
+  onUploadCertificate,
 }: Props): React.ReactNode {
   const groupedItems = useMemo(() => {
     return mergeCopies(items).reduce(
@@ -67,20 +77,17 @@ export const PersonnelExpertises = memo(function PersonnelExpertises({
       ) => {
         const key = item.type as ExpertiseType;
 
-        if (acc[key]) {
-          if (item.status === "unqualified") {
-            acc[key].unqualified.push(item);
-          } else if (item.status === "qualified") {
-            acc[key].qualified.push(item);
-          }
+        if (acc[key] && item.status && acc[key][item.status]) {
+          acc[key][item.status].push(item);
         }
 
         return acc;
       },
+      // listed in this order: ندارد, در حال آموزش, دارد
       {
-        certificate: { unqualified: [], qualified: [], learning: [] },
-        skill: { unqualified: [], qualified: [], learning: [] },
-        knowledge: { unqualified: [], qualified: [], learning: [] },
+        certificate: { unqualified: [], learning: [], qualified: [] },
+        skill: { unqualified: [], learning: [], qualified: [] },
+        knowledge: { unqualified: [], learning: [], qualified: [] },
       },
     );
   }, [items]);
@@ -91,6 +98,7 @@ export const PersonnelExpertises = memo(function PersonnelExpertises({
         <PersonnelCertificates
           items={groupedItems.certificate}
           showAll={showAll}
+          onUpload={onUploadCertificate}
         />
         <PersonnelSkills
           items={groupedItems.skill}

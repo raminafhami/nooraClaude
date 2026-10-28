@@ -7,16 +7,19 @@ import { PersonnelExpertise } from "@/hrm/personnel/models/PersonnelExpertise";
 import { PersonnelExpertiseStatus } from "@/hrm/personnelExpertise/models/PersonnelExpertiseStatus";
 import { Modal } from "@/ui/Modal";
 
+import { ChecklistItem } from "../TrainingTable/PersonnelExpertises";
 import { CertificatesContext } from "./CertificatesContext";
 import { CertificatesDialog } from "./CertificatesDialog";
 
 interface Props {
 	personnel: Personnel | null;
+	// one training item: its certificate is uploaded / shown here
+	item: ChecklistItem | null;
 	show: boolean;
 	onClose: () => void;
 }
 
-export function TrainingCertificates({ personnel, show, onClose }: Props) {
+export function TrainingCertificates({ personnel, item, show, onClose }: Props) {
 	const [certificates, setCertificates] = useState<PersonnelExpertise[]>([]);
 
 	const handleCertificateAdd = useCallback(
@@ -31,22 +34,24 @@ export function TrainingCertificates({ personnel, show, onClose }: Props) {
 	}, []);
 
 	useEffect(() => {
-		if (personnel) {
+		if (personnel && item) {
 			setCertificates(
 				personnel.expertises?.filter(
 					(x) =>
-						x.type === "certificate" &&
-						x.status === PersonnelExpertiseStatus.Qualified,
+						item.copyIds.includes(x.id) &&
+						x.status === PersonnelExpertiseStatus.Qualified &&
+						!!x.certificate?.id,
 				) || [],
 			);
 		}
-	}, [personnel]);
+	}, [personnel, item]);
 
 	return (
 		<>
 			<CertificatesContext.Provider
 				value={{
 					personnel,
+					item,
 					certificates,
 					addCertificate: handleCertificateAdd,
 					removeCertificate: handleCertificateRemove,
@@ -55,7 +60,7 @@ export function TrainingCertificates({ personnel, show, onClose }: Props) {
 				<Modal
 					content={<CertificatesDialog />}
 					name="name"
-					title="گواهینامه های آموزشی"
+					title="گواهینامه آموزشی"
 					show={show}
 					size="7xl"
 					onClose={onClose}

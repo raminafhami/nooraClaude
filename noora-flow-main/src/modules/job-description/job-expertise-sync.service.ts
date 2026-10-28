@@ -147,14 +147,18 @@ export class JobExpertiseSyncService {
     return { added: toAdd.length, removed: toRemove.length };
   }
 
-  // Certificates of the person that no checklist row points to any more.
+  // Certificates of the person that no checklist row points to any more
+  // (`data.extraCertificateIds`: further certificates of a row, kept when
+  // duplicate items were merged).
   private async removeUnusedCertificates(userId: string) {
     const inUse = (
       await this.personnelExpertiseModel
         .find({ userId, 'data.certificateId': { $exists: true, $ne: null } })
-        .select('data.certificateId')
+        .select('data.certificateId data.extraCertificateIds')
         .lean()
-    ).map((r) => String(r.data.certificateId));
+    ).flatMap((r) =>
+      [r.data.certificateId, ...(r.data.extraCertificateIds ?? [])].map(String),
+    );
     const unused = await this.personnelCertificateModel
       .find({ userId, _id: { $nin: inUse } })
       .select('_id path')
@@ -208,6 +212,9 @@ export class JobExpertiseSyncService {
         }
         if (row.data?.certificateId && !copy.data?.certificateId) {
           set['data.certificateId'] = row.data.certificateId;
+          if (row.data.extraCertificateIds?.length) {
+            set['data.extraCertificateIds'] = row.data.extraCertificateIds;
+          }
         }
         if (Object.keys(set).length) {
           await this.personnelExpertiseModel.updateOne(

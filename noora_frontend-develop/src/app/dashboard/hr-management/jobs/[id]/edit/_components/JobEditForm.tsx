@@ -20,7 +20,7 @@ import {
   expertiseTypeOptions,
 } from "@/hrm/expertises/enums/ExpertiseType";
 import { Expertise } from "@/hrm/expertises/models/Expertise";
-import { createExpertise } from "@/hrm/expertises/services/createExpertise";
+import { findOrCreateExpertise } from "@/hrm/expertises/services/findOrCreateExpertise";
 import { getExpertises } from "@/hrm/expertises/services/getExpertises";
 import { JobDepartment, jobDepartments, JobService } from "@/hrm/jobs";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import { Loading } from "@/ui/Loader";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
 
 import { EditExpertiseAction } from "../../../_components/EditExpertiseAction";
+import { EditTextItemAction } from "../../../_components/EditTextItemAction";
 
 interface Props {
 	id: string;
@@ -126,22 +127,24 @@ export function JobEditForm({ id }: Props) {
 			<form
 				onSubmit={handleSubmit(async (data) => {
 					try {
-						data.requirements.expertises = await Promise.all(
-							data.requirements.expertises.map((expertice) =>
-								expertice.id === ""
-									? createExpertise({
-											title: expertice.title,
-											type: expertice.type,
+						const expertises: Expertise[] = [];
+						for (const expertise of data.requirements.expertises) {
+							expertises.push(
+								expertise.id === ""
+									? await findOrCreateExpertise({
+											title: expertise.title,
+											type: expertise.type,
 										})
-									: expertice,
-							),
-						);
+									: expertise,
+							);
+						}
+						data.requirements.expertises = expertises;
 
 						const job = await JobService.update(id, {
 							...data,
 							requirements: {
 								...data.requirements,
-								expertises: data.requirements.expertises.map((x) => x.id),
+								expertises: [...new Set(expertises.map((x) => x.id))],
 							},
 						});
 						router.push(getDynamicUrl("/dashboard/hr-management"));
@@ -705,7 +708,7 @@ function DutiesWidget() {
 					duties.map((duty, index) => (
 						<div className="mt-1.5 first:mt-0" key={`${duty}-${index}`}>
 							<div className="flex items-center">
-								<div>
+								<div className="flex items-center gap-1">
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
@@ -714,6 +717,16 @@ function DutiesWidget() {
 												...duties.slice(index + 1),
 											]);
 										}}
+									/>
+									<EditTextItemAction
+										title="ویرایش شرح وظیفه"
+										value={duty}
+										onEdited={(value) =>
+											setValue(
+												"duties",
+												duties.map((x, i) => (i === index ? value : x)),
+											)
+										}
 									/>
 								</div>
 
@@ -784,7 +797,7 @@ function AuthoritiesWidget() {
 					authorities.map((authority, index) => (
 						<div className="mt-1.5 first:mt-0" key={`${authority}-${index}`}>
 							<div className="flex items-center">
-								<div>
+								<div className="flex items-center gap-1">
 									<FaTimes
 										className="h-4 w-4 cursor-pointer rounded bg-gray-200 p-0.5 transition-colors hover:bg-red-100 hover:text-red-900"
 										onClick={() => {
@@ -793,6 +806,16 @@ function AuthoritiesWidget() {
 												...authorities.slice(index + 1),
 											]);
 										}}
+									/>
+									<EditTextItemAction
+										title="ویرایش اختیار"
+										value={authority}
+										onEdited={(value) =>
+											setValue(
+												"authorities",
+												authorities.map((x, i) => (i === index ? value : x)),
+											)
+										}
 									/>
 								</div>
 

@@ -107,10 +107,13 @@ function ExpertiseUpsertForm({
 			}
 
 			onClose(upsertedExpertise);
-		} catch (err) {
+		} catch (err: any) {
 			console.error(err);
 			setError("root.server", {
-				message: "خطای نامشخصی در هنگام ثبت اطلاعات رخ داد.",
+				message:
+					err?.statusCode === 409
+						? "این توانمندی با همین نوع و عنوان قبلاً ثبت شده است."
+						: "خطای نامشخصی در هنگام ثبت اطلاعات رخ داد.",
 			});
 		}
 	}

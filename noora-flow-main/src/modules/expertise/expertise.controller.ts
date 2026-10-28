@@ -9,6 +9,7 @@ import {
   Query,
   NotFoundException,
   Put,
+  ConflictException,
 } from '@nestjs/common';
 import { ExpertiseService } from './expertise.service';
 import { CreateExpertiseDto } from './dto/create-expertise.dto';
@@ -18,6 +19,8 @@ import { GetQueryDto } from 'src/shared/crud/dto/get-query.dto';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
 import { PermissionAction, Subjects } from '../iam/authentication/enums';
 import { JobExpertiseSyncService } from '../job-description/job-expertise-sync.service';
+
+const DUPLICATE_MESSAGE = 'این توانمندی با همین نوع و عنوان قبلاً ثبت شده است.';
 
 @ApiTags('expertise')
 @ApiBearerAuth('token')
@@ -34,7 +37,15 @@ export class ExpertiseController {
   })
   @Post()
   async create(@Body() createExpertiseDto: CreateExpertiseDto) {
-    const data = await this.expertiseService.create(createExpertiseDto);
+    const same = await this.expertiseService.findSameItem(
+      createExpertiseDto.type,
+      createExpertiseDto.title,
+    );
+    if (same) throw new ConflictException(DUPLICATE_MESSAGE);
+    const data = await this.expertiseService.create({
+      ...createExpertiseDto,
+      title: createExpertiseDto.title?.trim(),
+    });
     return data;
   }
 
@@ -70,6 +81,18 @@ export class ExpertiseController {
     @Param('id') id: string,
     @Body() updateExpertiseDto: UpdateExpertiseDto,
   ) {
+    const current = await this.expertiseService.findById(id);
+    if (!current) {
+      throw new NotFoundException('expertise not exist');
+    }
+    if (updateExpertiseDto.title !== undefined || updateExpertiseDto.type !== undefined) {
+      const same = await this.expertiseService.findSameItem(
+        updateExpertiseDto.type ?? current.type,
+        updateExpertiseDto.title ?? current.title,
+        id,
+      );
+      if (same) throw new ConflictException(DUPLICATE_MESSAGE);
+    }
     const newExpertise = await this.expertiseService.findByIdAndUpdate(
       id,
       updateExpertiseDto,
