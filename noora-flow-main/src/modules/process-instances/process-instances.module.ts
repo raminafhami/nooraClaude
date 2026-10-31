@@ -28,6 +28,8 @@ import { ContractNumberModule } from '../contract-number/contract-number.module'
 import { IncomeModule } from '../income/income.module';
 import { InvoiceModule } from '../invoice/invoice.module';
 import { InspectionCostsModule } from '../inspection-costs/inspection-costs.module';
+import { AppConfigModule } from 'src/config/app/config.module';
+import { EncryptionService } from '../iam/hashing-and-encryption/encryption.service';
 
 @Module({
   imports: [
@@ -45,10 +47,12 @@ import { InspectionCostsModule } from '../inspection-costs/inspection-costs.modu
     forwardRef(() => IncomeModule),
     InvoiceModule,
     InspectionCostsModule,
+    AppConfigModule,
   ],
   controllers: [ProcessInstanceController],
   providers: [
     ProcessInstanceService,
+    EncryptionService,
     ProcessInstanceRepositoryImpl,
     ProcessDefinitionRepositoryImpl,
     Compiler,

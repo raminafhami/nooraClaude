@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { setStageOfInstance } from "@/felo/instances/services/setStageOfInstance";
 import { useTaskContext } from "@/felo/tasks/hooks/useTaskContext";
+import { getTemplateUrl } from "@/felo/templates/services/getTemplateUrl";
 import { FieldError } from "@/form/FieldError";
 import { Input } from "@/form/Input";
 import { Textarea } from "@/form/textarea";
@@ -15,7 +16,6 @@ import Referrer from "@/inspection/flows/_module/referrer/Referrer";
 import { CaseType, caseType } from "@/inspection/models/CaseType";
 import { checkCoordinatorAndCustomerBalance } from "@/inspection/services/checkCoordinatorAndCustomerBalance";
 import { messages } from "@/messages";
-import { routes } from "@/routes";
 import Select from "@/ui/Select/Select";
 import { Seperator } from "@/ui/Seperator";
 
@@ -31,6 +31,12 @@ import {
 } from "../../models/InspectionMethod";
 import { schema } from "./PhaseSchema";
 
+const TEMPLATE_PATH = "inspection/ic/Certificate.html";
+const TEMPLATE_KEYS =
+	"caseNo,CertificateIssueNo,CertificateIssueDate,BuyerNameEn,Seller,Applicant,Shipper,ProformaNo,ProformaDate,InvoiceNo,InvoiceDate,RegistrationOrderNo,GoodsCustomTariffNos,GoodsDescriptions,InsuranceCompany,InsurancePolicyNo,DischargerName,BillOfLadingNo,BillOfLadingDate,BillOfLadingQuantity,GrossWeight,NetWeight,Packing,ShippedFrom,ShippedTo,CountryOfOrigin,InspectionPlace,InspectionDate,InspectionQualityDescription,InspectionRemarkDescription,CertificateConclusion".split(
+		",",
+	);
+
 type FormData = z.infer<typeof schema>;
 
 export function PhasePage() {
@@ -39,17 +45,6 @@ export function PhasePage() {
 	const { control, register, resetField, watch } = useFormContext<FormData>();
 
 	const { [ids.certificateIssuanceStatus]: reviewStatus } = watch();
-
-	function getTemplateUrl(download: boolean): string {
-		return new URL(
-			`/files/${
-				task.instanceId
-			}/export/vars/caseNo,CertificateIssueNo,CertificateIssueDate,BuyerNameEn,Seller,Applicant,Shipper,ProformaNo,ProformaDate,InvoiceNo,InvoiceDate,RegistrationOrderNo,GoodsCustomTariffNos,GoodsDescriptions,InsuranceCompany,InsurancePolicyNo,DischargerName,BillOfLadingNo,BillOfLadingDate,BillOfLadingQuantity,GrossWeight,NetWeight,Packing,ShippedFrom,ShippedTo,CountryOfOrigin,InspectionPlace,InspectionDate,InspectionQualityDescription,InspectionRemarkDescription,CertificateConclusion?template=inspection/ic/Certificate.html&download=${
-				download ? "1" : "0"
-			}`,
-			routes.externalApi,
-		).toString();
-	}
 
 	useEffect(() => {
 		register(ids.certificateIssuanceNote);
@@ -152,7 +147,7 @@ export function PhasePage() {
 						<div className="overflow-hidden border border-gray-200">
 							<iframe
 								className="h-[32rem] w-a4-portrait overflow-y-auto"
-								src={getTemplateUrl(false)}
+								src={getTemplateUrl(task.instanceId, TEMPLATE_PATH, TEMPLATE_KEYS)}
 							></iframe>
 						</div>
 					</div>

@@ -104,6 +104,8 @@ function TaskInnerProvider<T = any>({
 	const fields = watch();
 
 	async function handleSubmit(values: ObjectType) {
+		let isSubmitted = false;
+
 		try {
 			statusRef.current = { status: TaskSubmitType.Complete };
 
@@ -121,6 +123,7 @@ function TaskInnerProvider<T = any>({
 				...statusRef.current,
 			});
 
+			isSubmitted = true;
 			setIsCompleted(true);
 			setMessage(<Loading size="xs">در حال پردازش اطلاعات...</Loading>);
 
@@ -182,7 +185,10 @@ function TaskInnerProvider<T = any>({
 							});
 						}
 					}),
-				);
+				).catch((err) => {
+					// the task is already submitted; a failed notification must not block the user
+					console.error("Notifications: ", err);
+				});
 			}
 
 			if (!userNextTask) {
@@ -218,7 +224,14 @@ function TaskInnerProvider<T = any>({
 					errorMessage = err.message;
 				}
 
-				setError("root.server", { message: errorMessage });
+				if (isSubmitted) {
+					// the form is no longer shown, so report through the message
+					setMessage(
+						`اطلاعات ثبت شد، اما ادامه کار با خطا روبرو شد: ${errorMessage}`,
+					);
+				} else {
+					setError("root.server", { message: errorMessage });
+				}
 			}
 		}
 	}

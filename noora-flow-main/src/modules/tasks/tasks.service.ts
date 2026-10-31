@@ -81,12 +81,15 @@ export class TasksService {
       }
 
       // check buyers processInstance without file
+      const withoutFileThreshold =
+        this.appConfigService.processWithoutFileThreshold;
       const matchingTask = userTaskKeys.find(
         (task) =>
           userTask.processDefinitionKey === task.processDefinitionKey &&
           taskData.taskKey === task.taskKey,
       );
       if (
+        withoutFileThreshold &&
         matchingTask &&
         taskData.status &&
         taskData.status === InputStatuses.COMPLETE &&
@@ -102,7 +105,7 @@ export class TasksService {
 
         if (
           fileSummary?.data[0]?.processInstanceWithoutFile?.length >=
-          this.appConfigService.processWithoutFileThreshold
+          withoutFileThreshold
         ) {
           throw new CustomError(
             HttpStatus.FORBIDDEN,

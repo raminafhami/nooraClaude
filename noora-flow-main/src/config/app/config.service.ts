@@ -69,8 +69,12 @@ export class AppConfigService {
     return this.configService.get<string>('app.swaggerPassword');
   }
 
-  public get processWithoutFileThreshold(): string {
-    return this.configService.get<string>('app.processWithoutFileThreshold');
+  /** 0 (unset / invalid) disables the check. */
+  public get processWithoutFileThreshold(): number {
+    const value = Number(
+      this.configService.get<string>('app.processWithoutFileThreshold'),
+    );
+    return Number.isInteger(value) && value > 0 ? value : 0;
   }
 
   public get invoiceCryptoSecretKey(): string {

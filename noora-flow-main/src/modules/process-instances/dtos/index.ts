@@ -4,3 +4,4 @@ export * from './update-process-instance.dto';
 export * from './create-process-instance.rest.dto';
 export * from './start-process-instance.rest.dto';
 export * from './stats.rest.dto';
+export * from './encrypt-instance-id.dto';

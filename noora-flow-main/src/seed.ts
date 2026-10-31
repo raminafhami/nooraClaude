@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 import { AdminSeederService } from './modules/seeders/admin-seeder.service';
+import { SystemDataSeederService } from './modules/seeders/system-data-seeder.service';
 
 async function seed() {
   const logger = new Logger('Seed');
@@ -17,6 +18,8 @@ async function seed() {
   });
 
   try {
+    await app.get(SystemDataSeederService).seedSystemData();
+
     const adminSeeder = app.get(AdminSeederService);
     const { created, phoneNo } = await adminSeeder.seedAdmin();
     logger.log(

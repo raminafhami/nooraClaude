@@ -31,7 +31,6 @@ import Referrer from "@/inspection/flows/_module/referrer/Referrer";
 import getGoodsInspectionFieldOptions from "@/inspection/goodsInspectionFields/services/getGoodsInspectionFieldOptions";
 import { useInspectionCancellation } from "@/inspection/hooks/useInspectionCancellation";
 import { CaseType, caseType } from "@/inspection/models/CaseType";
-import { goodsFields } from "@/inspection/models/GoodsFields";
 import { cancelInspection } from "@/inspection/services/cancelInspection";
 import getRelations from "@/inspection/services/getRelations";
 import { convertToContractData } from "@/inspection/shared/utils/convertToContractData";
@@ -299,13 +298,10 @@ export function PhasePage() {
 		}
 	}, [hooks, identity, verifyContractData, openTaskCancelDialog]);
 
-	const goodsFieldsItems = useMemo(
-		() =>
-			task.instanceVersion >= 6
-				? getGoodsInspectionFieldOptions()
-				: goodsFields,
-		[task.instanceVersion],
-	);
+	// The review page, the inspection process and reports read GoodsField from
+	// this list. The old `instanceVersion >= 6` switch referred to the previous
+	// system's definition versions; here the IC definitions start at 1.
+	const goodsFieldsItems = useMemo(() => getGoodsInspectionFieldOptions(), []);
 
 	return (
 		<>

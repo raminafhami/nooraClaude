@@ -1,5 +1,10 @@
 import { Types } from 'mongoose';
-import { IndustryTypes, ProjectType } from 'src/common/const/enums';
+import {
+  CategoryKeys,
+  CategoryTypes,
+  IndustryTypes,
+  ProjectType,
+} from 'src/common/const/enums';
 
 export const industries = [
   {
@@ -231,4 +236,66 @@ export const activityProject = [
     type: ProjectType.ACTIVITY,
     createdBy: '64fc34ccac4d2e3326f95a5c',
   },
+];
+
+// Financial categories the code looks up by `key` (inspection flows, incomes,
+// costs). The category UI cannot set a key, so they must be seeded.
+export const systemCategories = [
+  {
+    type: CategoryTypes.Income,
+    key: 'inspection-certificate',
+    code: 'inspection-certificate',
+    title: 'کارمزد بازرسی و صدور گواهی',
+  },
+  {
+    type: CategoryTypes.Cost,
+    key: 'customer',
+    code: 'customer',
+    title: 'کارمزد مشتری',
+  },
+  {
+    type: CategoryTypes.Cost,
+    key: 'agency',
+    code: 'agency',
+    title: 'کارمزد نمایندگی',
+  },
+  {
+    type: CategoryTypes.Cost,
+    key: 'marketer',
+    code: 'marketer',
+    title: 'کارمزد بازاریاب',
+  },
+  {
+    type: CategoryTypes.Cost,
+    key: 'coordinator',
+    code: 'coordinator',
+    title: 'کارمزد هماهنگ کننده',
+  },
+  {
+    type: CategoryTypes.Cost,
+    key: CategoryKeys.Insurance,
+    code: CategoryKeys.Insurance,
+    title: 'بیمه',
+  },
+  {
+    type: CategoryTypes.overdue,
+    key: CategoryKeys.Overdue,
+    code: CategoryKeys.Overdue,
+    title: 'جریمه دیرکرد',
+  },
+];
+
+// Counters read by key from the inspection flows (certificate numbers).
+export const systemIndicators = [
+  {
+    key: 'ic-certificate',
+    title: 'شماره گواهی بازرسی',
+    counter: 1000,
+    format: '${counter}',
+  },
+];
+
+// Groups the inspection flows list users from.
+export const systemUserGroups = [
+  { name: 'inspection-coordinator', title: 'هماهنگ کننده بازرسی' },
 ];

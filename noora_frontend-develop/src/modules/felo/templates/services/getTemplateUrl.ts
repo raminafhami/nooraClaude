@@ -6,10 +6,8 @@ export function getTemplateUrl(
 	variables: string[],
 	download: boolean = false,
 ): string {
-	return new URL(
-		`/files/${instanceId}/export/vars/${variables.join(
-			",",
-		)}?template=${templateName}&download=${download ? "1" : "0"}`,
-		routes.externalApi,
-	).toString();
+	// not new URL("/files/...", base): a leading slash drops the base path (/backend)
+	return `${routes.externalApi}/files/${instanceId}/export/vars/${variables.join(
+		",",
+	)}?template=${templateName}&download=${download ? "1" : "0"}`;
 }

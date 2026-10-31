@@ -27,8 +27,10 @@ import {
   GetQueryWithDownloadDto,
   DuplicateInstanceDto,
   CancelProcessInstanceDto,
+  EncryptInstanceIdDto,
 } from './dtos';
 import { ProcessInstanceService } from './process-instances.service';
+import { EncryptionService } from '../iam/hashing-and-encryption/encryption.service';
 import CustomError from 'src/common/providers/custom-error';
 import CustomResponse from 'src/common/providers/custom-response.service';
 import { ActiveUserData } from '../iam/authentication/interfaces/active-user-data.interface';
@@ -69,6 +71,7 @@ export class ProcessInstanceController {
     private readonly filesService: FilesService,
     private readonly userFilesService: UserFilesService,
     private readonly incomeService: IncomeService,
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   @CheckPermissions({
@@ -863,11 +866,41 @@ export class ProcessInstanceController {
     return res.send(file);
   }
 
+  /**
+   * Opaque id for public links (certificate / letter QR codes), so the public
+   * endpoint below cannot be walked with plain instance ids.
+   */
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.PROCESS_INSTANCE,
+  })
+  @Post('encrypt')
+  async encryptInstanceId(@Body() { instanceId }: EncryptInstanceIdDto) {
+    const instance = await this.processInstanceService.findOnePublic(
+      instanceId,
+      [],
+    );
+    if (!instance) {
+      throw new NotFoundException('instance not found.');
+    }
+    return this.encryptionService.encrypt(instanceId);
+  }
+
   @Get(':processInstanceId/public')
   async findOnePublic(
-    @Param('processInstanceId') id: string,
+    @Param('processInstanceId') encryptedId: string,
     @Query() { props }: PropDto,
   ) {
+    let id: string;
+    try {
+      id = this.encryptionService.decrypt(encryptedId);
+    } catch {
+      id = null;
+    }
+    if (!id || !/^[0-9a-f]{24}$/.test(id)) {
+      throw new NotFoundException('instance not found.');
+    }
+
     const instance = await this.processInstanceService.findOnePublic(
       id,
       props?.split(','),
