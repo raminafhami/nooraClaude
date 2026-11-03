@@ -51,7 +51,7 @@ import {
 	inspectionMethod,
 	inspectionMethodOptions,
 } from "../../models/InspectionMethod";
-import { validateInspectionFee } from "../../utils/validateInspectionFee";
+// import { validateInspectionFee } from "../../utils/validateInspectionFee";
 import { schema } from "./PhaseSchema";
 import { ReviewStatus, reviewStatusOptions } from "./ReviewStatus";
 
@@ -218,13 +218,14 @@ export function PhasePage() {
 								totalIncome.toString();
 						}
 
-						// validate inspection fee
-						validateInspectionFee({
-							inspectionFeeInRial: totalIncome,
-							inspectionMethod:
-								data[ids.inspectionMethod] || task.data[ids.inspectionMethod],
-							caseType,
-						});
+						// validate inspection fee (minimum fee) - disabled for now, the
+						// limits are to be decided later
+						// validateInspectionFee({
+						// 	inspectionFeeInRial: totalIncome,
+						// 	inspectionMethod:
+						// 		data[ids.inspectionMethod] || task.data[ids.inspectionMethod],
+						// 	caseType,
+						// });
 
 						// set coordinator & marketer
 						const { coordinator, marketer } = await getRelations(

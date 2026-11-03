@@ -23,24 +23,26 @@ export class AppDelegateService {
 
   async certSmsNotiy(instance: any, params: any, output: string) {
     const parameters = instance?.parameters;
-    const user = await this.userService.findById(
-      parameters?.Assignees?.customer?.id,
-    );
-    if (user.phoneNo) {
-      await this.smsService.sendSmsDynamicTemplateAndParamters(
-        user.phoneNo,
-        '476703',
-        [
-          {
-            name: 'CUSTOMERNAME',
-            value: parameters?.Assignees?.customer?.name,
-          },
-          { name: 'CASENO', value: instance?.caseNo },
-          { name: 'BUYERNAME', value: parameters?.Buyer?.name },
-          { name: 'PROFORMANO', value: parameters?.ProformaNo },
-        ],
-      );
-    }
+    // Certificate SMS to the customer is not used in this phase; the process
+    // stage stays and just passes through.
+    // const user = await this.userService.findById(
+    //   parameters?.Assignees?.customer?.id,
+    // );
+    // if (user.phoneNo) {
+    //   await this.smsService.sendSmsDynamicTemplateAndParamters(
+    //     user.phoneNo,
+    //     '476703',
+    //     [
+    //       {
+    //         name: 'CUSTOMERNAME',
+    //         value: parameters?.Assignees?.customer?.name,
+    //       },
+    //       { name: 'CASENO', value: instance?.caseNo },
+    //       { name: 'BUYERNAME', value: parameters?.Buyer?.name },
+    //       { name: 'PROFORMANO', value: parameters?.ProformaNo },
+    //     ],
+    //   );
+    // }
 
     return parameters;
   }

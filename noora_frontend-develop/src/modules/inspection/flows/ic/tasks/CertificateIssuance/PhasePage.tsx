@@ -14,7 +14,7 @@ import { Textarea } from "@/form/textarea";
 import { getIndicatorCounterByKey } from "@/indicator/services/getIndicatorCounterByKey";
 import Referrer from "@/inspection/flows/_module/referrer/Referrer";
 import { CaseType, caseType } from "@/inspection/models/CaseType";
-import { checkCoordinatorAndCustomerBalance } from "@/inspection/services/checkCoordinatorAndCustomerBalance";
+// import { checkCoordinatorAndCustomerBalance } from "@/inspection/services/checkCoordinatorAndCustomerBalance";
 import { messages } from "@/messages";
 import Select from "@/ui/Select/Select";
 import { Seperator } from "@/ui/Seperator";
@@ -65,7 +65,9 @@ export function PhasePage() {
 					data[ids.certificateIssuanceStatus] ===
 					CertificateReviewStatus.Confirm
 				) {
-					await checkCoordinatorAndCustomerBalance(task);
+					// customer / coordinator credit ceiling - disabled for now, the
+					// limits are to be decided later
+					// await checkCoordinatorAndCustomerBalance(task);
 
 					data[ids.certificateIssueDate] = moment().format("YYYY-MM-DD");
 					data[ids.certificateIssueNo] =

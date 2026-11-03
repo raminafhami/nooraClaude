@@ -82,6 +82,12 @@ reads by key: financial categories (`inspection-certificate`, cost keys,
 `insurance`, `overdue`), indicator `ic-certificate`, group
 `inspection-coordinator`. Idempotent.
 
+`/root/backups/ic/ic-roles.js` (DRY default): gives `ic-expert` the
+`notification:create` permission and puts System Administrator in
+`ic-expert`, `ic-manager`, `inspection-coordinator` (so it can run every IC
+step). Run after the seed. Note: `usergroups.permissions` holds hex id
+strings - in the mongo shell use `id.str`, never `String(id)`.
+
 ## Never
 
 - `docker builder prune` / pruning the build cache.
