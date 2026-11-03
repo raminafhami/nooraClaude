@@ -270,6 +270,11 @@ export function PhasePage() {
 	}
 
 	async function getSamplingData() {
+		// مهار codes are kept per branch
+		if (!identity?.branchId) {
+			return;
+		}
+
 		setLoading(true);
 		try {
 			let res = await GetProductHistoryByCategory({
@@ -459,16 +464,19 @@ export function PhasePage() {
 							(item) => item !== null && item !== undefined,
 						);
 
-						try {
-							let res = await PutProductsHistory({
-								historyItems: finalData,
-							});
-							if (res) {
-								toast.success("کد ها با موفقیت ثبت شد!");
+						// no مهار selected: nothing to mark as used (the API rejects an empty list)
+						if (finalData.length) {
+							try {
+								let res = await PutProductsHistory({
+									historyItems: finalData,
+								});
+								if (res) {
+									toast.success("کد ها با موفقیت ثبت شد!");
+								}
+							} catch (e) {
+								console.error(e);
+								throw new Error("خطا در ثبت کد ");
 							}
-						} catch (e) {
-							console.error(e);
-							throw new Error("خطا در ثبت کد ");
 						}
 
 						// create income
