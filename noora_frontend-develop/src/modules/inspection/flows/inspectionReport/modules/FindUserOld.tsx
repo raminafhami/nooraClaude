@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 import GetAllUsers from "@/api/users/getAllUsers";
 import { EvaluatorProps } from "@/app/dashboard/form-generator/data/EvaluationFormTypes";
-import { UserGroupType } from "@/identity/groups/models/GroupType";
 import { getGroups } from "@/identity/groups/services/getGroups";
 
 interface FindUserProps {
@@ -19,7 +18,7 @@ export default function FindUser({ user, setUser }: FindUserProps) {
   async function getUser() {
     let res;
     try {
-      let group = getGroups(UserGroupType.Group, {
+      let group = getGroups(null, {
         filters: [{ name: "name", value: "surveyors" }],
       });
       group.then((response) => {

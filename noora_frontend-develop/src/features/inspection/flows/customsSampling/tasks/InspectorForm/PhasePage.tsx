@@ -48,12 +48,22 @@ import { ReactSelectStyle } from "@/ui/Select/ReactSelectStyle";
 import SignaturePad from "@/ui/SignaturePad";
 import { toCurrency } from "@/utils/String";
 
+import { EffectiveSamplingPrice } from "@/sampling-price/models/SamplingPrice";
+import { getEffectiveSamplingPrices } from "@/sampling-price/services/getEffectiveSamplingPrices";
+
 import { Ids } from "../../data";
-import { serviceTypes } from "../../models/ServiceType";
 import { CustomsPreview } from "./CustomsPreview";
 import { schema } from "./PhaseSchema";
 
 export type FormData = z.infer<typeof schema>;
+
+const PROCESS_KEY = "CustomsSampling";
+
+/** prices are applied by the sampling date; today if it was not entered */
+function getSamplingDate(data: any): Date {
+	const date = data?.[Ids.scheduleDate] ? new Date(data[Ids.scheduleDate]) : null;
+	return date && !isNaN(date.getTime()) ? date : new Date();
+}
 
 interface ProductsData {
 	ProductName: string;
@@ -175,6 +185,7 @@ export function PhasePage() {
 	const {
 		control,
 		formState: { errors },
+		getValues,
 		register,
 		setValue,
 		watch,
@@ -191,11 +202,21 @@ export function PhasePage() {
 		[Ids.serviceType]: serviceTypeId,
 	} = formFields;
 
+	// services and prices come from «قیمت گذاری», as in force on the sampling date
+	const [serviceTypes, setServiceTypes] = useState<EffectiveSamplingPrice[]>(
+		[],
+	);
 	const serviceType = serviceTypes.find((x) => x.id === serviceTypeId);
 
 	useEffect(() => {
 		dispatch({ type: "update", options: { saveBtn: true } });
 	}, [dispatch]);
+
+	useEffect(() => {
+		getEffectiveSamplingPrices(PROCESS_KEY, getSamplingDate(data))
+			.then(setServiceTypes)
+			.catch(() => toast.error("دریافت انواع خدمت با خطا روبه رو شد!"));
+	}, [data]);
 
 	useEffect(() => {
 		if (
@@ -270,11 +291,6 @@ export function PhasePage() {
 	}
 
 	async function getSamplingData() {
-		// مهار codes are kept per branch
-		if (!identity?.branchId) {
-			return;
-		}
-
 		setLoading(true);
 		try {
 			let res = await GetProductHistoryByCategory({
@@ -391,10 +407,13 @@ export function PhasePage() {
 							throw new Error("ثبت حداقل یک نمونه الزامی است.");
 						}
 
-						// service type
-						const serviceType = serviceTypes.find(
-							(x) => x.id === data[Ids.serviceType],
-						);
+						// service type, priced as on the sampling date
+						const serviceType = (
+							await getEffectiveSamplingPrices(
+								PROCESS_KEY,
+								getSamplingDate(task.data),
+							)
+						).find((x) => x.id === data[Ids.serviceType]);
 						if (!serviceType) {
 							throw new Error("نوع خدمت مورد نظر انتخاب نشده است.");
 						}
@@ -464,19 +483,16 @@ export function PhasePage() {
 							(item) => item !== null && item !== undefined,
 						);
 
-						// no مهار selected: nothing to mark as used (the API rejects an empty list)
-						if (finalData.length) {
-							try {
-								let res = await PutProductsHistory({
-									historyItems: finalData,
-								});
-								if (res) {
-									toast.success("کد ها با موفقیت ثبت شد!");
-								}
-							} catch (e) {
-								console.error(e);
-								throw new Error("خطا در ثبت کد ");
+						try {
+							let res = await PutProductsHistory({
+								historyItems: finalData,
+							});
+							if (res) {
+								toast.success("کد ها با موفقیت ثبت شد!");
 							}
+						} catch (e) {
+							console.error(e);
+							throw new Error("خطا در ثبت کد ");
 						}
 
 						// create income
@@ -786,7 +802,10 @@ export function PhasePage() {
 								render={({ field }) => (
 									<FormItem className="col-span-full sm:col-span-6 lg:col-span-3">
 										<FormLabel>
-											نوع خدمت<span className="text-red-600"> *</span>
+											نوع خدمت
+											{formFields.InspectorStatus !== "return" && (
+												<span className="text-red-600"> *</span>
+											)}
 										</FormLabel>
 										<FormControl>
 											<RxSelect
@@ -816,7 +835,11 @@ export function PhasePage() {
 									</FormItem>
 								)}
 								rules={{
-									required: messages.validation.required,
+									// not needed to send the case back
+									validate: (value) =>
+										getValues(Ids.inspectorStatus) === "return" ||
+										!!value ||
+										messages.validation.required,
 								}}
 							/>
 

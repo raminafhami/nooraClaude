@@ -23,12 +23,12 @@ export async function getInspectors(
     );
 
     inspectorsGroupId = inspectorsGroup?.id || null;
-  } else {
+  }
+
+  // a branch without its own inspectors group uses the «نمونه بردار» role
+  if (!inspectorsGroupId) {
     inspectorsGroupName = "surveyors";
-    const inspectorsGroup = await getGroupByName(
-      UserGroupType.Group,
-      "surveyors"
-    );
+    const inspectorsGroup = await getGroupByName(null, "surveyors");
 
     inspectorsGroupId = inspectorsGroup?.id || null;
   }

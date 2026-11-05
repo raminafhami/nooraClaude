@@ -9,17 +9,22 @@ import {
   Query,
   NotFoundException,
   Put,
+  BadRequestException,
 } from '@nestjs/common';
 import { SamplingPriceService } from './sampling-price.service';
 import {
   AddPricesListDto,
+  AddSamplingPriceVersionDto,
   CreateSamplingPriceDto,
+  UpsertSamplingIncomeCategoryDto,
 } from './dto/create-sampling-price.dto';
 import { UpdateSamplingPriceDto } from './dto/update-sampling-price.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CheckPermissions } from '../iam/authentication/decorators/permissions.decorator';
 import { PermissionAction, Subjects } from '../iam/authentication/enums';
 import { GetQueryDto } from 'src/shared/crud/dto/get-query.dto';
+import { ActiveUser } from '../iam/authentication/decorators/active-user.decorator';
+import { ActiveUserData } from '../iam/authentication/interfaces/active-user-data.interface';
 
 @ApiTags('sampling-price')
 @ApiBearerAuth('token')
@@ -32,9 +37,13 @@ export class SamplingPriceController {
     subject: Subjects.SAMPLING_PRICE,
   })
   @Post()
-  async create(@Body() createSamplingPriceDto: CreateSamplingPriceDto) {
+  async create(
+    @Body() { price, effectiveFrom, note, ...rest }: CreateSamplingPriceDto,
+    @ActiveUser() user: ActiveUserData,
+  ) {
     const samplingPrice = await this.samplingPriceService.create({
-      ...createSamplingPriceDto,
+      ...rest,
+      prices: [{ price, effectiveFrom, note, createdBy: user.id }],
       pricesList: [],
     });
     return samplingPrice;
@@ -48,6 +57,41 @@ export class SamplingPriceController {
   async findAll(@Query() queryDto: GetQueryDto) {
     const data = await this.samplingPriceService.findAll(queryDto);
     return data;
+  }
+
+  // services and their price in force on `date` (default: now)
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.SAMPLING_PRICE,
+  })
+  @Get('effective')
+  async findEffective(
+    @Query('date') date?: string,
+    @Query('processKey') processKey?: string,
+  ) {
+    const at = date ? new Date(date) : new Date();
+    if (isNaN(at.getTime())) {
+      throw new BadRequestException('invalid date');
+    }
+    return this.samplingPriceService.getEffectivePrices(at, processKey);
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.READ,
+    subject: Subjects.SAMPLING_PRICE,
+  })
+  @Get('income-category')
+  async getIncomeCategory() {
+    return (await this.samplingPriceService.getIncomeCategory()) ?? null;
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.SAMPLING_PRICE,
+  })
+  @Put('income-category')
+  async upsertIncomeCategory(@Body() { title }: UpsertSamplingIncomeCategoryDto) {
+    return this.samplingPriceService.upsertIncomeCategory(title);
   }
 
   @CheckPermissions({
@@ -80,6 +124,56 @@ export class SamplingPriceController {
       throw new NotFoundException('sampling price not exist');
     }
     return newSamplingPrice;
+  }
+
+  // announces a new price from `effectiveFrom`; the same date replaces it
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.SAMPLING_PRICE,
+  })
+  @Post(':id/prices')
+  async addPrice(
+    @Param('id') id: string,
+    @Body() { price, effectiveFrom, note }: AddSamplingPriceVersionDto,
+    @ActiveUser() user: ActiveUserData,
+  ) {
+    const samplingPrice = await this.samplingPriceService.findById(id);
+    if (!samplingPrice) {
+      throw new NotFoundException('sampling price not exist');
+    }
+
+    const from = new Date(effectiveFrom).getTime();
+    const prices = (samplingPrice.prices || []).filter(
+      (p) => new Date(p.effectiveFrom).getTime() !== from,
+    );
+    prices.push({ price, effectiveFrom: new Date(effectiveFrom), note, createdBy: user.id });
+
+    return this.samplingPriceService.findByIdAndUpdate(id, { prices });
+  }
+
+  @CheckPermissions({
+    action: PermissionAction.UPDATE,
+    subject: Subjects.SAMPLING_PRICE,
+  })
+  @Delete(':id/prices/:priceId')
+  async removePrice(
+    @Param('id') id: string,
+    @Param('priceId') priceId: string,
+  ) {
+    const samplingPrice = await this.samplingPriceService.findById(id);
+    if (!samplingPrice) {
+      throw new NotFoundException('sampling price not exist');
+    }
+    if (!samplingPrice.prices.some((p) => p['id'] == priceId)) {
+      throw new NotFoundException('sampling price version not exist');
+    }
+    if (samplingPrice.prices.length === 1) {
+      throw new BadRequestException('the only price of a service cannot be removed');
+    }
+
+    return this.samplingPriceService.findByIdAndUpdate(id, {
+      $pull: { prices: { _id: priceId } },
+    });
   }
 
   @CheckPermissions({

@@ -9,6 +9,7 @@ import {
 	FaLayerGroup,
 	FaPeopleGroup,
 	FaPersonCircleCheck,
+	FaTags,
 	FaUsers,
 	FaUserShield,
 } from "react-icons/fa6";
@@ -16,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { authorizeByGroups, TabsData } from "@/components/ui/tabs/TabsCreator";
 import { DynamicLink } from "@/components/ui/dynamic-link";
+import { SamplingPricingPage } from "@/features/sampling-price/components/SamplingPricingPage";
 
 import BranchsPage from "../branches/page";
 import { ProcessesPage } from "../business-process/_components/ProcessesPage";
@@ -74,6 +76,14 @@ export const AdminTabs: TabsData[] = [
 		icon: FaLayerGroup,
 		value: "dispatcher-category",
 		element: <DispatcherCategoryPage />,
+		authorize: authorizeByGroups(["system-admin"]),
+	},
+	{
+		name: "قیمت گذاری",
+		color: "",
+		icon: FaTags,
+		value: "pricing",
+		element: <SamplingPricingPage />,
 		authorize: authorizeByGroups(["system-admin"]),
 	},
 	{

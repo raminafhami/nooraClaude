@@ -42,14 +42,24 @@ const items: ItemProps[] = [
 		icon: <FaMoneyBillTransfer className="text-base" />,
 		name: "financials",
 		text: "مالی",
-		groups: ["branch-manager", "financial-expert", "financial-assistant"],
+		groups: [
+			"branch-manager",
+			"sampling-officer",
+			"financial-expert",
+			"financial-assistant",
+		],
 	},
 	{
 		icon: <FaFileInvoice className="text-base" />,
 		name: "invoice",
 		text: "فاکتورها",
 		authorize: (identity: Identity) =>
-			["branch-manager", "financial-expert", "financial-assistant"].some(
+			[
+				"branch-manager",
+				"sampling-officer",
+				"financial-expert",
+				"financial-assistant",
+			].some(
 				(group) => identity.groups.includes(group),
 			),
 	},

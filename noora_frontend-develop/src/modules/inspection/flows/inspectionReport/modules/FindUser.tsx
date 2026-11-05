@@ -17,7 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { UserGroupType } from "@/identity/groups/models/GroupType";
 import { getGroups } from "@/identity/groups/services/getGroups";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +39,7 @@ export default function FindUser({
   async function getUser() {
     let res;
     try {
-      let group = getGroups(UserGroupType.Group, {
+      let group = getGroups(null, {
         filters: [{ name: "name", value: "surveyors" }],
       });
       group.then((response) => {

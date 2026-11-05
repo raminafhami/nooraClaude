@@ -298,4 +298,8 @@ export const systemIndicators = [
 // Groups the inspection flows list users from.
 export const systemUserGroups = [
   { name: 'inspection-coordinator', title: 'هماهنگ کننده بازرسی' },
+  // samplers listed by the sampling forms
+  { name: 'surveyors', title: 'نمونه بردار' },
+  // starts sampling requests, like a branch manager
+  { name: 'sampling-officer', title: 'مسئول نمونه برداری' },
 ];

@@ -32,6 +32,16 @@ paths containing `[id]`.
 - Staging Dockerfiles get `NPM_CONFIG_REGISTRY=https://registry.npmmirror.com/`
   (npmjs.org is unreachable from the server). A full build takes ~15-20 min.
 - No Elasticsearch on staging: the staging backend may exit - `docker start noora-stg-backend`.
+- `deb.debian.org` is barely reachable from the server: the staging backend
+  Dockerfile's apt step is switched to `ftp.de.debian.org` (backup of the
+  original in `/root/backups/cs/Dockerfile.stg-backend.bak`).
+- Admin pages rendered server-side (e.g. `/dashboard/admin/users/[id]`) fetch
+  `https://apksystems.ir`, which the staging frontend can't resolve. After each
+  frontend rebuild: `echo "<noora-stg-gateway IP> apksystems.ir" >> /etc/hosts`
+  inside `noora-stg-frontend` (as root).
+- Sampling tests: `/root/backups/cs/` (`cs-e2e2.js` + `run-cs2.sh`: pricing tab,
+  roles from the user page, warehouse مهار, officer -> sampler with reject, dated
+  prices; `sampling-setup.js`: central branch + data move + roles, DRY default).
 
 ## Making rv.tar (locally)
 

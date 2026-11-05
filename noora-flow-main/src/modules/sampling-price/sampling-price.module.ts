@@ -7,12 +7,14 @@ import {
   SamplingPriceSchema,
 } from './schemas/sampling-price.schema';
 import { SamplingPriceRepositoryImpl } from './repository/sampling-price.repository';
+import { CategoryModule } from '../categories/category.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: SamplingPrice.name, schema: SamplingPriceSchema },
     ]),
+    CategoryModule,
   ],
   controllers: [SamplingPriceController],
   providers: [SamplingPriceService, SamplingPriceRepositoryImpl],

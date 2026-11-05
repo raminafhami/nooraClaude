@@ -1,6 +1,17 @@
-import { OmitType, PartialType } from '@nestjs/swagger';
-import { CreateSamplingPriceDto } from './create-sampling-price.dto';
+import { IsArray, IsDateString, IsOptional, IsString } from 'class-validator';
 
-export class UpdateSamplingPriceDto extends PartialType(
-  CreateSamplingPriceDto,
-) {}
+export class UpdateSamplingPriceDto {
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  processKeys?: string[];
+
+  // null brings a deprecated service back
+  @IsOptional()
+  @IsDateString()
+  deprecatedFrom?: string | null;
+}
