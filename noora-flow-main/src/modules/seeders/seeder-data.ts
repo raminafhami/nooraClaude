@@ -285,11 +285,31 @@ export const systemCategories = [
   },
 ];
 
-// Counters read by key from the inspection flows (certificate numbers).
+// Counters read by key (certificate and invoice numbers).
 export const systemIndicators = [
   {
     key: 'ic-certificate',
     title: 'شماره گواهی بازرسی',
+    counter: 1000,
+    format: '${counter}',
+  },
+  {
+    key: 'coi-certificate',
+    title: 'شماره گواهی مبدا (COI)',
+    counter: 1000,
+    format: '${counter}',
+  },
+  // invoices: every (pre-)invoice gets a number; official invoices also get a
+  // financial number when issued
+  {
+    key: 'invoice',
+    title: 'شماره فاکتور',
+    counter: 1000,
+    format: '${counter}',
+  },
+  {
+    key: 'officialFinNo',
+    title: 'شماره مالی فاکتور رسمی',
     counter: 1000,
     format: '${counter}',
   },

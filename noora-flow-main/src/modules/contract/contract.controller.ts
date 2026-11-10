@@ -80,6 +80,27 @@ export class ContractController {
     };
   }
 
+  /**
+   * The signed-in person's own contract (personnel review step of the
+   * contract process). Needs only `read_own`, so personnel cannot read the
+   * contracts of others.
+   */
+  @CheckPermissions({
+    action: PermissionAction.READ_OWN,
+    subject: Subjects.CONTRACT,
+  })
+  @Get(':id/own')
+  async findOwn(
+    @Param('id') id: string,
+    @ActiveUser() activeUser: ActiveUserData,
+  ) {
+    const contract = await this.contractService.findById(id);
+    if (!contract || String(contract.userId) !== activeUser.id) {
+      throw new NotFoundException('contract not exist');
+    }
+    return this.findOne(id);
+  }
+
   @CheckPermissions({
     action: PermissionAction.UPDATE,
     subject: Subjects.CONTRACT,
@@ -111,8 +132,9 @@ export class ContractController {
     }
   }
 
+  // the person confirms their own contract with the code sent to their phone
   @CheckPermissions({
-    action: PermissionAction.CREATE,
+    action: PermissionAction.READ_OWN,
     subject: Subjects.CONTRACT,
   })
   @Post('verify-contract-code')

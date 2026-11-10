@@ -98,6 +98,17 @@ reads by key: financial categories (`inspection-certificate`, cost keys,
 step). Run after the seed. Note: `usergroups.permissions` holds hex id
 strings - in the mongo shell use `id.str`, never `String(id)`.
 
+## Template assets (fonts / Tailwind)
+
+`assets/` (templates + `cdn/`) is gitignored and lives on the server
+(prod: bind mount `noora-flow-main/assets`; staging: baked into the image).
+Templates load fonts/Tailwind from `/backend/cdn/...` (served from
+`assets/cdn` at `/cdn`); `file.utils.ts localizeTemplateAssets` rewrites that
+to `http://localhost:$APP_PORT/cdn/` for PDF rendering. The files were mirrored
+from the old `cdn.naitco.ir` (expired TLS) into `/root/backups/cdn-mirror`;
+`/root/backups/ic/cdn-stage.sh <tree> [apply]` copies them in and rewrites the
+templates (backup tar first). Warehouse permissions: `ic/warehouse-perms.js`.
+
 ## Never
 
 - `docker builder prune` / pruning the build cache.

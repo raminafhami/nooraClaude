@@ -68,8 +68,9 @@ export async function getBranches(
     }`,
   });
 
+  // metadata is optional: a branch saved without a manager has none
   const managerIds = response.result.data
-    .map((x) => x.metadata.managerId)
+    .map((x) => x.metadata?.managerId)
     .filter((x) => x) as string[];
   const managers =
     managerIds.length !== 0
@@ -77,9 +78,7 @@ export async function getBranches(
           filters: [
             {
               name: "userId",
-              value: response.result.data
-                .map((x) => x.metadata.managerId)
-                .filter((x) => x),
+              value: managerIds,
             },
           ],
         })

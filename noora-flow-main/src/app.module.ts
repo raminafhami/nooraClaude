@@ -151,27 +151,40 @@ import { FormBuilderModule } from './modules/form-builder/form-builder.module';
       inject: [MongoConfigService],
     }),
 
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'statics'),
-      serveRoot: '/statics',
-      serveStaticOptions: {
-        cacheControl: true,
-        extensions: [
-          'jpg',
-          'jpeg',
-          'png',
-          'mp3',
-          'wav',
-          'zip',
-          'pdf',
-          'xlsx',
-          'csv',
-          'doc',
-          'docx',
-        ],
-        fallthrough: false, // Show error if file is not found.
+    ServeStaticModule.forRoot(
+      {
+        rootPath: path.join(__dirname, '..', 'statics'),
+        serveRoot: '/statics',
+        serveStaticOptions: {
+          cacheControl: true,
+          extensions: [
+            'jpg',
+            'jpeg',
+            'png',
+            'mp3',
+            'wav',
+            'zip',
+            'pdf',
+            'xlsx',
+            'csv',
+            'doc',
+            'docx',
+          ],
+          fallthrough: false, // Show error if file is not found.
+        },
       },
-    }),
+      // Fonts and scripts used by the output templates (assets/templates); the
+      // templates load them from /backend/cdn/... (see localizeTemplateAssets).
+      {
+        rootPath: path.join(__dirname, '..', 'assets', 'cdn'),
+        serveRoot: '/cdn',
+        serveStaticOptions: {
+          cacheControl: true,
+          maxAge: '7d',
+          fallthrough: false,
+        },
+      },
+    ),
     BullModule.forRootAsync({
       imports: [RedisConfigModule],
       useFactory: (redisConfigService: RedisConfigService) => {

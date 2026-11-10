@@ -88,7 +88,7 @@ function TinyEditor({
 
 				content_css: [],
 				content_style:
-					"@import url('https://cdn.naitco.ir/fonts/vazirmatn/non-latin/font-face.css'); @import url('https://cdn.naitco.ir/fonts/vazirmatn/farsi-digits-non-latin/font-face.css'); body { direction: rtl; font-family:'Vazirmatn'; font-size: 13px; line-height: 22px; } p { margin: 0; } p:not(:last-child) { margin-bottom: 6px; }",
+					`@import url('${process.env.NEXT_PUBLIC_EXTERNAL_API_URL}/cdn/fonts/vazirmatn/non-latin/font-face.css'); @import url('${process.env.NEXT_PUBLIC_EXTERNAL_API_URL}/cdn/fonts/vazirmatn/farsi-digits-non-latin/font-face.css'); body { direction: rtl; font-family:'Vazirmatn'; font-size: 13px; line-height: 22px; } p { margin: 0; } p:not(:last-child) { margin-bottom: 6px; }`,
 
 				font_size_formats:
 					"8px 9px 10px 11px 12px 13px 14px 16px 18px 24px 36px 48px",

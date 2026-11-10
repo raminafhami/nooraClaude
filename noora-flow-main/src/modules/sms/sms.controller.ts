@@ -55,9 +55,10 @@ export class SmsController {
     }
   }
 
+  // sends only to the signed-in person's own phone, for their own contract
   @CheckPermissions({
-    action: PermissionAction.CREATE,
-    subject: Subjects.SMS,
+    action: PermissionAction.READ_OWN,
+    subject: Subjects.CONTRACT,
   })
   @Get('send-contract-verification-code')
   async sendContractVerificationCode(@ActiveUser() activeUser: ActiveUserData) {

@@ -49,7 +49,8 @@ const ContractList = () => {
 
 	const fetchData = useCallback(
 		async (page: number, pageSize: number) => {
-			let filters: ContractNumberQueryFilter = {};
+			// deleted contract numbers are not listed
+			let filters: ContractNumberQueryFilter = { isDeleted: false };
 
 			if (filterArgs.cn) {
 				filters.cn = filterArgs.cn;
@@ -168,7 +169,8 @@ const ContractList = () => {
 									</TableCell>
 
 									<TableCell>
-										{asNavigationProp(contract.buyerId).name}
+										{/* the buyer may have been deleted: populate gives null */}
+										{asNavigationProp(contract.buyerId)?.name ?? "-"}
 									</TableCell>
 
 									<TableCell>

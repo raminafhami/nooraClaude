@@ -9,7 +9,7 @@ export async function getBranchById(id: string): Promise<Branch> {
     url: `/user-groups/${id}`,
   });
 
-  const managerId = response.result.metadata.managerId;
+  const managerId = response.result.metadata?.managerId;
   const manager = managerId
     ? await getPersonnelById(managerId, ["user"])
     : null;

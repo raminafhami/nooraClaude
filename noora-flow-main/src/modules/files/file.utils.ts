@@ -115,6 +115,17 @@ export const getFileNameWithoutExt = (filename: string) => {
   return basename(filename, extname(filename));
 };
 
+/**
+ * Templates load their fonts/scripts from `/backend/cdn/...`, which a browser
+ * resolves on the site's own domain. The PDF renderer has no such origin, so it
+ * reads the same files straight from this backend.
+ */
+export const localizeTemplateAssets = (html: string): string =>
+  html.replace(
+    /(["'(])\/backend\/cdn\//g,
+    `$1http://localhost:${process.env.APP_PORT || 4000}/cdn/`,
+  );
+
 export const generatePdfStream = async (html: string) => {
   const browser = await puppeteer.launch({
     headless: 'shell',
@@ -122,7 +133,7 @@ export const generatePdfStream = async (html: string) => {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
-  await page.setContent(html, {
+  await page.setContent(localizeTemplateAssets(html), {
     waitUntil: 'networkidle0',
     timeout: 60000,
   });
@@ -139,7 +150,7 @@ export const generatePdfWithGoTo = async (html: string) => {
     __dirname,
     `temp-${Math.floor(Math.random() * 99) + 1}.html`,
   );
-  await fs.writeFile(tempFilePath, html);
+  await fs.writeFile(tempFilePath, localizeTemplateAssets(html));
   const browser = await puppeteer.launch({
     headless: 'shell',
     executablePath: '/usr/bin/google-chrome-stable', // 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',

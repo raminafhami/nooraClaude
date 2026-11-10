@@ -57,6 +57,25 @@ export class TasksService {
   ) {}
 
   /**
+   * Who an unassigned task is offered to. System Administrator (super-admin)
+   * is implicitly a member of every group, so every task offered to a group
+   * or a person is open to that account as well.
+   */
+  private candidateConditions(user: ActiveUserData): any[] {
+    if (user.groups?.includes('super-admin')) {
+      return [
+        { 'candidate.groups.0': { $exists: true } },
+        { 'candidate.users.0': { $exists: true } },
+      ];
+    }
+    return [
+      { 'candidate.users': user.id },
+      { 'candidate.users': user.phoneNo },
+      { 'candidate.groups': { $in: user.groups } },
+    ];
+  }
+
+  /**
    * Exposed method to complete the task
    * @param params {object} - Defined query params
    * @param completeTaskDto {object} - Input parameters to complete the task
@@ -346,13 +365,7 @@ export class TasksService {
           { taskId },
           { assignee: null },
           { status: 'todo' },
-          {
-            $or: [
-              { 'candidate.users': user.id },
-              { 'candidate.users': user.phoneNo },
-              { 'candidate.groups': { $in: user.groups } }, // todo need change
-            ],
-          },
+          { $or: this.candidateConditions(user) },
         ],
       };
 
@@ -753,9 +766,10 @@ export class TasksService {
       $or: [
         { assignee: user.id },
         { watchers: user.id },
-        { 'candidate.users': user.id, assignee: null },
-        { 'candidate.users': user.phoneNo, assignee: null },
-        { 'candidate.groups': { $in: user.groups }, assignee: null }, // todo need change
+        ...this.candidateConditions(user).map((c) => ({
+          ...c,
+          assignee: null,
+        })),
       ],
     });
     const count = await this.userTaskRepositoryImpl.count(condition);
@@ -1039,13 +1053,7 @@ export class TasksService {
     }
     condition.$and.push({ assignee: null });
     condition.$and.push({ status: 'todo' });
-    condition.$and.push({
-      $or: [
-        { 'candidate.users': user.id },
-        { 'candidate.users': user.phoneNo },
-        { 'candidate.groups': { $in: user.groups } }, // todo need change
-      ],
-    });
+    condition.$and.push({ $or: this.candidateConditions(user) });
     const count = await this.userTaskRepositoryImpl.count(condition);
     const data = await this.userTaskRepositoryImpl.find(
       condition,
@@ -1419,9 +1427,10 @@ export class TasksService {
             $or: [
               { assignee: user.id },
               { watchers: user.id },
-              { 'candidate.users': user.id, assignee: null },
-              { 'candidate.users': user.phoneNo, assignee: null },
-              { 'candidate.groups': { $in: user.groups }, assignee: null },
+              ...this.candidateConditions(user).map((c) => ({
+                ...c,
+                assignee: null,
+              })),
             ],
           },
         ],

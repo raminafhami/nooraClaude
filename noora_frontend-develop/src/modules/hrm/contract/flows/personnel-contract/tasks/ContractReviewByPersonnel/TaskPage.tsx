@@ -21,7 +21,7 @@ import { Textarea } from "@/form/textarea";
 import { ContractAddendums } from "@/hrm/contract/components/ContractAddendums";
 import { ContractView } from "@/hrm/contract/components/ContractView";
 import { Contract } from "@/hrm/contract/models/Contract";
-import { getContractById } from "@/hrm/contract/services/getContractById";
+import { getOwnContractById } from "@/hrm/contract/services/getOwnContractById";
 import { sendContractOtp } from "@/hrm/contract/services/sendContractOtp";
 import { verifyContractOtp } from "@/hrm/contract/services/verifyContractOtp";
 import { JobService } from "@/hrm/jobs/JobService";
@@ -116,7 +116,7 @@ function TaskPage() {
 				setIsLoading(true);
 
 				// load contract
-				const contract: Contract = await getContractById(contractId);
+				const contract: Contract = await getOwnContractById(contractId);
 				setContract(contract);
 
 				// load personnel

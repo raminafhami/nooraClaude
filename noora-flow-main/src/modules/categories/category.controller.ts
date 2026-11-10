@@ -61,7 +61,8 @@ export class CategoryController {
     filter.parentId = { $exists: false };
     getQuery.filters = JSON.stringify(filter);
     const categories = await this.categoryService.findAll(getQuery);
-    if (!categories.data.length) return [];
+    // same shape as the non-empty answer: the budget page reads data/count
+    if (!categories.data.length) return { data: [], count: 0 };
 
     const now = new Date();
     const batchSize = 10;

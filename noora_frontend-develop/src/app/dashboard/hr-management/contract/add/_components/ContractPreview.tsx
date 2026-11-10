@@ -59,25 +59,32 @@ export function ContractPreview({
 
   const handleClick = async () => {
     setLoading(true);
-    if (personnel?.userId) {
-      const contract = await createContract({
-        userId: personnel?.userId,
-        ...contractDetails,
-        jobs: contractDetails.jobs.map((job) => job.id),
-        startDate: getDatesIngregorian(contractDetails.startDate),
-        endDate: getDatesIngregorian(contractDetails.endDate),
-        signDate: getDatesIngregorian(contractDetails.signDate),
-        status: ContractStatus.Pending,
-      });
-      if (contract.id) {
-        await initializePersonnelContract(contract);
-
-        setLoading(false);
-        router.push(getDynamicUrl("/dashboard/hr-management"));
-      } else {
-        toast.error("ثبت قرارداد با خطا مواجه شد");
-        setLoading(false);
+    try {
+      if (personnel?.userId) {
+        const contract = await createContract({
+          userId: personnel?.userId,
+          ...contractDetails,
+          jobs: contractDetails.jobs.map((job) => job.id),
+          startDate: getDatesIngregorian(contractDetails.startDate),
+          endDate: getDatesIngregorian(contractDetails.endDate),
+          signDate: getDatesIngregorian(contractDetails.signDate),
+          status: ContractStatus.Pending,
+        });
+        if (contract.id) {
+          await initializePersonnelContract(contract);
+          toast.success("قرارداد ثبت و فرایند آن ایجاد شد.");
+          router.push(
+            getDynamicUrl("/dashboard/hr-management?tab=contract"),
+          );
+        } else {
+          toast.error("ثبت قرارداد با خطا مواجه شد");
+        }
       }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "ثبت قرارداد با خطا مواجه شد");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,34 +105,39 @@ export function ContractPreview({
         setDraftLoading(false);
       } else {
         setDraftLoading(false);
-        router.push("/dashboard/hr-management/contract");
+        router.push(getDynamicUrl("/dashboard/hr-management?tab=contract"));
       }
     }
   };
 
   const handleDraftClick = async () => {
     setLoading(true);
-    if (personnel?.userId) {
-      const contract = await updateContract(contractDetails.id as string, {
-        ...contractDetails,
-        jobs: contractDetails.jobs.map((job) => job.id),
-        startDate: getDatesIngregorian(contractDetails.startDate),
-        endDate: getDatesIngregorian(contractDetails.endDate),
-        signDate: getDatesIngregorian(contractDetails.signDate),
-        status: contractDetails.id
-          ? ContractStatus.Pending
-          : ContractStatus.Draft,
-      });
+    try {
+      if (personnel?.userId) {
+        const contract = await updateContract(contractDetails.id as string, {
+          ...contractDetails,
+          jobs: contractDetails.jobs.map((job) => job.id),
+          startDate: getDatesIngregorian(contractDetails.startDate),
+          endDate: getDatesIngregorian(contractDetails.endDate),
+          signDate: getDatesIngregorian(contractDetails.signDate),
+          status: contractDetails.id
+            ? ContractStatus.Pending
+            : ContractStatus.Draft,
+        });
 
-      if (contract) {
-        await initializePersonnelContract(contract);
-
-        setLoading(false);
-        router.push("/dashboard/hr-management/contract");
-      } else {
-        toast.error("ثبت قرارداد با خطا مواجه شد");
-        setLoading(false);
+        if (contract) {
+          await initializePersonnelContract(contract);
+          toast.success("قرارداد ثبت و فرایند آن ایجاد شد.");
+          router.push(getDynamicUrl("/dashboard/hr-management?tab=contract"));
+        } else {
+          toast.error("ثبت قرارداد با خطا مواجه شد");
+        }
       }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "ثبت قرارداد با خطا مواجه شد");
+    } finally {
+      setLoading(false);
     }
   };
   const handleDraftUpdateClick = async () => {
@@ -144,7 +156,7 @@ export function ContractPreview({
         setDraftLoading(false);
       } else {
         setDraftLoading(false);
-        router.push("/dashboard/hr-management/contract");
+        router.push(getDynamicUrl("/dashboard/hr-management?tab=contract"));
       }
     }
   };

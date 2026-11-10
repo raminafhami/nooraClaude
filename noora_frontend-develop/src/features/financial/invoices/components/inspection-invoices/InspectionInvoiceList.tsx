@@ -260,7 +260,7 @@ function InspectionInvoiceList({ instanceId }: { instanceId: string }) {
 					const buyer = await getBuyerById(buyerId);
 
 					if (!buyer) {
-						throw new Error();
+						throw new Error("خریدار این پرونده پیدا نشد.");
 					}
 
 					return {
@@ -317,9 +317,9 @@ function InspectionInvoiceList({ instanceId }: { instanceId: string }) {
 			refetch();
 		} catch (err: any) {
 			console.error(err);
-			toast.error("خطای نامشخصی در هنگام ثبت اطلاعات رخ داد.");
+			toast.error(err?.message || "خطای نامشخصی در هنگام ثبت اطلاعات رخ داد.");
 		} finally {
-			setIsQuickCreate(true);
+			setIsQuickCreate(false);
 		}
 	}
 

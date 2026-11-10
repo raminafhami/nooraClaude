@@ -1,8 +1,9 @@
 "use client";
 
 import moment from "jalali-moment";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { FaEye, FaPaperPlane, FaPencil } from "react-icons/fa6";
+import { toast } from "sonner";
 
 import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,8 @@ function ContractItem({
 
 	const canInitiateProcess = identity.type === UserType.System;
 
+	const [isStarting, setIsStarting] = useState<boolean>(false);
+
 	return (
 		<TableRow key={contract.id} className="whitespace-nowrap">
 			<TableCell>{index + 1}</TableCell>
@@ -163,8 +166,24 @@ function ContractItem({
 											className="focus-within:text-yellow-600 hover:text-yellow-600 active:text-yellow-600"
 											size="icon"
 											variant="link"
+											disabled={isStarting}
 											onClick={async () => {
-												await initializePersonnelContract(contract);
+												try {
+													setIsStarting(true);
+													const started = await initializePersonnelContract(contract);
+													if (started) {
+														toast.success("فرایند قرارداد پرسنل ایجاد شد.");
+													} else {
+														toast.info("این قرارداد فرایند فعال دارد.");
+													}
+												} catch (err: any) {
+													console.error(err);
+													toast.error(
+														err?.message || "ایجاد فرایند قرارداد با خطا روبرو شد.",
+													);
+												} finally {
+													setIsStarting(false);
+												}
 											}}
 										>
 											<FaPaperPlane />
