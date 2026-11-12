@@ -57,7 +57,8 @@ import { schema } from "./PhaseSchema";
 
 export type FormData = z.infer<typeof schema>;
 
-const PROCESS_KEY = "CustomsSampling";
+/** prices are per sampling process; this form is shared by CustomsSampling and QazvinSampling */
+const DEFAULT_PROCESS_KEY = "CustomsSampling";
 
 /** prices are applied by the sampling date; today if it was not entered */
 function getSamplingDate(data: any): Date {
@@ -152,6 +153,7 @@ export function PhasePage() {
 
 	const { task, hooks, dispatch } = useTaskContext();
 	const { data, caseNo, instanceId } = task;
+	const processKey = task.processKey || DEFAULT_PROCESS_KEY;
 
 	// const [user, setUser] = useState<User>();
 	// const [selectedBuyer, setSelectedBuyers] = useState<Buyer | undefined>();
@@ -213,10 +215,10 @@ export function PhasePage() {
 	}, [dispatch]);
 
 	useEffect(() => {
-		getEffectiveSamplingPrices(PROCESS_KEY, getSamplingDate(data))
+		getEffectiveSamplingPrices(processKey, getSamplingDate(data))
 			.then(setServiceTypes)
 			.catch(() => toast.error("دریافت انواع خدمت با خطا روبه رو شد!"));
-	}, [data]);
+	}, [data, processKey]);
 
 	useEffect(() => {
 		if (
@@ -410,7 +412,7 @@ export function PhasePage() {
 						// service type, priced as on the sampling date
 						const serviceType = (
 							await getEffectiveSamplingPrices(
-								PROCESS_KEY,
+								task.processKey || DEFAULT_PROCESS_KEY,
 								getSamplingDate(task.data),
 							)
 						).find((x) => x.id === data[Ids.serviceType]);

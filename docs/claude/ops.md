@@ -109,6 +109,16 @@ from the old `cdn.naitco.ir` (expired TLS) into `/root/backups/cdn-mirror`;
 `/root/backups/ic/cdn-stage.sh <tree> [apply]` copies them in and rewrites the
 templates (backup tar first). Warehouse permissions: `ic/warehouse-perms.js`.
 
+## Qazvin customs sampling (QazvinSampling)
+
+Process definition = copy of CustomsSampling (`/root/backups/qz/qz-def.js`, DRY
+default; first task key `QazvinSamplingForm`), frontend
+`features/inspection/flows/qazvin-sampling` (customs forms + Qazvin fields).
+Output template `assets/templates/inspection/sampling/qazvin/Report.html`
+(A4 landscape, form APK/PR06-FR30; master copy `/root/backups/qz/Report.html`).
+E2E: `/root/backups/qz/qz-e2e.js` (needs CENTRAL/PRODUCT/STOCK env like `cs/run-cs2.sh`;
+the staging backend exits when a case completes - no Elasticsearch - `docker start` it).
+
 ## Never
 
 - `docker builder prune` / pruning the build cache.

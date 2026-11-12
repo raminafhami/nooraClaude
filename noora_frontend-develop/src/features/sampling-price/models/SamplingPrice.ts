@@ -31,6 +31,7 @@ const samplingProcesses = [
 	{ value: "ImamSampling", label: "نمونه برداری امام خمینی (ره)" },
 	{ value: "BoushehrSampling", label: "نمونه برداری بوشهر" },
 	{ value: "BandarAbbasSampling", label: "نمونه برداری بندرعباس" },
+	{ value: "QazvinSampling", label: "نمونه برداری گمرکی قزوین" },
 	{ value: "ProductiveSampling", label: "نمونه برداری تولیدی" },
 ];
 

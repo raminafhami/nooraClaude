@@ -79,6 +79,7 @@ const PROCESS_DEFINITION_KEYS = {
 	productivesampling: { title: "نمونه برداری تولیدی" },
 	boushehrsampling: { title: "نمونه برداری بوشهر" },
 	bandarabbassampling: { title: "نمونه برداری بندرعباس" },
+	qazvinsampling: { title: "نمونه برداری گمرکی قزوین" },
 };
 
 type DataItem = {

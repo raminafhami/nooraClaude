@@ -24,6 +24,7 @@ import { renderTaskOfInspectionLC } from "@/inspection/flows/lc/services/renderT
 import { renderTaskOfInspectionPayment } from "@/inspection/flows/payment/services/renderTask";
 import { getPaymentOrderTaskDetails } from "@/inspection/flows/paymentOrder/TaskSelector";
 import { getProductiveSamplingTaskDetails } from "@/inspection/flows/productiveSampling/ProductiveSamplingService";
+import { renderTaskOfQazvinSampling } from "@/inspection/flows/qazvin-sampling/services/renderTask";
 import { renderTaskOfInspectionSC } from "@/inspection/flows/sc/services/renderTask";
 import { renderTaskOfSourceProcess } from "@/inspection/flows/source/services/renderTask";
 import { getSecretariatOutgoingOutsideLetterTaskDetails } from "@/secretariat/flows/archive/outgoing-letter-v1";
@@ -106,6 +107,8 @@ function TaskClient({ id }: Props) {
 			renderTaskOfSourceProcess(task)) ||
 		(task.processKey === "BandarAbbasSampling" &&
 			renderTaskOfBandarAbbasSampling(task)) ||
+		(task.processKey === "QazvinSampling" &&
+			renderTaskOfQazvinSampling(task)) ||
 		(task.processKey === "Financial_Invoice_Payment" &&
 			renderTaskOfInvoicePayment(task)) ||
 		(task.processKey === "Financial_Invoice_Cancellation" &&

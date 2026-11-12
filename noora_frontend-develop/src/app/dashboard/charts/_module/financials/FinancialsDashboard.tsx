@@ -35,6 +35,7 @@ function FinancialsDashboard() {
 						"ProductiveSampling",
 						"BoushehrSampling",
 						"BandarAbbasSampling",
+						"QazvinSampling",
 					]}
 				/>
 			</Card>
@@ -109,6 +110,14 @@ function FinancialsDashboard() {
 				<PeriodicInspectionFinancialNumbersCard
 					title="نمونه برداری بندرعباس"
 					definitionKey={["BandarAbbasSampling"]}
+					onlyTotal
+				/>
+			</Card>
+
+			<Card className="col-span-full">
+				<PeriodicInspectionFinancialNumbersCard
+					title="نمونه برداری گمرکی قزوین"
+					definitionKey={["QazvinSampling"]}
 					onlyTotal
 				/>
 			</Card>

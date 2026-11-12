@@ -30,6 +30,8 @@ function getInspectionCaseUrl(instance: Pick<Instance, "id" | "processKey">) {
 				return "sampling/boushehr";
 			case "BandarAbbasSampling":
 				return "sampling/customs";
+			case "QazvinSampling":
+				return "sampling/qazvin";
 			default:
 				return "";
 		}

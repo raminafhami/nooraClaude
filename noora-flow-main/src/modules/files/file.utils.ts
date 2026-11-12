@@ -140,6 +140,8 @@ export const generatePdfStream = async (html: string) => {
   const buffer = await page.pdf({
     format: 'A4',
     printBackground: true,
+    // a template may set its own page (e.g. `@page { size: A4 landscape }`)
+    preferCSSPageSize: true,
   });
   await browser.close();
   return buffer;
@@ -166,6 +168,7 @@ export const generatePdfWithGoTo = async (html: string) => {
   const buffer = await page.pdf({
     format: 'A4',
     printBackground: true,
+    preferCSSPageSize: true,
   });
   await page.close();
   await browser.close();

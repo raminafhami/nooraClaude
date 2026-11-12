@@ -31,10 +31,13 @@ export type PageSection =
 
 interface Props {
 	id: string;
+	/** the «گزارش» section; the customs report by default (used by QazvinSampling) */
+	report?: React.ReactNode;
 }
 
 export const PageWidget = memo(function PageWidget({
 	id,
+	report,
 }: Props): React.ReactNode {
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
@@ -107,7 +110,11 @@ export const PageWidget = memo(function PageWidget({
 								section={section}
 								onChange={handleSectionChange}
 							/>
-							<PageSection instance={instance} section={section} />
+							<PageSection
+								instance={instance}
+								section={section}
+								report={report}
+							/>
 						</>
 					)}
 				</Layout.Content>
@@ -119,13 +126,15 @@ export const PageWidget = memo(function PageWidget({
 const PageSection = memo(function PageSection({
 	section,
 	instance,
+	report,
 }: {
 	instance: Instance;
 	section: PageSection | null;
+	report?: React.ReactNode;
 }): React.ReactNode {
 	switch (section) {
 		case "report":
-			return <PageReport />;
+			return report ?? <PageReport />;
 		case "financials":
 			return <FinancialsPage />;
 		case "invoice":
