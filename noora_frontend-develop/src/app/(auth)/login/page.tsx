@@ -8,15 +8,16 @@ const metadata: Metadata = {
 
 function LoginPage() {
 	return (
-		<div className="flex flex-col items-center gap-12">
-			<div className="flex flex-col items-center gap-2 text-center">
-				<p className="text-sm text-gray-500">
-					به سامانه یکپارچه آتیه پژوهان خوش آمدید.
-				</p>
-				<h4 className="text-2xl font-bold">ورود به حساب کاربری</h4>
-			</div>
+		<div className="flex flex-col items-center gap-10 text-white lg:gap-14">
+			<p className="text-center text-base md:text-lg xl:text-xl">
+				به سامانه یکپارچه آتیه پژوهان کیفیت خوش آمدید.
+			</p>
 
-			<LoginWidget />
+			<div className="flex flex-col items-center gap-6">
+				<h1 className="text-sm font-normal md:text-base">ورود به حساب کاربری</h1>
+
+				<LoginWidget />
+			</div>
 
 			{/* <div className="mt-3 px-12">
         <Link href="/register">ثبت نام</Link>

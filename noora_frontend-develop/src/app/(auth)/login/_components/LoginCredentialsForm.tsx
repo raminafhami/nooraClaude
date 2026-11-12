@@ -1,13 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { FaLock, FaUser } from "react-icons/fa";
 import { z } from "zod";
 
-import LockIcon from "@/assets/images/icons/lock.svg";
-import ProfileIcon from "@/assets/images/icons/person.svg";
 import { login } from "@/auth/services/login";
 import setUniversalSession from "@/auth/utils/setUniversalSession";
 import { Alert } from "@/components/ui/alert";
@@ -23,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { MaskInput } from "@/components/ui/mask-input";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
 import { messages } from "@/messages";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +31,10 @@ const loginFormSchema = z.object({
 });
 
 type FormSchema = z.infer<typeof loginFormSchema>;
+
+// outlined white fields on the dark login background, label shown as placeholder
+const fieldClasses =
+	"h-12 rounded-[4px] border border-white/90 bg-transparent px-4 text-center text-base tracking-wider text-white placeholder:tracking-normal placeholder:text-white/85 caret-white focus-visible:border-white focus-visible:ring-2 focus-visible:ring-white/30 [&:-webkit-autofill]:shadow-[inset_0_0_0_1000px_#16243a] [&:-webkit-autofill]:[-webkit-text-fill-color:#fff]";
 
 function LoginCredentialsForm() {
 	const router = useRouter();
@@ -93,121 +94,93 @@ function LoginCredentialsForm() {
 
 	return (
 		<Form {...form}>
-			<div className="min-w-96">
+			<div className="w-[300px] max-w-[calc(100vw-6rem)]">
 				{isSubmitSuccessful && (
-					<Alert className="mt-4 text-center text-xs" variant="info">
+					<Alert className="mb-5 text-center text-xs" variant="info">
 						با موفقیت وارد حساب کاربری خود شدید. در حال انتقال...
 					</Alert>
 				)}
 
 				{errors["root"]?.server && (
-					<Alert className="mt-4 text-center text-xs" variant="destructive">
+					<Alert className="mb-5 text-center text-xs" variant="destructive">
 						{errors["root"].server.message}
 					</Alert>
 				)}
 
 				<form
-					className="mt-6 flex w-full flex-col justify-center"
+					className="flex w-full flex-col justify-center"
 					onSubmit={form.handleSubmit(handleSubmit)}
 				>
-					<div className="space-y-8">
-						<div className="space-y-5">
-							<FormField
-								control={control}
-								name="identity"
-								render={({ field: { ref, onChange, ...field } }) => (
-									<FormItem>
-										<div className="relative">
-											<FormControl>
-												<MaskInput
-													className="peer cursor-default pe-8 text-right tracking-wider placeholder:tracking-normal"
-													definitions={{ "!": /[0]/, "@": /[9]/, "#": /[0-9]/ }}
-													dir="ltr"
-													inputRef={ref}
-													mask="!@#########"
-													unmask
-													onAccept={(value) => onChange(value)}
-													{...field}
-												/>
-											</FormControl>
+					<div className="space-y-5">
+						<FormField
+							control={control}
+							name="identity"
+							render={({ field: { ref, onChange, ...field } }) => (
+								<FormItem className="space-y-1.5">
+									<FormLabel className="sr-only">شماره همراه</FormLabel>
+									<div className="relative">
+										<FaUser
+											aria-hidden
+											className="absolute -start-9 top-1/2 size-5 -translate-y-1/2 text-white"
+										/>
+										<FormControl>
+											<MaskInput
+												className={fieldClasses}
+												definitions={{ "!": /[0]/, "@": /[9]/, "#": /[0-9]/ }}
+												dir="ltr"
+												inputMode="numeric"
+												autoComplete="username"
+												inputRef={ref}
+												mask="!@#########"
+												placeholder="شماره همراه"
+												unmask
+												onAccept={(value) => onChange(value)}
+												{...field}
+											/>
+										</FormControl>
+									</div>
+									<FormMessage className="text-center text-red-300" />
+								</FormItem>
+							)}
+						/>
 
-											<div className="absolute top-1 flex size-10 -translate-y-1 items-center justify-center">
-												<Image
-													src={ProfileIcon}
-													alt=""
-													width={12}
-													height={18}
-												/>
-											</div>
-
-											<div
-												className={cn(
-													"absolute start-8 top-0 top-px flex h-10 items-center rounded-b-md text-gray-500 transition-all peer-focus:-top-5 peer-focus:start-2",
-													field.value && "-top-5 start-2",
-												)}
-											>
-												<FormLabel className="rounded-b-md bg-white px-1">
-													شماره همراه
-												</FormLabel>
-											</div>
-										</div>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={control}
-								name="password"
-								render={({ field }) => (
-									<FormItem>
-										<div className="relative">
-											<FormControl>
-												<Input
-													className="peer cursor-default pe-8 text-right placeholder-destructive placeholder:tracking-wide"
-													dir="ltr"
-													type="password"
-													{...field}
-												/>
-											</FormControl>
-
-											<div className="absolute top-1 flex size-10 -translate-y-1 items-center justify-center">
-												<Image src={LockIcon} alt="" width={12} height={18} />
-											</div>
-
-											<div
-												className={cn(
-													"absolute start-8 top-0 top-px flex h-10 items-center rounded-b-md text-gray-500 transition-all peer-focus:-top-5 peer-focus:start-2",
-													field.value && "-top-5 start-2",
-												)}
-											>
-												<FormLabel className="rounded-b-md bg-white px-1">
-													رمز عبور
-												</FormLabel>
-											</div>
-										</div>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</div>
-
-						<div>
-							<Button
-								className="h-12 w-full rounded-full border-none bg-gradient-to-r from-[#2b388f] to-[#26a9e0] text-sm font-medium text-white"
-								disabled={isSubmitSuccessful || isSubmitting}
-								variant="outline"
-							>
-								<Spinner
-									color="white"
-									loading={isSubmitSuccessful || isSubmitting}
-									size="sm"
-								>
-									ورود
-								</Spinner>
-							</Button>
-						</div>
+						<FormField
+							control={control}
+							name="password"
+							render={({ field }) => (
+								<FormItem className="space-y-1.5">
+									<FormLabel className="sr-only">رمز عبور</FormLabel>
+									<div className="relative">
+										<FaLock
+											aria-hidden
+											className="absolute -start-9 top-1/2 size-5 -translate-y-1/2 text-white"
+										/>
+										<FormControl>
+											<Input
+												className={fieldClasses}
+												dir="ltr"
+												type="password"
+												autoComplete="current-password"
+												placeholder="رمز عبور"
+												{...field}
+											/>
+										</FormControl>
+									</div>
+									<FormMessage className="text-center text-red-300" />
+								</FormItem>
+							)}
+						/>
 					</div>
+
+					<Button
+						className="mx-auto mt-9 h-12 w-36 rounded-md border-none bg-white text-base font-bold text-black hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-white/60"
+						disabled={isSubmitSuccessful || isSubmitting}
+						variant="outline"
+					>
+						<Spinner loading={isSubmitSuccessful || isSubmitting} size="sm">
+							ورود
+						</Spinner>
+					</Button>
 				</form>
 			</div>
 		</Form>

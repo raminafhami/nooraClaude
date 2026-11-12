@@ -3,59 +3,57 @@ import Image from "next/image";
 
 import { CUSTOMER_LOGO } from "@/branding";
 
-// Login-page-only logo: distinct from CUSTOMER_LOGO (used in the header
-// elsewhere) so it can be swapped independently.
+// Login design (dark navy): the customer logo with the form on one half,
+// «قدرت گرفته از Reval» on the other. The images were cut out of the design.
 const LOGIN_LOGO = {
-	src: "/images/branding/apk-logo-full.svg",
+	src: "/images/branding/atieh-logo-white.png",
 	alt: CUSTOMER_LOGO.alt,
-	width: 303,
-	height: 142,
+	width: 1000,
+	height: 406,
 } as const;
 
 function AuthLayout({ children }: PropsWithChildren) {
 	return (
-		<div className="flex min-h-screen w-full flex-col lg:flex-row">
-			<div className="relative flex w-full shrink-0 items-center justify-center overflow-hidden py-14 lg:w-1/2 lg:py-0">
-				<Image
-					className="pointer-events-none object-cover"
-					src="/images/branding/auth-gradient.svg"
-					alt=""
-					fill
-					sizes="(max-width: 1024px) 100vw, 50vw"
-					loading="eager"
-				/>
-				<Image
-					className="pointer-events-none object-cover"
-					src="/images/branding/auth-hexagons.svg"
-					alt=""
-					fill
-					sizes="(max-width: 1024px) 100vw, 50vw"
-					loading="eager"
-				/>
+		<div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-[#15233a] text-white lg:flex-row">
+			<Image
+				className="pointer-events-none object-cover"
+				src="/images/branding/login-bg.jpg"
+				alt=""
+				fill
+				sizes="100vw"
+				priority
+			/>
 
-				<Image
-					className="relative h-auto w-[220px] md:w-[280px]"
-					src="/images/branding/powered-by-reval.svg"
-					alt="Powered by reval"
-					width={344}
-					height={212}
-					loading="eager"
-				/>
+			{/* powered by Reval (right half; below the form on small screens) */}
+			<div className="relative order-2 flex w-full items-center justify-center px-6 pb-14 pt-4 lg:order-1 lg:w-1/2 lg:py-0">
+				<div className="flex flex-col items-center gap-4 text-center lg:gap-5">
+					<p className="text-sm text-white/90 lg:text-base xl:text-lg">قدرت گرفته از</p>
+					<Image
+						className="h-auto w-[170px] md:w-[210px] xl:w-[250px]"
+						src="/images/branding/reval-logo-white.png"
+						alt="Reval"
+						width={760}
+						height={181}
+						priority
+					/>
+					<p className="text-base lg:text-lg xl:text-xl">سامانه یکپارچه راهبری سازمان</p>
+				</div>
 			</div>
 
-			<div className="flex w-full flex-col items-center justify-center space-y-10 lg:w-1/2">
-				<div className="pointer-events-none flex px-6 py-10 md:px-10 md:py-12">
-					<Image
-						className="h-auto w-[280px] max-w-full md:w-[340px]"
-						src={LOGIN_LOGO.src}
-						alt={LOGIN_LOGO.alt}
-						loading="eager"
-						width={LOGIN_LOGO.width}
-						height={LOGIN_LOGO.height}
-					/>
-				</div>
+			{/* customer logo + login form (left half) */}
+			<div className="relative order-1 flex w-full flex-col items-center justify-center px-6 pb-10 pt-14 lg:order-2 lg:w-1/2 lg:py-16">
+				<Image
+					className="pointer-events-none h-auto w-[230px] md:w-[290px] xl:w-[340px]"
+					src={LOGIN_LOGO.src}
+					alt={LOGIN_LOGO.alt}
+					width={LOGIN_LOGO.width}
+					height={LOGIN_LOGO.height}
+					priority
+				/>
 
-				<div className="flex items-center justify-center pb-12">{children}</div>
+				<div className="mt-14 flex items-center justify-center lg:mt-24">
+					{children}
+				</div>
 			</div>
 		</div>
 	);
