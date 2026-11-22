@@ -113,11 +113,42 @@ export class PerformanceReportBootstrap {
     const ceo = await this.userGroupModel.findOne({ name: 'ceo' });
     const hr = await this.userGroupModel.findOne({ name: 'hr-manager' });
 
-    const taskRead = await this.ensureTaskReadPermission();
+    const taskRead = await this.ensureReadPermission(
+      Subjects.TASK,
+      'تسک‌ها - مشاهده',
+    );
+    const historyRead = await this.ensureReadPermission(
+      Subjects.PROCESS_INSTANCE,
+      'پرونده فرآیند - مشاهده',
+    );
+    const notificationRead = await this.ensureReadPermission(
+      Subjects.NOTIFICATION_MESSAGE,
+      'پیام اعلان - مشاهده',
+    );
+    const userRead = await this.ensureReadPermission(
+      Subjects.USER,
+      'کاربران - مشاهده',
+    );
+    const userGroupRead = await this.ensureReadPermission(
+      Subjects.USER_GROUP,
+      'گروه‌های کاربری - مشاهده',
+    );
     for (const group of [staff, ceo, hr].filter(Boolean)) {
       await this.userGroupModel.updateOne(
         { _id: group._id },
-        { $addToSet: { permissions: taskRead._id } },
+        {
+          $addToSet: {
+            permissions: {
+              $each: [
+                taskRead._id,
+                historyRead._id,
+                notificationRead._id,
+                userRead._id,
+                userGroupRead._id,
+              ],
+            },
+          },
+        },
       );
     }
 
@@ -164,17 +195,20 @@ export class PerformanceReportBootstrap {
     });
   }
 
-  private async ensureTaskReadPermission(): Promise<PermissionDocument> {
+  private async ensureReadPermission(
+    subject: Subjects,
+    description: string,
+  ): Promise<PermissionDocument> {
     const existing = await this.permissionModel.findOne({
-      subject: Subjects.TASK,
+      subject,
       actions: PermissionAction.READ,
     });
     if (existing) return existing;
     return this.permissionModel.create({
       actions: [PermissionAction.READ],
-      subject: Subjects.TASK,
+      subject,
       conditions: '{}',
-      description: 'تسک‌ها - مشاهده',
+      description,
     });
   }
 
@@ -263,18 +297,23 @@ export class PerformanceReportBootstrap {
       const instanceId = task?.processInstanceId
         ? new Types.ObjectId(String(task.processInstanceId))
         : new Types.ObjectId();
-      const exists = await this.processInstanceModel.exists({ _id: instanceId });
-      if (!exists) {
-        await this.processInstanceModel.create({
-          _id: instanceId,
-          processDefinitionName: sample.processDefinitionName,
-          name: sample.summary,
-          caseNo: sample.caseNo,
-          version: 0,
-          parameters: {},
-          owner: String(user._id),
-        });
-      }
+      await this.processInstanceModel.updateOne(
+        { _id: instanceId },
+        {
+          $set: {
+            processDefinitionName: sample.processDefinitionName,
+            processDefinitionKey: sample.key,
+            name: sample.summary,
+            caseNo: sample.caseNo,
+            version: 0,
+            parameters: {},
+            owner: String(user._id),
+            status: 'active',
+          },
+          $addToSet: { watchers: String(user._id) },
+        },
+        { upsert: true },
+      );
       const shape = {
         processInstanceId: instanceId,
         processDefinitionKey: sample.key,
