@@ -17,7 +17,13 @@ export type ActivityRow = {
 	endTime: string | null;
 	durationMinutes: number | null;
 	durationLabel: string | null;
-	colleagues: { userId: string; fullName: string }[];
+	caseNo?: string | null;
+	processName?: string | null;
+	runningTasks?: string | null;
+	extraInfo?: string | null;
+	startedLabel?: string | null;
+	updatedLabel?: string | null;
+	remaining?: { timeActivated: number; deadline: number } | null;
 	status: "completed" | "incomplete";
 	statusLabel: string;
 	incompleteReason: string | null;
@@ -63,7 +69,6 @@ export type ManualActivityInput = {
 	organizationalUnitId?: string;
 	activityTypeId: string;
 	description: string;
-	colleagueIds: string[];
 	startTime?: string;
 	endTime?: string;
 	status: "completed" | "incomplete";
@@ -103,14 +108,6 @@ export function getMyActivityTypes() {
 		apiClient.get<
 			{ id: string; title: string; groupId: string; groupTitle: string }[]
 		>({ url: "performance-report/activity-types" }),
-	);
-}
-
-export function getColleagues() {
-	return unwrap(
-		apiClient.get<{ id: string; fullName: string }[]>({
-			url: "performance-report/colleagues",
-		}),
 	);
 }
 
@@ -205,7 +202,6 @@ export type PerformanceCharts = {
 		onTimePercent: number | null;
 		delayed: number | null;
 		durationMinutes: number | null;
-		collaboration: number | null;
 	};
 	dailyActivityCount: { date: string; name: string; count: number }[] | null;
 	byEmployee: { name: string; count: number }[] | null;
@@ -214,7 +210,6 @@ export type PerformanceCharts = {
 	timeSpent: { name: string; minutes: number; label: string }[] | null;
 	byActivityType: { name: string; count: number }[] | null;
 	bySourceModule: { name: string; count: number }[] | null;
-	collaboration: { name: string; count: number }[] | null;
 	byUnit: { name: string; count: number }[] | null;
 };
 

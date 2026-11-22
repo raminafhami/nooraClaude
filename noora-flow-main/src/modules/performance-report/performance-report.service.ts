@@ -47,9 +47,11 @@ import {
   eachDateKey,
   formatClock,
   formatDuration,
+  formatTehranStamp,
   jalaliMonthStart,
   parseDateKey,
   shiftDateKey,
+  tehranDateKey,
   todayKey,
   toJalaliLabel,
 } from './performance-report.time';
@@ -65,7 +67,14 @@ import { ManualActivity, ManualActivityDocument } from './schemas/manual-activit
 
 const SEES_ALL = ['ceo', 'hr-manager', 'system-admin', 'super-admin', 'admins'];
 const MANUAL_NOTE =
-  'نبود فعالیت دستی به‌معنی عملکرد صفر نیست. ردیف‌های سیستمی از تاریخچه موجود ساخته می‌شوند.';
+  'نبود فعالیت دستی به‌معنی عملکرد صفر نیست. ردیف‌های سیستمی همان رکوردهای تاریخچه درخواست‌ها هستند.';
+
+const INSTANCE_STATUS: Record<string, string> = {
+  active: 'در حال اجرا',
+  'on-hold': 'متوقف شده',
+  completed: 'پایان یافته',
+  cancelled: 'لغو شده',
+};
 
 type UnitSnapshot = { id: string | null; title: string };
 
@@ -140,21 +149,6 @@ export class PerformanceReportService implements OnModuleInit {
     }));
   }
 
-  async colleagues(actor: ActiveUserData) {
-    const personnel = await this.personnelModel.find({}).select('userId');
-    const ids = personnel
-      .map((item) => String(item.userId))
-      .filter((id) => id !== String(actor.id));
-    const users = await this.userModel
-      .find({ _id: { $in: ids }, isActive: { $ne: false } })
-      .select('name lastname')
-      .sort({ name: 1 });
-    return users.map((user) => ({
-      id: String(user._id),
-      fullName: this.fullName(user),
-    }));
-  }
-
   async createManual(actor: ActiveUserData, dto: CreateManualActivityDto) {
     const user = await this.loadUser(actor.id);
     const payload = await this.manualPayload(user, dto);
@@ -180,8 +174,6 @@ export class PerformanceReportService implements OnModuleInit {
         dto.organizationalUnitId ?? activity.organizationalUnitId ?? undefined,
       activityTypeId: dto.activityTypeId ?? String(activity.activityTypeId),
       description: dto.description ?? activity.description,
-      colleagueIds:
-        dto.colleagueIds ?? activity.colleagues.map((item) => String(item.userId)),
       startTime: dto.startTime ?? activity.startTime ?? undefined,
       endTime: dto.endTime ?? activity.endTime ?? undefined,
       status: dto.status ?? activity.status,
@@ -316,7 +308,7 @@ export class PerformanceReportService implements OnModuleInit {
         { id: 'manual', title: 'ثبت‌شده توسط کارمند' },
       ],
       sourceModules: [
-        { id: 'user-task', title: 'کارتابل' },
+        { id: 'process-instance', title: 'تاریخچه درخواست‌ها' },
         { id: 'manual', title: 'ثبت دستی' },
       ],
     };
@@ -350,32 +342,42 @@ export class PerformanceReportService implements OnModuleInit {
       userId: { $in: userIds },
       dateKey: { $gte: days[0], $lte: days[days.length - 1] },
     });
-    const tasks = await this.tasksOverlapping(userIds, days[0], days[days.length - 1]);
-    const linked = await this.linkedInstances(tasks);
+    const instances = await this.historyInRange(userIds, days[0], days[days.length - 1]);
+    const tasksByInstance = await this.tasksByInstance(instances.map((item) => item._id));
     const delay = await this.delayByUser(userIds, dayBounds(days[days.length - 1]).endMs);
 
     const rows = [];
     for (const person of people) {
       const id = String(person._id);
       const unit = await this.resolveUnit(person);
-        const personTasks = tasks.filter((task) => String(task.assignee) === id);
-        const personLabel = { id, fullName: this.fullName(person) };
-        const used = new Set<string>();
-        for (const dateKey of days) {
-          const bounds = dayBounds(dateKey);
-          for (const task of personTasks) {
-            const taskId = String(task._id);
-            if (used.has(taskId)) continue;
-            if (!this.taskMatchesDay(task, bounds)) continue;
-            used.add(taskId);
-            rows.push(this.systemRow(task, dateKey, unit, linked, personLabel));
-          }
-          for (const manual of manuals.filter(
-            (item) => String(item.userId) === id && item.dateKey === dateKey,
-          )) {
-            rows.push(this.manualRow(manual, personLabel.fullName));
-          }
+      const personLabel = { id, fullName: this.fullName(person) };
+      const personInstances = instances.filter((instance) =>
+        this.participates(instance, id),
+      );
+      const used = new Set<string>();
+      for (const instance of personInstances) {
+        const instanceId = String(instance._id);
+        if (used.has(instanceId)) continue;
+        const dateKey = this.historyDateKey(instance, days[0], days[days.length - 1]);
+        if (!dateKey) continue;
+        used.add(instanceId);
+        rows.push(
+          await this.systemRow(
+            instance,
+            dateKey,
+            unit,
+            tasksByInstance.get(instanceId) ?? [],
+            personLabel,
+          ),
+        );
+      }
+      for (const dateKey of days) {
+        for (const manual of manuals.filter(
+          (item) => String(item.userId) === id && item.dateKey === dateKey,
+        )) {
+          rows.push(this.manualRow(manual, personLabel.fullName));
         }
+      }
     }
 
     const filtered = rows.filter((row) => {
@@ -557,11 +559,22 @@ export class PerformanceReportService implements OnModuleInit {
     const manuals = await this.manualModel
       .find({ userId: user._id, dateKey })
       .sort({ startTime: 1, createdAt: 1 });
-    const tasks = await this.tasksOnDay(String(user._id), dateKey);
-    const linked = await this.linkedInstances(tasks);
+    const instances = await this.historyInRange([user._id], dateKey, dateKey);
+    const tasksByInstance = await this.tasksByInstance(instances.map((item) => item._id));
     const personLabel = { id: String(user._id), fullName: this.fullName(user) };
+    const systemRows = await Promise.all(
+      instances.map((instance) =>
+        this.systemRow(
+          instance,
+          dateKey,
+          unit,
+          tasksByInstance.get(String(instance._id)) ?? [],
+          personLabel,
+        ),
+      ),
+    );
     const rows = [
-      ...tasks.map((task) => this.systemRow(task, dateKey, unit, linked, personLabel)),
+      ...systemRows,
       ...manuals.map((manual) => this.manualRow(manual, personLabel.fullName)),
     ].sort((a, b) => (a.sortKey || '').localeCompare(b.sortKey || ''));
     const summary = this.summarize(rows);
@@ -603,116 +616,147 @@ export class PerformanceReportService implements OnModuleInit {
     };
   }
 
-  private async tasksOnDay(userId: string, dateKey: string) {
-    const bounds = dayBounds(dateKey);
-    return this.userTasksModel.find({
-      assignee: userId,
-      $or: [
-        { createdAt: { $gte: bounds.start, $lt: bounds.end } },
-        { timeStarted: { $gte: bounds.startMs, $lt: bounds.endMs } },
-        { timeCompleted: { $gte: bounds.startMs, $lt: bounds.endMs } },
-        { 'history.timeStarted': { $gte: bounds.startMs, $lt: bounds.endMs } },
-        { 'history.timeCompleted': { $gte: bounds.startMs, $lt: bounds.endMs } },
-      ],
-    });
-  }
-
-  private async tasksOverlapping(userIds: any[], from: string, to: string) {
+  private async historyInRange(userIds: any[], from: string, to: string) {
+    const ids = userIds.map(String);
     const start = dayBounds(from);
     const end = dayBounds(to);
-    return this.userTasksModel.find({
-      assignee: { $in: userIds },
-      $or: [
-        { createdAt: { $gte: start.start, $lt: end.end } },
-        { timeStarted: { $gte: start.startMs, $lt: end.endMs } },
-        { timeCompleted: { $gte: start.startMs, $lt: end.endMs } },
-        { 'history.timeStarted': { $gte: start.startMs, $lt: end.endMs } },
-        { 'history.timeCompleted': { $gte: start.startMs, $lt: end.endMs } },
+    const instances = await this.processInstanceModel.find({
+      $and: [
+        { $or: [{ owner: { $in: ids } }, { watchers: { $in: ids } }] },
+        {
+          $or: [
+            { createdAt: { $gte: start.start, $lt: end.end } },
+            { updatedAt: { $gte: start.start, $lt: end.end } },
+          ],
+        },
       ],
     });
+    return instances.filter((instance) => this.historyDateKey(instance, from, to));
   }
 
-  private taskMatchesDay(
-    task: UserTasksDocument,
-    bounds: { startMs: number; endMs: number; start: Date; end: Date },
-  ) {
-    const stamps = [
-      task.timeStarted,
-      task.timeCompleted,
-      ...(task.history ?? []).flatMap((entry) => [entry?.timeStarted, entry?.timeCompleted]),
-    ];
-    if (
-      stamps.some((value) => {
-        const time = Number(value);
-        return time > 0 && time >= bounds.startMs && time < bounds.endMs;
-      })
-    ) {
-      return true;
+  private participates(instance: ProcessInstanceDocument, userId: string) {
+    if (String(instance.owner || '') === userId) return true;
+    return (instance.watchers ?? []).map(String).includes(userId);
+  }
+
+  private historyDateKey(
+    instance: ProcessInstanceDocument,
+    from: string,
+    to: string,
+  ): string | null {
+    const updated = tehranDateKey(instance.get('updatedAt'));
+    const created = tehranDateKey(instance.get('createdAt'));
+    if (updated && updated >= from && updated <= to) return updated;
+    if (created && created >= from && created <= to) return created;
+    return null;
+  }
+
+  private async tasksByInstance(ids: any[]) {
+    const map = new Map<string, UserTasksDocument[]>();
+    if (!ids.length) return map;
+    const tasks = await this.userTasksModel
+      .find({ processInstanceId: { $in: ids } })
+      .select('processInstanceId taskId summary status assignee');
+    for (const task of tasks) {
+      const key = String(task.processInstanceId);
+      const list = map.get(key) ?? [];
+      list.push(task);
+      map.set(key, list);
     }
-    const created = task.get('createdAt') as Date | undefined;
-    return Boolean(created && created >= bounds.start && created < bounds.end);
+    return map;
   }
 
-  private systemRow(
-    task: UserTasksDocument,
+  private async runningLabel(tasks: UserTasksDocument[]) {
+    const todo = tasks.filter((task) => task.status === 'todo' && task.summary);
+    if (!todo.length) return null;
+    const ids = todo.map((task) => task.assignee).filter(Boolean);
+    const users = ids.length
+      ? await this.userModel.find({ _id: { $in: ids } }).select('name lastname')
+      : [];
+    const names = new Map(users.map((user) => [String(user._id), this.fullName(user)]));
+    return todo
+      .map((task) => {
+        const name = names.get(String(task.assignee));
+        return name ? `${task.summary} ← ${name}` : task.summary;
+      })
+      .join('، ');
+  }
+
+  private async systemRow(
+    instance: ProcessInstanceDocument,
     dateKey: string,
     unit: UnitSnapshot,
-    linked: Set<string>,
+    tasks: UserTasksDocument[],
     person: { id: string; fullName: string },
   ) {
-    const history = (task.history ?? []).find((entry) => {
-      const started = Number(entry?.timeStarted);
-      const completed = Number(entry?.timeCompleted);
-      return started > 0 || completed > 0;
-    });
-    const startedMs = Number(history?.timeStarted) > 0
-      ? Number(history.timeStarted)
-      : Number(task.timeStarted);
-    const completedMs = Number(history?.timeCompleted) > 0
-      ? Number(history.timeCompleted)
-      : Number(task.timeCompleted);
-    const startTime = formatClock(startedMs);
-    const endTime = formatClock(completedMs);
+    const todo = tasks.filter((task) => task.status === 'todo');
+    const linkTask = todo.find((task) => task.taskId) || tasks.find((task) => task.taskId);
+    const startedMs = Number(instance.timeStarted);
+    const completedMs = Number(instance.timeCompleted);
     const durationMinutes = durationFromEpoch(startedMs, completedMs);
-    const completed = completedMs > 0 || ['done', 'completed'].includes(task.status);
-    const deadline =
-      Number(task.dueDate) > 0
-        ? Number(task.dueDate)
-        : Number(task.expEndDate) > 0
-          ? Number(task.expEndDate)
-          : 0;
+    const deadline = Number(instance.maxPossibleDuration);
     const deadlineMet =
       deadline > 0 && completedMs > 0 ? completedMs <= deadline : null;
-    const instanceId = String(task.processInstanceId || '');
+    const phase = (instance.stateList ?? []).find(
+      (state) => state?.name && state.name === instance.currentState,
+    );
+    const historyStatus = phase?.title || INSTANCE_STATUS[instance.status] || instance.status || null;
+    const completed = instance.status === 'completed';
+    const createdAt = instance.get('createdAt');
+    const updatedAt = instance.get('updatedAt');
     return {
-      id: `system:${task._id}`,
+      id: `system:${instance._id}`,
       userId: person.id,
       fullName: person.fullName,
       origin: 'system',
       originLabel: 'سیستمی',
       dateKey,
       deadlineMet,
-      sortKey: startTime || formatClock(task.get('createdAt')?.valueOf?.()) || '99:99',
-      title: task.summary,
-      description: task.description || '',
-      sourceModule: 'user-task',
-      sourceModuleLabel: 'کارتابل',
-      sourceLink: linked.has(instanceId) ? `/dashboard/tasks/${task.taskId}` : null,
-      relatedLabel: task.caseNo || task.processDefinitionName || null,
-      startTime,
-      endTime,
+      sortKey: formatTehranStamp(updatedAt) || formatTehranStamp(createdAt) || '99:99',
+      title: instance.processDefinitionName || instance.name || instance.caseNo,
+      description: this.historyExtra(instance) || '',
+      caseNo: instance.caseNo || null,
+      processName: instance.processDefinitionName || instance.name || null,
+      runningTasks: await this.runningLabel(tasks),
+      extraInfo: this.historyExtra(instance),
+      startedLabel: formatTehranStamp(createdAt),
+      updatedLabel: formatTehranStamp(updatedAt),
+      remaining:
+        Number(instance.timeActivated) > 0 && deadline > 0
+          ? { timeActivated: Number(instance.timeActivated), deadline }
+          : null,
+      sourceModule: 'process-instance',
+      sourceModuleLabel: 'تاریخچه درخواست‌ها',
+      sourceLink: linkTask ? `/dashboard/tasks/${linkTask.taskId}` : null,
+      relatedLabel: instance.caseNo || null,
+      startTime: durationMinutes ? formatClock(startedMs) : null,
+      endTime: durationMinutes ? formatClock(completedMs) : null,
       durationMinutes,
       durationLabel: formatDuration(durationMinutes),
-      colleagues: [],
       status: completed ? 'completed' : 'incomplete',
-      statusLabel: completed ? 'تکمیل‌شده' : 'تکمیل‌نشده',
+      statusLabel: historyStatus || (completed ? 'پایان یافته' : 'در حال اجرا'),
       incompleteReason: null,
       activityTypeId: null,
-      activityTypeTitle: task.processDefinitionName || null,
+      activityTypeTitle: instance.processDefinitionName || null,
       organizationalUnitId: unit.id,
       organizationalUnitTitle: unit.title,
       changeHistory: [],
     };
+  }
+
+  private historyExtra(instance: ProcessInstanceDocument): string | null {
+    const description = (instance.description || '').trim();
+    if (description) return description;
+    const parameters = (instance.get('parameters') || {}) as Record<string, any>;
+    const caseNos = [
+      parameters.InspectionCaseNo,
+      parameters.RelatedInspectionCaseNo,
+      ...(Array.isArray(parameters.CaseItems)
+        ? parameters.CaseItems.map((item) => item?.caseNo).filter(Boolean)
+        : []),
+    ].filter(Boolean);
+    if (caseNos.length) return caseNos.join('، ');
+    return null;
   }
 
   private manualRow(activity: ManualActivityDocument, fullName?: string) {
@@ -735,10 +779,16 @@ export class PerformanceReportService implements OnModuleInit {
       endTime: activity.endTime,
       durationMinutes,
       durationLabel: formatDuration(durationMinutes),
-      colleagues: activity.colleagues.map((item) => ({
-        userId: String(item.userId),
-        fullName: item.fullName,
-      })),
+      caseNo: null,
+      processName: null,
+      runningTasks: null,
+      extraInfo: activity.description,
+      startedLabel:
+        activity.startTime && activity.endTime
+          ? `${activity.startTime} تا ${activity.endTime}`
+          : activity.startTime,
+      updatedLabel: null,
+      remaining: null,
       status: activity.status,
       statusLabel: activity.status === 'completed' ? 'تکمیل‌شده' : 'تکمیل‌نشده',
       incompleteReason: activity.incompleteReason,
@@ -748,17 +798,6 @@ export class PerformanceReportService implements OnModuleInit {
       organizationalUnitTitle: activity.organizationalUnitTitle,
       changeHistory: activity.changeHistory ?? [],
     };
-  }
-
-  private async linkedInstances(tasks: UserTasksDocument[]) {
-    const ids = tasks
-      .map((task) => task.processInstanceId)
-      .filter((id) => id && Types.ObjectId.isValid(String(id)));
-    if (!ids.length) return new Set<string>();
-    const found = await this.processInstanceModel
-      .find({ _id: { $in: ids } })
-      .select('_id');
-    return new Set(found.map((item) => String(item._id)));
   }
 
   private async delayByUser(userIds: any[], asOfMs: number) {
@@ -820,7 +859,6 @@ export class PerformanceReportService implements OnModuleInit {
     const moduleMap = new Map<string, number>();
     const unitMap = new Map<string, number>();
     const timeMap = new Map<string, number>();
-    const collabMap = new Map<string, number>();
     let completed = 0;
     let incomplete = 0;
     let systemCompleted = 0;
@@ -848,9 +886,6 @@ export class PerformanceReportService implements OnModuleInit {
       );
       if (row.durationMinutes) {
         timeMap.set(name, (timeMap.get(name) ?? 0) + row.durationMinutes);
-      }
-      if (row.colleagues?.length) {
-        collabMap.set(name, (collabMap.get(name) ?? 0) + row.colleagues.length);
       }
     }
 
@@ -886,7 +921,6 @@ export class PerformanceReportService implements OnModuleInit {
         completed,
         incomplete,
         durationMinutes: [...timeMap.values()].reduce((sum, value) => sum + value, 0) || null,
-        collaboration: [...collabMap.values()].reduce((sum, value) => sum + value, 0) || null,
         taskCompletionPercent: systemTotal
           ? Math.round((systemCompleted / systemTotal) * 100)
           : null,
@@ -913,7 +947,6 @@ export class PerformanceReportService implements OnModuleInit {
         : null,
       byActivityType: typeMap.size ? toSeries(typeMap) : null,
       bySourceModule: moduleMap.size ? toSeries(moduleMap) : null,
-      collaboration: collabMap.size ? toSeries(collabMap) : null,
       byUnit: unitMap.size ? toSeries(unitMap) : null,
     };
   }
@@ -933,7 +966,6 @@ export class PerformanceReportService implements OnModuleInit {
         ),
       );
     }
-    const colleagues = await this.colleagueSnapshots(user, dto.colleagueIds);
     const unit = await this.pickUnit(user, dto.organizationalUnitId);
     const status = dto.status;
     const reason = dto.incompleteReason?.trim() || '';
@@ -953,32 +985,11 @@ export class PerformanceReportService implements OnModuleInit {
       activityTypeTitle: type.title,
       groupId: type.groupId,
       description: dto.description.trim(),
-      colleagues,
       startTime: dto.startTime?.trim() || null,
       endTime: dto.endTime?.trim() || null,
       status,
       incompleteReason: status === 'incomplete' ? reason : null,
     };
-  }
-
-  private async colleagueSnapshots(user: UserDocument, ids: string[]) {
-    const unique = [...new Set(ids.map(String))].filter((id) => id !== String(user._id));
-    if (!unique.length) {
-      throw new BadRequestException(
-        this.msg(
-          'performance_report_colleague_required',
-          'حداقل یک همکار را انتخاب کنید',
-        ),
-      );
-    }
-    const users = await this.userModel.find({ _id: { $in: unique } }).select('name lastname');
-    if (users.length !== unique.length) {
-      throw new BadRequestException('همکار انتخاب‌شده یافت نشد');
-    }
-    return users.map((colleague) => ({
-      userId: colleague._id,
-      fullName: this.fullName(colleague),
-    }));
   }
 
   private async pickUnit(user: UserDocument, requested?: string | null): Promise<UnitSnapshot> {
@@ -1087,7 +1098,6 @@ export class PerformanceReportService implements OnModuleInit {
       organizationalUnitTitle: activity.organizationalUnitTitle,
       activityTypeTitle: activity.activityTypeTitle,
       description: activity.description,
-      colleagues: activity.colleagues.map((item) => item.fullName).join('، '),
       startTime: activity.startTime,
       endTime: activity.endTime,
       status: activity.status,

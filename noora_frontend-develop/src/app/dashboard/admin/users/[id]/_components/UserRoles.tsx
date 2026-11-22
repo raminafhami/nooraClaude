@@ -23,6 +23,7 @@ interface Props {
 
 interface FormData {
 	roles: string[];
+	groups: string[];
 }
 
 interface UserGroupNode {
@@ -36,17 +37,20 @@ export function UserRoles({ id }: Props) {
 
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [roles, setRoles] = useState<UserGroupNode[]>();
+	const [groupOptions, setGroupOptions] = useState<UserGroupNode[]>();
 
 	const form = useForm<FormData>();
 	const { formState, handleSubmit, reset, setError, setValue, watch } = form;
 	const { isDirty, isSubmitting, isSubmitSuccessful } = formState;
 	const fields = watch();
 
-	const fetchUserRoles = useCallback(async (): Promise<string[]> => {
+	const fetchMemberships = useCallback(async () => {
 		const user = await getUserById(id);
-		return (user.groups as UserGroup[])
-			.filter((x) => x.type === "role")
-			.map((x) => x.id);
+		const memberships = user.groups as UserGroup[];
+		return {
+			roles: memberships.filter((item) => item.type === "role").map((item) => item.id),
+			groups: memberships.filter((item) => item.type === "group").map((item) => item.id),
+		};
 	}, [id]);
 
 	const fetchAllRoles = useCallback(async () => {
@@ -58,17 +62,28 @@ export function UserRoles({ id }: Props) {
 			.map((x) => buildGroupNode(x, roles));
 	}, []);
 
+	const fetchAllGroups = useCallback(async () => {
+		const groups = await getGroups(UserGroupType.Group);
+		return groups
+			.sort((a, b) => a.title.localeCompare(b.title))
+			.map((group) => ({ id: group.id, title: group.title, children: [] }));
+	}, []);
+
 	useEffect(() => {
 		(async () => {
 			try {
 				await Promise.all([
 					await (async () => {
-						const userRoles = await fetchUserRoles();
-						setValue("roles", userRoles);
+						const memberships = await fetchMemberships();
+						setValue("roles", memberships.roles);
+						setValue("groups", memberships.groups);
 					})(),
 					await (async () => {
 						const roles = await fetchAllRoles();
 						setRoles(roles);
+					})(),
+					await (async () => {
+						setGroupOptions(await fetchAllGroups());
 					})(),
 				]);
 			} catch (err) {
@@ -77,13 +92,13 @@ export function UserRoles({ id }: Props) {
 				setLoading(false);
 			}
 		})();
-	}, [router, fetchAllRoles, fetchUserRoles, setValue]);
+	}, [router, fetchAllGroups, fetchAllRoles, fetchMemberships, setValue]);
 
 	if (isLoading) {
 		return <Loading size="sm">در حال دریافت اطلاعات...</Loading>;
 	}
 
-	if (!fields["roles"] || !roles) {
+	if (!fields["roles"] || !fields["groups"] || !roles || !groupOptions) {
 		return <></>;
 	}
 
@@ -92,15 +107,20 @@ export function UserRoles({ id }: Props) {
 			<FormProvider {...form}>
 				<form
 					className="w-1/2 min-w-[40rem] space-y-6"
-					onSubmit={handleSubmit(async (data) => {
+						onSubmit={handleSubmit(async (data) => {
 						try {
-							const result = await updateUserGroups({
+							await updateUserGroups({
 								userId: id,
 								groupType: "role",
 								groups: data.roles,
 							});
+							await updateUserGroups({
+								userId: id,
+								groupType: "group",
+								groups: data.groups,
+							});
 
-							reset({ roles: data.roles });
+							reset({ roles: data.roles, groups: data.groups });
 						} catch (err) {
 							setError("root.server", { message: "Something went wrong..." });
 						}
@@ -113,7 +133,7 @@ export function UserRoles({ id }: Props) {
 					{isSubmitSuccessful && (
 						<Alert variant="info">
 							<AlertDescription>
-								نقش های کاربر با موفقیت بروزرسانی گردید.
+								نقش‌ها و گروه‌های کاربر با موفقیت بروزرسانی گردید.
 							</AlertDescription>
 						</Alert>
 					)}
@@ -143,6 +163,35 @@ export function UserRoles({ id }: Props) {
 								}}
 							/>
 						))}
+					</div>
+
+					<Head.Root>
+						<Head.Title>گروه‌ها</Head.Title>
+					</Head.Root>
+					<p className="text-sm text-muted-foreground">
+						عضویت در گروه‌هایی که از قبل در تب گروه‌ها ساخته شده‌اند.
+					</p>
+					<div>
+						{groupOptions.length === 0 ? (
+							<p className="text-sm text-muted-foreground">گروهی ثبت نشده است.</p>
+						) : (
+							groupOptions.map((group) => (
+								<GroupNode
+									key={group.id}
+									node={group}
+									selected={fields["groups"]}
+									onSelect={(groupId) => {
+										setValue(
+											"groups",
+											fields["groups"].includes(groupId)
+												? fields["groups"].filter((item) => item !== groupId)
+												: [...fields["groups"], groupId],
+											{ shouldDirty: true, shouldTouch: true },
+										);
+									}}
+								/>
+							))
+						)}
 					</div>
 
 					<Button

@@ -92,7 +92,6 @@ function PerformanceCharts({ charts }: { charts: Charts | null }) {
 			<BarCard title="زمان صرف‌شده (دقیقه)" data={charts.timeSpent} dataKey="minutes" />
 			<BarCard title="به تفکیک نوع فعالیت" data={charts.byActivityType} />
 			<BarCard title="به تفکیک ماژول" data={charts.bySourceModule} />
-			<BarCard title="همکاری" data={charts.collaboration} />
 			<BarCard title="مقایسه واحدها" data={charts.byUnit} />
 			<BarCard title="کارهای دارای تاخیر" data={charts.delayedByEmployee} />
 			{completed && (

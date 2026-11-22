@@ -6,8 +6,10 @@ financial, process engine, tasks/projects, form builder, daily activity reports.
 Daily activity (`performance-report`): employee tab «گزارش فعالیت» on کارهای من,
 manager tab «عملکرد» on نمودارها (permission «مشاهده گزارش عملکرد», default on
 مدیرعامل and مدیر منابع انسانی), admin tab «انواع فعالیت» on existing groups,
-manual «ارسال», automatic send at 18:00 Asia/Tehran. System rows are read from
-user-task history; they are not a new event type.
+manual «ارسال», automatic send at 18:00 Asia/Tehran. System rows are the same
+process instances as «تاریخچه درخواست‌ها» (one row each, no new event type).
+On the user screen that assigns roles, existing groups from the groups tab
+can be assigned too and are shown under the roles.
 
 **Talk to the user in Persian.** These docs are English to save tokens.
 

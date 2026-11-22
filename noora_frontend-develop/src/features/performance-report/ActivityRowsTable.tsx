@@ -2,10 +2,33 @@
 
 import Link from "next/link";
 
+import { DeadlineProgressBar } from "@/components/ui/deadline-progressbar";
 import { Panel } from "@/ui/Panel";
 import { Table } from "@/ui/Table";
 
 import { ActivityRow } from "./api";
+
+function remainingColors(percentageRemaining: number) {
+	if (percentageRemaining <= 0) {
+		return {
+			bgColor: "bg-red-300",
+			textColor: "text-red-400",
+			progressColor: "bg-red-400",
+		};
+	}
+	if (percentageRemaining < 60) {
+		return {
+			bgColor: "bg-gray-200",
+			textColor: "text-yellow-400",
+			progressColor: "bg-[#fffdb2]",
+		};
+	}
+	return {
+		bgColor: "bg-gray-200",
+		textColor: "text-green-400",
+		progressColor: "bg-green-200",
+	};
+}
 
 function ActivityRowsTable({
 	rows,
@@ -22,16 +45,16 @@ function ActivityRowsTable({
 						<Table.Cell as="th" className="w-12">
 							ردیف
 						</Table.Cell>
-						<Table.Cell as="th">عنوان</Table.Cell>
-						<Table.Cell as="th">شرح</Table.Cell>
 						<Table.Cell as="th">مبدأ</Table.Cell>
-						<Table.Cell as="th">ماژول</Table.Cell>
-						<Table.Cell as="th">رکورد</Table.Cell>
-						<Table.Cell as="th">شروع</Table.Cell>
-						<Table.Cell as="th">پایان</Table.Cell>
-						<Table.Cell as="th">مدت</Table.Cell>
-						<Table.Cell as="th">همکاران</Table.Cell>
+						<Table.Cell as="th">شماره درخواست</Table.Cell>
+						<Table.Cell as="th">نوع درخواست</Table.Cell>
+						<Table.Cell as="th">کارهای در حال اجرا</Table.Cell>
+						<Table.Cell as="th">اطلاعات تکمیلی</Table.Cell>
 						<Table.Cell as="th">وضعیت</Table.Cell>
+						<Table.Cell as="th">زمان باقی مانده</Table.Cell>
+						<Table.Cell as="th">زمان شروع</Table.Cell>
+						<Table.Cell as="th">آخرین بروزرسانی</Table.Cell>
+						<Table.Cell as="th">مدت</Table.Cell>
 						<Table.Cell as="th">دلیل</Table.Cell>
 						{onEdit && <Table.Cell as="th"></Table.Cell>}
 					</Table.Row>
@@ -47,28 +70,37 @@ function ActivityRowsTable({
 						rows.map((row, index) => (
 							<Table.Row key={row.id}>
 								<Table.Cell>{index + 1}</Table.Cell>
-								<Table.Cell>{row.title}</Table.Cell>
-								<Table.Cell>{row.description || "-"}</Table.Cell>
 								<Table.Cell>{row.originLabel}</Table.Cell>
-								<Table.Cell>{row.sourceModuleLabel}</Table.Cell>
 								<Table.Cell>
 									{row.sourceLink ? (
 										<Link className="text-primary underline" href={row.sourceLink}>
-											{row.relatedLabel || "مشاهده"}
+											{row.caseNo || row.relatedLabel || "مشاهده"}
 										</Link>
 									) : (
-										row.relatedLabel || "-"
+										row.caseNo || row.relatedLabel || "-"
 									)}
 								</Table.Cell>
-								<Table.Cell>{row.startTime || "-"}</Table.Cell>
-								<Table.Cell>{row.endTime || "-"}</Table.Cell>
-								<Table.Cell>{row.durationLabel || "-"}</Table.Cell>
 								<Table.Cell>
-									{row.colleagues.length
-										? row.colleagues.map((item) => item.fullName).join("، ")
-										: "-"}
+									{row.origin === "manual" ? row.title : row.processName || row.title}
 								</Table.Cell>
+								<Table.Cell>{row.runningTasks || "-"}</Table.Cell>
+								<Table.Cell>{row.extraInfo || row.description || "-"}</Table.Cell>
 								<Table.Cell>{row.statusLabel}</Table.Cell>
+								<Table.Cell>
+									{row.remaining ? (
+										<DeadlineProgressBar
+											className="w-24"
+											timeStarted={row.remaining.timeActivated}
+											deadLine={row.remaining.deadline}
+											colors={remainingColors}
+										/>
+									) : (
+										"-"
+									)}
+								</Table.Cell>
+								<Table.Cell>{row.startedLabel || row.startTime || "-"}</Table.Cell>
+								<Table.Cell>{row.updatedLabel || "-"}</Table.Cell>
+								<Table.Cell>{row.durationLabel || "-"}</Table.Cell>
 								<Table.Cell>
 									{row.incompleteReason || "-"}
 									{row.changeHistory?.length ? (

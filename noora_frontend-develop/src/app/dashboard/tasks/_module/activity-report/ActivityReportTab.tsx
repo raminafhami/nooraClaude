@@ -15,7 +15,6 @@ import {
 	ManualActivityInput,
 	createManualActivity,
 	deleteManualActivity,
-	getColleagues,
 	getMyActivityTypes,
 	getMyDay,
 	getMyUnits,
@@ -33,16 +32,12 @@ function ActivityReportTab() {
 	const [types, setTypes] = useState<
 		{ id: string; title: string; groupTitle: string }[]
 	>([]);
-	const [colleagues, setColleagues] = useState<{ id: string; fullName: string }[]>(
-		[],
-	);
 	const [open, setOpen] = useState(false);
 	const [editing, setEditing] = useState<string | null>(null);
 	const [form, setForm] = useState<ManualActivityInput>({
 		date: moment().format("jYYYY/jMM/jDD"),
 		description: "",
 		activityTypeId: "",
-		colleagueIds: [],
 		status: "completed",
 		startTime: "",
 		endTime: "",
@@ -67,14 +62,12 @@ function ActivityReportTab() {
 	useEffect(() => {
 		(async () => {
 			try {
-				const [unitList, typeList, colleagueList] = await Promise.all([
+				const [unitList, typeList] = await Promise.all([
 					getMyUnits(),
 					getMyActivityTypes(),
-					getColleagues(),
 				]);
 				setUnits(unitList);
 				setTypes(typeList);
-				setColleagues(colleagueList);
 				setForm((current) => ({
 					...current,
 					organizationalUnitId: unitList[0]?.id || undefined,
@@ -85,15 +78,6 @@ function ActivityReportTab() {
 		})();
 	}, []);
 
-	function toggleColleague(id: string) {
-		setForm((current) => ({
-			...current,
-			colleagueIds: current.colleagueIds.includes(id)
-				? current.colleagueIds.filter((item) => item !== id)
-				: [...current.colleagueIds, id],
-		}));
-	}
-
 	async function submit() {
 		if (!form.activityTypeId) {
 			toast.error("نوع فعالیت را انتخاب کنید");
@@ -101,10 +85,6 @@ function ActivityReportTab() {
 		}
 		if (!form.description.trim()) {
 			toast.error("شرح را وارد کنید");
-			return;
-		}
-		if (!form.colleagueIds.length) {
-			toast.error("حداقل یک همکار را انتخاب کنید");
 			return;
 		}
 		if (form.status === "incomplete" && !form.incompleteReason?.trim()) {
@@ -132,7 +112,6 @@ function ActivityReportTab() {
 			organizationalUnitId: row.organizationalUnitId || undefined,
 			activityTypeId: row.activityTypeId || "",
 			description: row.description,
-			colleagueIds: row.colleagues.map((item) => item.userId),
 			startTime: row.startTime || "",
 			endTime: row.endTime || "",
 			status: row.status,
@@ -173,7 +152,6 @@ function ActivityReportTab() {
 								...current,
 								date,
 								description: "",
-								colleagueIds: [],
 								status: "completed",
 								incompleteReason: "",
 								startTime: "",
@@ -317,24 +295,6 @@ function ActivityReportTab() {
 							/>
 						</div>
 					)}
-					<div className="md:col-span-2">
-						<Label>همکاران</Label>
-						<div className="max-h-36 space-y-1 overflow-auto rounded-xl border p-2">
-							{colleagues.length === 0 && (
-								<p className="text-sm text-muted-foreground">همکاری یافت نشد.</p>
-							)}
-							{colleagues.map((person) => (
-								<label key={person.id} className="flex items-center gap-2 text-sm">
-									<input
-										type="checkbox"
-										checked={form.colleagueIds.includes(person.id)}
-										onChange={() => toggleColleague(person.id)}
-									/>
-									{person.fullName}
-								</label>
-							))}
-						</div>
-					</div>
 					<div className="flex gap-2">
 						<Button type="button" onClick={submit}>
 							ثبت

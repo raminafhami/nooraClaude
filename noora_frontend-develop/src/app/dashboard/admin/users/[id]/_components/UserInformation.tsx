@@ -11,6 +11,7 @@ import { FieldError } from "@/form/FieldError";
 import { Input } from "@/form/Input";
 import { MaskInput } from "@/form/MaskInput";
 import { MobileNoInput } from "@/form/MobileNoInput";
+import { UserGroupMemberships } from "@/identity/users/components/UserGroupMemberships";
 import getUserById from "@/identity/users/services/getUserById";
 import updateUser from "@/identity/users/services/updateUser";
 import { messages } from "@/messages";
@@ -137,6 +138,10 @@ function UserInformationDisplay({
 
 				<div className="col-start-1">پست الکترونیک:</div>
 				<div className="col-span-3">{user.email || "-"}</div>
+
+				<div className="col-span-4 col-start-1">
+					<UserGroupMemberships userId={user.id} />
+				</div>
 			</div>
 
 			<Button

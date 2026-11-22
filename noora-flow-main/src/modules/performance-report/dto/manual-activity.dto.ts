@@ -1,7 +1,5 @@
 import { Transform } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
   IsBoolean,
   IsIn,
   IsMongoId,
@@ -25,11 +23,6 @@ export class CreateManualActivityDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsArray()
-  @ArrayMinSize(1)
-  @IsMongoId({ each: true })
-  colleagueIds: string[];
 
   @IsOptional()
   @IsString()
@@ -63,12 +56,6 @@ export class UpdateManualActivityDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayMinSize(1)
-  @IsMongoId({ each: true })
-  colleagueIds?: string[];
 
   @IsOptional()
   @IsString()

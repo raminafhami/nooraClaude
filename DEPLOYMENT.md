@@ -15,6 +15,11 @@ The employee tab «گزارش فعالیت» (کارهای من) and the manager
 - Employees can press «ارسال» before 18:00. At 18:00 Asia/Tehran the same report
   is sent automatically if it was not sent already. A second send does not notify
   again.
+- System rows are the records already shown on «تاریخچه درخواست‌ها», one row
+  per request. There is no colleagues field.
+- A user's roles screen can also add membership in groups that already exist
+  on the admin groups tab. Clicking the user name lists those groups under
+  the roles.
 - `SEED_DEMO_USERS=true` (local only) creates three personnel logins. Leave it
   unset in production.
 

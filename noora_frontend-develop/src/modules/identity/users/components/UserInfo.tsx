@@ -35,6 +35,7 @@ import GetUserDocumentsFile from "@/identity/userDocuments/services/getUserDocum
 import PostUserDocument from "@/identity/userDocuments/services/postUserDocument";
 import { cn } from "@/lib/utils";
 
+import { UserGroupMemberships } from "./UserGroupMemberships";
 import { User } from "../models/User";
 
 const PersonnelEditDialog = dynamic(
@@ -354,6 +355,10 @@ const UserInfo = ({
 						<div className="text-muted-foreground">آدرس</div>
 						<div>{personnel.address || "-"}</div>
 					</div>
+				)}
+
+				{(user?.id || personnel?.userId) && (
+					<UserGroupMemberships userId={(user?.id || personnel?.userId) as string} />
 				)}
 			</CardContent>
 		</Card>

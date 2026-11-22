@@ -89,6 +89,20 @@ export function formatClock(ms?: number | null): string | null {
   return moment(ms).utcOffset(TEHRAN_OFFSET).format('HH:mm');
 }
 
+export function tehranDateKey(value?: Date | string | number | null): string | null {
+  if (!value) return null;
+  const parsed = moment(value).utcOffset(TEHRAN_OFFSET);
+  if (!parsed.isValid()) return null;
+  return parsed.format('YYYY-MM-DD');
+}
+
+export function formatTehranStamp(value?: Date | string | number | null): string | null {
+  if (!value) return null;
+  const parsed = moment(value).utcOffset(TEHRAN_OFFSET);
+  if (!parsed.isValid()) return null;
+  return parsed.format('jYYYY/jMM/jDD HH:mm');
+}
+
 export function formatDuration(minutes: number | null): string | null {
   if (minutes === null || minutes <= 0) return null;
   const hours = Math.floor(minutes / 60);

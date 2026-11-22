@@ -67,15 +67,6 @@ export class PerformanceReportController {
     action: PermissionAction.READ_OWN,
     subject: Subjects.PERFORMANCE_REPORT,
   })
-  @Get('colleagues')
-  colleagues(@ActiveUser() user: ActiveUserData) {
-    return this.performanceReportService.colleagues(user);
-  }
-
-  @CheckPermissions({
-    action: PermissionAction.READ_OWN,
-    subject: Subjects.PERFORMANCE_REPORT,
-  })
   @Post('activities')
   createManual(
     @ActiveUser() user: ActiveUserData,

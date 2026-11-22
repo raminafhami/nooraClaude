@@ -4,14 +4,6 @@ import { User } from 'src/modules/users/schemas/user.schema';
 import { UserGroup } from 'src/modules/user-groups/schemas/user-group.schema';
 import { PerformanceActivityType } from './activity-type.schema';
 
-class ActivityColleague {
-  @Prop({ type: SchemaTypes.Types.ObjectId, ref: User.name, required: true })
-  userId: string;
-
-  @Prop({ type: String, required: true })
-  fullName: string;
-}
-
 class ActivityChange {
   @Prop({ type: Date, required: true })
   at: Date;
@@ -73,9 +65,6 @@ export class ManualActivity extends Document {
 
   @Prop({ type: String, required: true })
   description: string;
-
-  @Prop([ActivityColleague])
-  colleagues: ActivityColleague[];
 
   @Prop({ type: String, required: false, default: null })
   startTime: string | null;
