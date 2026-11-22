@@ -6,4 +6,5 @@ export interface ActiveUserData {
   groups: string[];
   type: string;
   branchId: any;
+  canViewPerformanceReport?: boolean;
 }

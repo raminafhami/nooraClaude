@@ -48,5 +48,13 @@
     "paymentOrder-review": "در دست بررسی",
     "paymentOrder-pay": "در دست پرداخت",
     "paymentOrder-cancel": "لغو شده",
-    "paymentOrder-paid": "پرداخت شده"
+    "paymentOrder-paid": "پرداخت شده",
+    "performance_report_already_sent": "گزارش این روز قبلاً ارسال شده است",
+    "performance_report_incomplete_reason": "برای فعالیت تکمیل‌نشده ذکر دلیل الزامی است",
+    "performance_report_type_invalid": "نوع فعالیت برای گروه شما تعریف نشده است",
+    "performance_report_colleague_required": "حداقل یک همکار را انتخاب کنید",
+    "performance_report_not_owner": "این فعالیت متعلق به شما نیست",
+    "performance_report_today_only": "فقط گزارش امروز را می‌توان ارسال کرد",
+    "performance_report_unit_invalid": "واحد سازمانی انتخاب‌شده متعلق به شما نیست",
+    "performance_report_out_of_scope": "این پرسنل در محدوده واحدهای شما نیست"
 }

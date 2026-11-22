@@ -1,5 +1,14 @@
 # HR domain rules
 
+## Daily activity report
+
+Not driven by working-time regulations. Auto-send is 18:00 Asia/Tehran.
+Employees file extra work on «گزارش فعالیت» (ارسال). Managers with
+«مشاهده گزارش عملکرد» open «عملکرد» on نمودارها. Activity types are empty until
+an admin links them to an existing group. Missing manual rows are not a zero
+score; system rows still come from user-task history. Quality/accuracy is not
+shown. Delay counts only tasks that already have a deadline.
+
 ## Data
 
 - `expertise`: items of three types - `certificate` (UI: آموزش), `skill`

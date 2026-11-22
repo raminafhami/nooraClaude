@@ -18,6 +18,7 @@ function extractIdentity(accessToken: string | undefined): Identity | null {
 		branchId: decodedToken.branchId,
 		groups: decodedToken.groups,
 		expireAt: decodedToken.exp,
+		canViewPerformanceReport: Boolean(decodedToken.canViewPerformanceReport),
 	};
 
 	return identity;

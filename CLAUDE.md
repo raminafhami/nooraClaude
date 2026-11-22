@@ -1,7 +1,13 @@
 # Noora ERP (apksystems.ir)
 
 Persian-language ERP: HR, CRM (buyers/customers), inspection, secretariat,
-financial, process engine, tasks/projects, form builder.
+financial, process engine, tasks/projects, form builder, daily activity reports.
+
+Daily activity (`performance-report`): employee tab «گزارش فعالیت» on کارهای من,
+manager tab «عملکرد» on نمودارها (permission «مشاهده گزارش عملکرد», default on
+مدیرعامل and مدیر منابع انسانی), admin tab «انواع فعالیت» on existing groups,
+manual «ارسال», automatic send at 18:00 Asia/Tehran. System rows are read from
+user-task history; they are not a new event type.
 
 **Talk to the user in Persian.** These docs are English to save tokens.
 

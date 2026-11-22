@@ -9,6 +9,7 @@ type Identity = {
 	branchId: string | null;
 	groups: string[];
 	expireAt: Date;
+	canViewPerformanceReport?: boolean;
 };
 
 export type { Identity };

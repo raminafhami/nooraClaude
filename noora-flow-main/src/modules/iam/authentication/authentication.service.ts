@@ -242,6 +242,9 @@ export class AuthenticationService {
           groups: user?.groups.map((g) => g.name) || [],
           type: user.type,
           branchId: user.branchId,
+          canViewPerformanceReport: await this.userCanViewPerformanceReport(
+            user.id,
+          ),
         },
       ),
       this.signToken(user.id, this.jwtConfiguration.refreshTokenExpireIn, {
@@ -281,6 +284,24 @@ export class AuthenticationService {
 
   async findAllPermissionsOfUser(userId: string): Promise<any[]> {
     return this.usersService.findAllPermissions(userId);
+  }
+
+  private async userCanViewPerformanceReport(userId: string): Promise<boolean> {
+    try {
+      const permissions = await this.usersService.findAllPermissions(userId);
+      return (permissions ?? []).some((permission) => {
+        const actions = [].concat(permission?.actions ?? []);
+        if (permission?.subject === 'all' && actions.includes('manage')) {
+          return true;
+        }
+        return (
+          permission?.subject === 'performance_report' &&
+          (actions.includes('read') || actions.includes('manage'))
+        );
+      });
+    } catch {
+      return false;
+    }
   }
 
   async verifyRecaptcha(body: any): Promise<boolean> {

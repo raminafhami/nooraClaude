@@ -34,6 +34,7 @@
 | Process engine | `process-definitions`, `process-instances`, `tasks` (user tasks), `dispatcher-category`, `indicator` (counters) |
 | Forms | `form-builder` (see `docs/FORM_BUILDER.md`), `form` |
 | Notifications | `notifications` (`create` + `sendNotification` -> stored message + socket push; `link` opens a page) |
+| Daily activity | `performance-report`: employee day from existing user-task history plus manual rows; permission `performance_report` / «مشاهده گزارش عملکرد» (read) granted to `ceo` and `hr-manager`; cron `0 18 * * *` Asia/Tehran sends once |
 | Queues | `queue` (Bull: `reminder` -> `reminder.processor.ts`: SMS / web-notification; `indexing`; `welcome-message`; `warehouse`) |
 | Search | `search`, `indexing` (Elasticsearch; absent on staging, which can crash the staging backend - just restart it) |
 | Files | `files`, `user-files`, `company-files` (uploads under `/app/<dir>` volumes) |

@@ -5,7 +5,7 @@ import {
   createMongoAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { PermissionAction } from '../enums';
+import { PermissionAction, Subjects } from '../enums';
 import {
   Permission,
   PermissionDocument,
@@ -31,12 +31,21 @@ export class CaslAbilityFactory {
     const dbPermissions: PermissionDocument[] =
       await this.authenticationService.findAllPermissionsOfUser(user.id);
 
-    const caslPermissions: CaslPermission[] = dbPermissions?.map((p) => {
+    const caslPermissions: CaslPermission[] = (dbPermissions ?? []).map((p) => {
       return {
         action: p.actions,
         subject: p.subject,
         conditions: Permission.parseCondition(JSON.parse(p.conditions), user),
       } as CaslPermission;
+    });
+
+    // Every signed-in user can file and read their own daily report. The
+    // manager screen stays behind the stored «مشاهده گزارش عملکرد» permission
+    // (action read). This rule is not a permission document, so it does not
+    // appear on the role-permissions page.
+    caslPermissions.push({
+      action: [PermissionAction.READ_OWN],
+      subject: Subjects.PERFORMANCE_REPORT,
     });
 
     return createMongoAbility<AppAbility>(caslPermissions);

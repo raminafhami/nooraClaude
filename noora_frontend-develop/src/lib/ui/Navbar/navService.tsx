@@ -316,7 +316,7 @@ export function getNavItems(identity: Identity, path: string): NavItemProps[] {
 			type: "LINK",
 			label: "نمودارها",
 			url: "/dashboard/charts",
-			groups: ["system-admin"],
+			groups: ["system-admin", "ceo", "hr-manager"],
 			icon: (
 				<Image
 					src={path?.includes("/dashboard/charts") ? BiActive : BI}
@@ -389,12 +389,16 @@ export function getNavItems(identity: Identity, path: string): NavItemProps[] {
 		return [];
 	}
 
-	return items.filter(
-		(item) =>
-			identity.type === UserType.System ||
-			(item.groups &&
-				(identity.groups.includes("system-admin") ||
-					item.groups.length === 0 ||
-					item.groups.filter((x) => identity.groups.includes(x)).length !== 0)),
-	);
+	return items.filter((item) => {
+		if (identity.type === UserType.System) return true;
+		if (item.url === "/dashboard/charts" && identity.canViewPerformanceReport) {
+			return true;
+		}
+		return (
+			item.groups &&
+			(identity.groups.includes("system-admin") ||
+				item.groups.length === 0 ||
+				item.groups.filter((x) => identity.groups.includes(x)).length !== 0)
+		);
+	});
 }

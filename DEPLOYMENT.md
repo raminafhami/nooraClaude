@@ -2,6 +2,22 @@
 
 Backend: NestJS 9 · Frontend: Next.js 14 · MongoDB · Redis · Elasticsearch 8.
 
+## Daily activity report
+
+The employee tab «گزارش فعالیت» (کارهای من) and the manager tab «عملکرد»
+(نمودارها) ship with the app. No extra service is required.
+
+- Permission «مشاهده گزارش عملکرد» (`performance_report` / `read`) is created on
+  boot and granted to the roles `ceo` (مدیرعامل) and `hr-manager` (مدیر منابع انسانی).
+  Other roles receive it from the existing role-permissions page.
+- Activity types start empty. An administrator creates them on the admin tab
+  «انواع فعالیت» and links each type to an existing group.
+- Employees can press «ارسال» before 18:00. At 18:00 Asia/Tehran the same report
+  is sent automatically if it was not sent already. A second send does not notify
+  again.
+- `SEED_DEMO_USERS=true` (local only) creates three personnel logins. Leave it
+  unset in production.
+
 ## Requirements
 
 | Component | Version |

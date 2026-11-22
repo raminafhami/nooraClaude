@@ -7,6 +7,7 @@ import {
 	FaCodePullRequest,
 	FaHashtag,
 	FaLayerGroup,
+	FaListCheck,
 	FaPeopleGroup,
 	FaPersonCircleCheck,
 	FaTags,
@@ -19,6 +20,7 @@ import { authorizeByGroups, TabsData } from "@/components/ui/tabs/TabsCreator";
 import { DynamicLink } from "@/components/ui/dynamic-link";
 import { SamplingPricingPage } from "@/features/sampling-price/components/SamplingPricingPage";
 
+import { ActivityTypesPage } from "./ActivityTypesPage";
 import BranchsPage from "../branches/page";
 import { ProcessesPage } from "../business-process/_components/ProcessesPage";
 import { CompanyDocumentsPage } from "../company-document/CompanyDocumentsPage";
@@ -115,6 +117,14 @@ export const AdminTabs: TabsData[] = [
 				<UsersWidget />
 			</div>
 		),
+		authorize: authorizeByGroups(["system-admin"]),
+	},
+	{
+		name: "انواع فعالیت",
+		color: "",
+		icon: FaListCheck,
+		value: "activity-types",
+		element: <ActivityTypesPage />,
 		authorize: authorizeByGroups(["system-admin"]),
 	},
 	{

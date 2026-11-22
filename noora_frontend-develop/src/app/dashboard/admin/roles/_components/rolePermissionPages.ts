@@ -94,4 +94,8 @@ export const ROLE_PERMISSION_PAGES: RolePermissionPage[] = [
 		label: "اعلان‌ها و ارتباطات",
 		subjects: ["notification", "notification_message", "sms", "emails", "comment"],
 	},
+	{
+		label: "نمودارها",
+		subjects: ["performance_report"],
+	},
 ];

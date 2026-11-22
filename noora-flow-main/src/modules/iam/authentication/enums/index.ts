@@ -69,4 +69,5 @@ export enum Subjects {
   FORM_BUILDER = 'form_builder',
   FORM_BUILDER_ASSIGNMENT = 'form_builder_assignment',
   FORM_BUILDER_RESPONSE = 'form_builder_response',
+  PERFORMANCE_REPORT = 'performance_report',
 }

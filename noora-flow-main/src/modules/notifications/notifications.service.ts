@@ -71,7 +71,7 @@ export class NotificationsService extends CrudService<NotificationDocument> {
       }),
     );
     messages.forEach((m) => {
-      this.socket.to(m.userId.toString()).emit('newNotification', m);
+      this.socket?.to(m.userId.toString()).emit('newNotification', m);
     });
   }
 

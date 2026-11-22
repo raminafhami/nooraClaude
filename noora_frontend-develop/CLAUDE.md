@@ -29,6 +29,7 @@
 - Forms: react-hook-form + zod; shadcn `Form*` in newer code, `@/form/*` in older.
 - Dialogs: shadcn `Dialog` (+ `useDialogs`), or `Modal` from `@/ui/Modal`.
 - Toasts: `sonner`. Logged-in user: `useLoggedInUser()` -> `identity { id, groups }`.
+- Daily activity: tab «گزارش فعالیت» on `/dashboard/tasks` (`_module/activity-report`). Manager tab «عملکرد» on `/dashboard/charts` (permission «مشاهده گزارش عملکرد»). Admin tab «انواع فعالیت» links types to existing groups. Button «ارسال» finalizes today; 18:00 Tehran is automatic.
 - Dates: Persian calendar. `DateInput` (`@/components/ui/date-input`) gives
   strings like `1405/08/06 18:30` (format `YYYY/MM/DD HH:mm`); parse with
   `jalali-moment` (`moment(v, "jYYYY/jMM/jDD HH:mm")`).

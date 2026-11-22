@@ -2,6 +2,7 @@
 
 import {
 	LucideClipboardList,
+	LucideFileText,
 	LucideGitPullRequestArrow,
 	LucideHistory,
 	LucideListTodo,
@@ -19,6 +20,7 @@ import { ApplicationsPage } from "./instances/ApplicationsPage";
 import TasksListPage from "./task-manager/page";
 import { MyTicketList } from "./ticket/MyTicketList";
 import TaskList from "./user-tasks/TaskList";
+import ActivityReportTab from "./activity-report/ActivityReportTab";
 
 function WorkspacePage() {
 	const { totalTasks } = useTasksSocket();
@@ -70,6 +72,13 @@ function WorkspacePage() {
 			icon: LucideHistory,
 			value: "instances",
 			element: <ApplicationsPage />,
+		},
+		{
+			name: "گزارش فعالیت",
+			color: "",
+			icon: LucideFileText,
+			value: "activity-report",
+			element: <ActivityReportTab />,
 		},
 	];
 

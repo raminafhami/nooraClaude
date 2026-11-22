@@ -92,6 +92,12 @@ reads by key: financial categories (`inspection-certificate`, cost keys,
 `insurance`, `overdue`), indicator `ic-certificate`, group
 `inspection-coordinator`. Idempotent.
 
+Daily activity report: on boot the backend ensures permission
+«مشاهده گزارش عملکرد» (`performance_report` / `read`) and grants it to groups
+`ceo` and `hr-manager`. Cron `0 18 * * *` Asia/Tehran finalizes that day's
+report once. Do not run a separate migration. `SEED_DEMO_USERS` stays unset
+on the server.
+
 `/root/backups/ic/ic-roles.js` (DRY default): gives `ic-expert` the
 `notification:create` permission and puts System Administrator in
 `ic-expert`, `ic-manager`, `inspection-coordinator` (so it can run every IC
