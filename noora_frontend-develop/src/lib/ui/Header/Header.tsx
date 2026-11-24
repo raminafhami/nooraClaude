@@ -38,7 +38,6 @@ import NotificationAlarm from "../../../../public/images/navIcons/Group 83 (2).s
 import Comments from "../../../../public/images/navIcons/Group 84 (3).svg";
 import SignOut from "../../../../public/images/navIcons/Group 86 (2).svg";
 import Wallet from "../../../../public/images/navIcons/Group 90.svg";
-import { CUSTOMER_LOGO } from "@/branding";
 import { useSocket } from "../../socket/useSocket";
 import { Loading } from "../Loader";
 import { getNavItems } from "../Navbar/navService";
@@ -243,12 +242,13 @@ export function Header() {
 	return (
 		<div className="z-50 flex max-h-[80px] items-center justify-between rounded-bl-full rounded-br-full bg-[#0A263B] px-[3rem] text-white shadow-lg shadow-black/40">
 			<Image
-				src={CUSTOMER_LOGO.src}
-				alt={CUSTOMER_LOGO.alt}
-				width={64}
-				height={64}
+				src="/images/header-logo.png"
+				alt="آتیه پژوهش کیفیت"
+				width={175}
+				height={169}
 				priority
-				className="h-12 w-12 shrink-0 sm:h-16 sm:w-16"
+				className="h-12 w-auto shrink-0 object-contain sm:h-16"
+				style={{ width: "auto", objectFit: "contain" }}
 			/>
 
 			{/* {userSettings?.menuStyle === "third" && <UpMenu items={navItems} />} */}

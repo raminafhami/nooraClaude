@@ -1,58 +1,87 @@
 /**
- * Qazvin customs sampling = the customs sampling process (its fields come from
- * `customsSampling/data/Ids`) plus the fields of the Qazvin form
- * «گزارش بازرسی و نمونه برداری تعیین ماهیت کالا» (APK/PR06-FR30).
+ * One-stage Qazvin sampling («گزارش بازرسی و نمونه برداری تعیین ماهیت کالا»).
+ * These keys are also the userTask form fields of `bpmn/qazvin-sampling.bpmn`.
  */
 // prettier-ignore
 export const QazvinIds = {
-	// shipment / documents (initial information)
-	shipmentType: "ShipmentType", // وارداتی / صادراتی
-	customsLetterNo: "CustomsLetterNo", // شماره نامه گمرک
-	customsLetterDate: "CustomsLetterDate", // تاریخ نامه گمرک
-	samplingTime: "SamplingTime", // ساعت نمونه برداری
-	samplingCustoms: "SamplingCustoms", // گمرک محل نمونه برداری
-	vehicleNo: "VehicleNo", // شماره ماشین / کانتینر / محل انبار / نام یا شماره لنج
-	receiptDate: "ReceiptDate", // تاریخ قبض انبار
-
-	// per product (inside ProductsData)
-	physicalSpecs: "PhysicalSpecs", // مشخصات ظاهری و فیزیکی کالا
-	grossWeight: "GrossWeight", // وزن ناخالص
-	marking: "Marking", // نشانه گذاری (دارد / ندارد)
-	packageCount: "PackageCount", // تعداد و نوع بسته بندی
-
-	// inspection result (sampler)
-	inspectorPersonnelNo: "InspectorPersonnelNo", // شماره پرسنلی بازرس
-	photoStatus: "PhotoStatus", // عکس برداری انجام شد / نشد
-	minPhotos: "MinPhotos", // حداقل عکس مورد نیاز
-	noPhotoReason: "NoPhotoReason", // علت عدم عکسبرداری
-	nonConformityStatus: "NonConformityStatus", // عدم انطباق مشاهده شد / نشد
-	nonConformityDescription: "NonConformityDescription", // شرح عدم انطباق
-	finalResult: "FinalResult", // نتیجه نهایی بازرسی
-	assistantSamplerName: "AssistantSamplerName", // کمک نمونه بردار
-	customsEvaluatorComment: "CustomsEvaluatorComment", // اظهار نظر ارزیاب گمرک
-	customsEvaluatorName: "CustomsEvaluatorName", // نام ارزیاب گمرک
-	warehouseKeeperComment: "WarehouseKeeperComment", // اظهار نظر انباردار
-	warehouseKeeperName: "WarehouseKeeperName", // نام انباردار
+	buyerId: "BuyerId",
+	buyerName: "BuyerName",
+	buyerAddress: "BuyerAddress",
+	buyerNationalId: "BuyerNationalId",
+	buyerEconomicCode: "BuyerEconomicCode",
+	shipmentType: "ShipmentType",
+	formCode: "FormCode",
+	formNo: "FormNo",
+	formDate: "FormDate",
+	coordinatorName: "CoordinatorName",
+	customsLetterNo: "CustomsLetterNo",
+	customsLetterDate: "CustomsLetterDate",
+	samplingTime: "SamplingTime",
+	samplingCustoms: "SamplingCustoms",
+	samplingPlace: "SamplingPlace",
+	samplingPlaceDetail: "SamplingPlaceDetail",
+	declarationNo: "DeclarationNo",
+	declarationDate: "DeclarationDate",
+	warehouseReceiptNo: "WarehouseReceiptNo",
+	warehouseReceiptDate: "WarehouseReceiptDate",
+	goodsRows: "GoodsRows",
+	goodsDescription: "GoodsDescription",
+	physicalSpecs: "PhysicalSpecs",
+	grossWeight: "GrossWeight",
+	sampleQuantity: "SampleQuantity",
+	serviceType: "ServiceType",
+	serviceTitle: "ServiceTitle",
+	servicePrice: "ServicePrice",
+	sealType: "SealType",
+	sealProductId: "SealProductId",
+	sealNumber: "SealNumber",
+	marking: "Marking",
+	packageCount: "PackageCount",
+	packageType: "PackageType",
+	samplerId: "SamplerId",
+	samplerName: "SamplerName",
+	inspectorPersonnelNo: "InspectorPersonnelNo",
+	photoStatus: "PhotoStatus",
+	minPhotos: "MinPhotos",
+	noPhotoReason: "NoPhotoReason",
+	nonConformityStatus: "NonConformityStatus",
+	nonConformityDescription: "NonConformityDescription",
+	finalResult: "FinalResult",
+	productOwnerName: "ProductOwnerName",
+	customsEvaluatorName: "CustomsEvaluatorName",
+	customsEvaluatorComment: "CustomsEvaluatorComment",
+	warehouseKeeperName: "WarehouseKeeperName",
+	warehouseKeeperComment: "WarehouseKeeperComment",
 } as const;
 
 export const QAZVIN_PROCESS_KEY = "QazvinSampling";
 
-/** default «گمرک محل نمونه برداری» */
-export const QAZVIN_CUSTOMS = "گمرک استان قزوین";
+export const qazvinFieldKeys = Object.values(QazvinIds);
+
+/** Add a row here to extend the customs-location list. */
+export const customsLocations = [
+	{ value: "قزوین", label: "قزوین" },
+	{ value: "تهران", label: "تهران" },
+	{ value: "شهریار", label: "شهریار" },
+];
 
 export const shipmentTypes = [
 	{ value: "import", label: "وارداتی" },
 	{ value: "export", label: "صادراتی" },
 ];
 
-export const doneStatuses = [
-	{ value: "done", label: "انجام شد" },
-	{ value: "notDone", label: "انجام نشد" },
+export const samplingPlaces = [
+	{ value: "vehicleNo", label: "شماره ماشین" },
+	{ value: "warehouse", label: "محل انبار" },
+	{ value: "containerNo", label: "شماره کانتینر" },
+	{ value: "privateWarehouse", label: "انبار اختصاصی" },
+	{ value: "launchNo", label: "شماره لنج" },
+	{ value: "launchName", label: "نام لنج" },
 ];
 
-export const observedStatuses = [
-	{ value: "observed", label: "مشاهده شد" },
-	{ value: "notObserved", label: "مشاهده نشد" },
+export const sealTypes = [
+	{ value: "strap", label: "تسمه‌ای" },
+	{ value: "label", label: "برچسبی" },
 ];
 
 export const markingStatuses = [
@@ -60,30 +89,12 @@ export const markingStatuses = [
 	{ value: "no", label: "ندارد" },
 ];
 
-/** top-level keys added by the sampling-officer step */
-export const qazvinSamplingKeys = [
-	QazvinIds.shipmentType,
-	QazvinIds.customsLetterNo,
-	QazvinIds.customsLetterDate,
-	QazvinIds.samplingTime,
-	QazvinIds.samplingCustoms,
-	QazvinIds.vehicleNo,
-	QazvinIds.receiptDate,
-] as const;
+export const photoStatuses = [
+	{ value: "done", label: "انجام شد" },
+	{ value: "notDone", label: "انجام نشد" },
+];
 
-/** top-level keys added by the sampler step (it can also edit the ones above) */
-export const qazvinInspectorKeys = [
-	...qazvinSamplingKeys,
-	QazvinIds.inspectorPersonnelNo,
-	QazvinIds.photoStatus,
-	QazvinIds.minPhotos,
-	QazvinIds.noPhotoReason,
-	QazvinIds.nonConformityStatus,
-	QazvinIds.nonConformityDescription,
-	QazvinIds.finalResult,
-	QazvinIds.assistantSamplerName,
-	QazvinIds.customsEvaluatorComment,
-	QazvinIds.customsEvaluatorName,
-	QazvinIds.warehouseKeeperComment,
-	QazvinIds.warehouseKeeperName,
-] as const;
+export const mismatchStatuses = [
+	{ value: "yes", label: "بله" },
+	{ value: "no", label: "خیر" },
+];

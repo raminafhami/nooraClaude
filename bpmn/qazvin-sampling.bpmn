@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn">
+  <!-- TODO: CustomsSampling candidate groups are not in git or this database.
+       Starter and task groups below are the sampling roles named in
+       noora-flow-main/src/modules/seeders/seeder-data.ts
+       (sampling-officer, surveyors, inspection-coordinator).
+       They are not a copy of the customs definition. Replace them when the real BPMN arrives. -->
+  <bpmn:process id="QazvinSampling" name="نمونه برداری گمرکی قزوین" isExecutable="true" camunda:candidateStarterGroups="sampling-officer,surveyors,inspection-coordinator" description="TODO: CustomsSampling candidate groups were not in git or this database. Groups are the sampling roles from seeder-data.ts, not a copy of customs.">
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property name="displayable" value="true" />
+        <camunda:property name="indicator" value="qazvin-sampling" />
+        <camunda:property name="documents" value="{&quot;types&quot;: {&quot;qazvinCustomsDocuments&quot;: {&quot;title&quot;: &quot;مدارک گمرکی&quot;, &quot;extensions&quot;: [&quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot;, &quot;pdf&quot;], &quot;multiple&quot;: true}, &quot;qazvinInspectionForm&quot;: {&quot;title&quot;: &quot;فرم تعیین ماهیت&quot;, &quot;extensions&quot;: [&quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot;, &quot;pdf&quot;], &quot;multiple&quot;: true}, &quot;qazvinInspectionPhoto&quot;: {&quot;title&quot;: &quot;عکس بازرسی&quot;, &quot;extensions&quot;: [&quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot;, &quot;pdf&quot;], &quot;multiple&quot;: true}, &quot;qazvinPaymentReceipt&quot;: {&quot;title&quot;: &quot;رسید پرداخت&quot;, &quot;extensions&quot;: [&quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot;, &quot;pdf&quot;], &quot;multiple&quot;: true}}, &quot;folders&quot;: {&quot;qazvinCustomsDocuments&quot;: {&quot;title&quot;: &quot;مدارک گمرکی&quot;, &quot;types&quot;: [&quot;qazvinCustomsDocuments&quot;]}, &quot;qazvinInspectionForm&quot;: {&quot;title&quot;: &quot;فرم تعیین ماهیت&quot;, &quot;types&quot;: [&quot;qazvinInspectionForm&quot;]}, &quot;qazvinInspectionPhoto&quot;: {&quot;title&quot;: &quot;عکس بازرسی&quot;, &quot;types&quot;: [&quot;qazvinInspectionPhoto&quot;]}, &quot;qazvinPaymentReceipt&quot;: {&quot;title&quot;: &quot;رسید پرداخت&quot;, &quot;types&quot;: [&quot;qazvinPaymentReceipt&quot;]}}}" />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="Start" name="شروع">
+      <bpmn:outgoing>Flow_Start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="QazvinSamplingForm" name="نمونه برداری گمرکی قزوین" camunda:candidateGroups="sampling-officer,surveyors,inspection-coordinator">
+      <bpmn:extensionElements>
+        <camunda:formData>
+        <camunda:formField id="BuyerId" label="خریدار" type="string" />
+        <camunda:formField id="BuyerName" label="نام خریدار" type="string" />
+        <camunda:formField id="BuyerAddress" label="آدرس" type="string" />
+        <camunda:formField id="BuyerNationalId" label="شناسه ملی" type="string" />
+        <camunda:formField id="BuyerEconomicCode" label="کد اقتصادی" type="string" />
+        <camunda:formField id="ShipmentType" label="نوع محموله" type="string" />
+        <camunda:formField id="FormCode" label="کد فرم" type="string" />
+        <camunda:formField id="FormNo" label="شماره فرم" type="string" />
+        <camunda:formField id="FormDate" label="تاریخ فرم" type="string" />
+        <camunda:formField id="CoordinatorName" label="هماهنگ کننده" type="string" />
+        <camunda:formField id="CustomsLetterNo" label="شماره نامه گمرک" type="string" />
+        <camunda:formField id="CustomsLetterDate" label="تاریخ نامه گمرک" type="string" />
+        <camunda:formField id="SamplingTime" label="ساعت نمونه برداری" type="string" />
+        <camunda:formField id="SamplingCustoms" label="گمرک محل نمونه برداری" type="string" />
+        <camunda:formField id="SamplingPlace" label="محل نمونه برداری" type="string" />
+        <camunda:formField id="SamplingPlaceDetail" label="شرح محل نمونه برداری" type="string" />
+        <camunda:formField id="DeclarationNo" label="شماره اظهارنامه" type="string" />
+        <camunda:formField id="DeclarationDate" label="تاریخ اظهارنامه" type="string" />
+        <camunda:formField id="WarehouseReceiptNo" label="شماره قبض انبار" type="string" />
+        <camunda:formField id="WarehouseReceiptDate" label="تاریخ قبض انبار" type="string" />
+        <camunda:formField id="GoodsDescription" label="شرح کالا" type="string" />
+        <camunda:formField id="PhysicalSpecs" label="مشخصات ظاهری و فیزیکی" type="string" />
+        <camunda:formField id="GrossWeight" label="وزن ناخالص" type="string" />
+        <camunda:formField id="SampleQuantity" label="مقدار نمونه" type="string" />
+        <camunda:formField id="ServiceType" label="نوع خدمت" type="string" />
+        <camunda:formField id="ServiceTitle" label="عنوان خدمت" type="string" />
+        <camunda:formField id="ServicePrice" label="قیمت خدمت" type="string" />
+        <camunda:formField id="SealType" label="نوع پلمپ" type="string" />
+        <camunda:formField id="SealProductId" label="شناسه کالای پلمپ" type="string" />
+        <camunda:formField id="SealNumber" label="شماره پلمپ" type="string" />
+        <camunda:formField id="Marking" label="نشانه گذاری" type="string" />
+        <camunda:formField id="PackageCount" label="تعداد بسته" type="string" />
+        <camunda:formField id="PackageType" label="نوع بسته بندی" type="string" />
+        <camunda:formField id="SamplerId" label="نمونه بردار" type="string" />
+        <camunda:formField id="SamplerName" label="نام نمونه بردار" type="string" />
+        <camunda:formField id="InspectorPersonnelNo" label="شماره پرسنلی" type="string" />
+        <camunda:formField id="PhotoStatus" label="عکس برداری" type="string" />
+        <camunda:formField id="MinPhotos" label="حداقل تعداد عکس" type="string" />
+        <camunda:formField id="NoPhotoReason" label="علت عدم عکس برداری" type="string" />
+        <camunda:formField id="NonConformityStatus" label="عدم انطباق مدارک گمرکی" type="string" />
+        <camunda:formField id="NonConformityDescription" label="شرح عدم انطباق" type="string" />
+        <camunda:formField id="FinalResult" label="نتیجه نهایی" type="string" />
+        <camunda:formField id="ProductOwnerName" label="نام صاحب کالا" type="string" />
+        <camunda:formField id="CustomsEvaluatorName" label="نام ارزیاب گمرک" type="string" />
+        <camunda:formField id="CustomsEvaluatorComment" label="اظهار نظر ارزیاب گمرک" type="string" />
+        <camunda:formField id="WarehouseKeeperName" label="نام انباردار" type="string" />
+        <camunda:formField id="WarehouseKeeperComment" label="اظهار نظر انباردار" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start</bpmn:incoming>
+      <bpmn:outgoing>Flow_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End" name="پایان">
+      <bpmn:incoming>Flow_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="Start" targetRef="QazvinSamplingForm" />
+    <bpmn:sequenceFlow id="Flow_End" sourceRef="QazvinSamplingForm" targetRef="End" />
+  </bpmn:process>
+</bpmn:definitions>

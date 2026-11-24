@@ -9,6 +9,13 @@ import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DestructiveAlert } from "@/components/ui/alert/destructive-alert";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { getGroups } from "@/identity/groups/services/getGroups";
 import { NotificationsPriority } from "@/notifications/models/NotificationsPriority";
@@ -45,6 +52,7 @@ function TaskInnerProvider<T = any>({
 	const [message, setMessage] = useState<React.ReactElement | string | null>(
 		null,
 	);
+	const [cartableOpen, setCartableOpen] = useState(false);
 	const [nextStepData, setNextStepData] = useState<Task[]>([]);
 	const [isSaving, setIsSaving] = useState<boolean>(false);
 	const [isCompleted, setIsCompleted] = useState<boolean>(false);
@@ -192,8 +200,12 @@ function TaskInnerProvider<T = any>({
 			}
 
 			if (!userNextTask) {
-				setMessage("اطلاعات با موفقیت ثبت شد.");
 				setNextStepData(othersNextTasks);
+				if (task.processKey === "QazvinSampling") {
+					setCartableOpen(true);
+				} else {
+					setMessage("اطلاعات با موفقیت ثبت شد.");
+				}
 			} else {
 				if (userNextTask.kind === "candid") {
 					await claimTask(userNextTask.taskId);
@@ -263,6 +275,25 @@ function TaskInnerProvider<T = any>({
 
 	return (
 		<>
+			<Dialog open={cartableOpen} onOpenChange={setCartableOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>ثبت با موفقیت انجام شد</DialogTitle>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="primary"
+							onClick={() => {
+								router.push(getDynamicUrl("/dashboard/tasks"));
+							}}
+						>
+							کارتابل من
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
 			{message && (
 				<Alert variant="info">
 					<AlertDescription>{message}</AlertDescription>

@@ -11,7 +11,9 @@ function RootLayoutBody(props: React.PropsWithChildren) {
 		<body
 			className={cn(
 				"text-xsm",
-				pathname === "/dashboard" ? "bg-gray-100" : "bg-white",
+				pathname === "/dashboard"
+					? "bg-[linear-gradient(180deg,#f7f8fa_0%,#e8eef4_100%)]"
+					: "bg-white",
 			)}
 			{...props}
 		/>

@@ -101,7 +101,9 @@ class BankInfo {
       delete ret.apiKey;
       delete ret._id;
       if (doc?.userFiles?.length > 0) {
-        const avatarFile = doc.userFiles.find((file) => file.key === 'avatar');
+        const avatarFile =
+          doc.userFiles.find((file) => file.key === 'personnelPhoto') ||
+          doc.userFiles.find((file) => file.key === 'avatar');
         if (avatarFile) {
           ret.image = avatarFile;
         }

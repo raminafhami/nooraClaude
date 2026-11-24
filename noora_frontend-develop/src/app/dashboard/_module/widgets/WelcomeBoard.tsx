@@ -11,7 +11,7 @@ const WelcomeBoard = () => {
 
 	return (
 		<div
-			className="col-span-full col-start-1 flex min-h-72 flex-col items-center justify-between gap-y-16 rounded-3xl border-e-[6px] border-saffron bg-white px-32 py-12 md:flex-row 2xl:col-span-6 2xl:min-h-52"
+			className="col-span-full col-start-1 flex min-h-72 flex-col items-center justify-between gap-y-16 rounded-3xl border border-white/80 border-e-[6px] border-e-saffron bg-white/70 px-32 py-12 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md md:flex-row 2xl:col-span-6 2xl:min-h-52"
 			style={{
 				backgroundImage: `url(${bg.src})`,
 				backgroundPosition: "top right",

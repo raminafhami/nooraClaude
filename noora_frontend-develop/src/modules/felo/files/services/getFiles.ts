@@ -23,7 +23,7 @@ async function getInstanceFiles(
   const searchParams = new URLSearchParams();
 
   if (types && types.length) {
-    searchParams.append("fieldNames", types.join(" "));
+    searchParams.append("fieldNames", types.join(","));
   }
 
   const response = await apiClient.get<GetInstanceFilesResponse>({

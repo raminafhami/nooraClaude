@@ -52,7 +52,7 @@ function NotificationsWidget() {
 		getData();
 	}, []);
 	return (
-		<Card className="col-span-full border-0 shadow-none xl:col-span-5">
+		<Card className="col-span-full border-white/80 bg-white/70 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md xl:col-span-5">
 			<CardHeader orientation="horizontal" className="pb-0">
 				<CardTitle>
 					<div>اعلان ها</div>

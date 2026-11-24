@@ -90,7 +90,7 @@ const KpiInfo = () => {
 	}, [fetchKpiReport, selectedKpi]);
 
 	return (
-		<Card className="relative col-span-full rounded-2xl border-none shadow-none lg:col-span-6 2xl:col-span-3">
+		<Card className="relative col-span-full rounded-2xl border-white/80 bg-white/70 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md lg:col-span-6 2xl:col-span-3">
 			<CardHeader orientation="horizontal" className="pb-0">
 				<CardTitle className="text-base font-light">
 					نمودار شاخص عملکرد

@@ -95,7 +95,7 @@ function NotesWidget() {
 	}, []);
 
 	return (
-		<Card className="relative col-span-full flex h-[32rem] flex-col border-0 shadow-none xl:col-span-4">
+		<Card className="relative col-span-full flex h-[32rem] flex-col border-white/80 bg-white/70 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md xl:col-span-4">
 			<CardHeader
 				className="h-[5.25rem] shrink-0 border-b"
 				orientation="horizontal"

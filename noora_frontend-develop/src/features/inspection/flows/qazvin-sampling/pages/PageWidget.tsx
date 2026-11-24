@@ -6,5 +6,7 @@ import { PageReport } from "./PageReport";
 
 /** the customs sampling case page with the Qazvin report */
 export function PageWidget({ id }: { id: string }) {
-	return <CustomsPageWidget id={id} report={<PageReport />} />;
+	return (
+		<CustomsPageWidget id={id} initialSection="report" report={<PageReport />} />
+	);
 }

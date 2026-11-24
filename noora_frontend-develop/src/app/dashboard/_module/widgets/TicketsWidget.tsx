@@ -57,7 +57,7 @@ function TicketsWidget() {
 	}, [loadTickets]);
 
 	return (
-		<Card className="col-span-full border-0 shadow-none xl:col-span-8 xl:h-[32rem]">
+		<Card className="col-span-full border-white/80 bg-white/70 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md xl:col-span-8 xl:h-[32rem]">
 			<CardHeader orientation="horizontal">
 				<CardTitle>تیکت ها</CardTitle>
 				<CardNav>

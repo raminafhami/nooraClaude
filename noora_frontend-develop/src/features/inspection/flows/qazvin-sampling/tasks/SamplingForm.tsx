@@ -1,24 +1,8 @@
-import { z } from "zod";
+import { PhasePage } from "./PhasePage";
+import { schema } from "./PhaseSchema";
 
-import { PhasePage as CustomsSamplingPage } from "@/inspection/flows/customsSampling/tasks/SamplingForm/PhasePage";
-import { schema as customsSchema } from "@/inspection/flows/customsSampling/tasks/SamplingForm/PhaseSchema";
-
-import { QazvinFields } from "../components/QazvinFields";
-import { qazvinSamplingKeys } from "../data/Ids";
-
-const schema = customsSchema.extend(
-	Object.fromEntries(qazvinSamplingKeys.map((key) => [key, z.string()])) as {
-		[K in (typeof qazvinSamplingKeys)[number]]: z.ZodString;
-	},
-);
-
-/** «تکمیل اطلاعات اولیه»: the customs sampling form + the Qazvin shipment fields */
+/** The only Qazvin stage. It does not render the customs sampling form. */
 export const QazvinSamplingForm = {
 	schema,
-	render: (
-		<>
-			<CustomsSamplingPage />
-			<QazvinFields section="sampling" />
-		</>
-	),
+	render: <PhasePage />,
 };

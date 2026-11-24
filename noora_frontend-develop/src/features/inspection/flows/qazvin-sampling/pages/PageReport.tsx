@@ -8,39 +8,18 @@ import { DestructiveAlert } from "@/components/ui/alert/destructive-alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { getIncomes } from "@/financial/incomes/services/getIncomes";
+import { getUserSignature } from "@/hrm/contract/flows/personnel-contract/services/getUserSignature";
 import { useInspectionContext } from "@/inspection/context/InspectionContext";
-import { Ids } from "@/inspection/flows/customsSampling/data";
 import { useLoadInspectionData } from "@/inspection/hooks/useLoadInspectionData";
 import generateTemplate from "@/template-engine/services/generateTemplate";
 import downloadTemplate from "@/template-engine/utils/downloadTemplate";
 import { Head } from "@/ui/Head";
 import { Loading } from "@/ui/Loader";
 
-import { qazvinInspectorKeys } from "../data/Ids";
+import { qazvinFieldKeys } from "../data/Ids";
 
-/** everything the Qazvin form prints; all optional so a case in progress still shows */
-const reportKeys: string[] = [
-	Ids.buyerData,
-	Ids.buyerId,
-	Ids.buyerName,
-	Ids.buyerAddress,
-	Ids.cottageDate,
-	Ids.cottageNo,
-	Ids.receipt,
-	Ids.place,
-	Ids.title,
-	Ids.productsData,
-	Ids.productOwner,
-	Ids.productOwnerSignature,
-	Ids.samplerId,
-	Ids.samplerName,
-	Ids.samplerSignature,
-	Ids.coordinator,
-	Ids.coordinatorSignature,
-	Ids.scheduleDate,
-	Ids.pageNo,
-	...qazvinInspectorKeys,
-];
+/** everything the Qazvin form stores; all optional so a case in progress still shows */
+const reportKeys: string[] = [...qazvinFieldKeys];
 
 const keys = reportKeys.map((id) => ({ id, optional: true }));
 
@@ -63,13 +42,20 @@ function PageReport() {
 
 		const data: Record<string, unknown> = {
 			caseNo: instance.caseNo,
-			[Ids.inspectionFeeInRial]: incomesTotal,
+			InspectionFeeInRial: incomesTotal,
 		};
 		reportKeys.forEach((key) => {
 			data[key] = instance.parameters?.[key] ?? "";
 		});
-		if (!Array.isArray(data[Ids.productsData])) {
-			data[Ids.productsData] = [];
+
+		const samplerId = instance.parameters?.SamplerId;
+		if (samplerId) {
+			try {
+				const signature = await getUserSignature(String(samplerId));
+				if (signature) data.SamplerSignature = signature;
+			} catch (err) {
+				console.error(err);
+			}
 		}
 
 		return {

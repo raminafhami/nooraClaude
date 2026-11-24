@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import DashboardContext from "@/app/dashboard/_module/DashboardContext";
 import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import { UserDocument } from "@/identity/userDocuments/models/UserDocument";
 import GetAllUserDocuments from "@/identity/userDocuments/services/getAllUserDocuments";
@@ -36,6 +37,7 @@ const documentsDefinitions: Partial<{ [key in keyof FormData]: string }> = {
 
 export function ProfileDocuments() {
   const { identity } = useLoggedInUser();
+  const { setUserAvatarChange } = useContext(DashboardContext);
 
   const [isLoading, setLoading] = useState<boolean>(true);
 
@@ -115,13 +117,16 @@ export function ProfileDocuments() {
         });
 
         setValue(key, v);
+        if (key === "personnelPhoto") {
+          setUserAvatarChange(true);
+        }
       } catch (error) {
         toast.error("مشکلی پیش آمده، مجدد بارگذاری کنید!");
       } finally {
         setLoading(false);
       }
     },
-    [identity.id, setValue],
+    [identity.id, setUserAvatarChange, setValue],
   );
 
   return (

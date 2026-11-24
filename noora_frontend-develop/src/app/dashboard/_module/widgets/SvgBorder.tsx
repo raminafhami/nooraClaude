@@ -24,7 +24,7 @@ const SvgBorder = ({
 				href={`${url}?fallback=true`}
 				width="52"
 				height="52"
-				preserveAspectRatio="xMidYMid meet"
+				preserveAspectRatio="xMidYMid slice"
 				clipPath={`url(#firstClip)`}
 			/>
 

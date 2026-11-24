@@ -248,6 +248,12 @@ export const systemCategories = [
     title: 'کارمزد بازرسی و صدور گواهی',
   },
   {
+    type: CategoryTypes.Income,
+    key: 'sampling',
+    code: 'sampling',
+    title: 'نمونه‌برداری',
+  },
+  {
     type: CategoryTypes.Cost,
     key: 'customer',
     code: 'customer',
@@ -310,6 +316,12 @@ export const systemIndicators = [
   {
     key: 'officialFinNo',
     title: 'شماره مالی فاکتور رسمی',
+    counter: 1000,
+    format: '${counter}',
+  },
+  {
+    key: 'qazvin-sampling',
+    title: 'شماره پرونده نمونه برداری قزوین',
     counter: 1000,
     format: '${counter}',
   },

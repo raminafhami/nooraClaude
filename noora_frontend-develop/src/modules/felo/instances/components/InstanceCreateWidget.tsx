@@ -15,10 +15,12 @@ import { ContractNumber } from "@/contract-number/models/ContractNumber";
 import { Process } from "@/felo/processes/models";
 import getStartableProcesses from "@/felo/processes/services/getStartableProcesses";
 import sortProcessesByName from "@/felo/processes/utils/sortByName";
+import { claimTask } from "@/felo/tasks/services/claimTask";
 import { getMyNextTask } from "@/felo/tasks/services/getMyNextTask";
 import { UserGroup } from "@/identity/groups/models/Group";
 import { getGroups } from "@/identity/groups/services/getGroups";
 import { parseUserLookup } from "@/identity/users/utils/parseUserLookup";
+import { QAZVIN_PROCESS_KEY } from "@/inspection/flows/qazvin-sampling/data/Ids";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/ui/Loader";
 import { asNavigationProp } from "@/utils/asNavigationProp";
@@ -168,6 +170,9 @@ function InstanceCreateForm({ templates }: { templates: ProcessTemplate[] }) {
 
 			const nextTask = await getMyNextTask(createdInstance.id);
 			if (nextTask) {
+				if (selectedTemplate.process.key === QAZVIN_PROCESS_KEY) {
+					await claimTask(nextTask.taskId);
+				}
 				nextRoute = `/dashboard/tasks/${nextTask.taskId}`;
 			}
 

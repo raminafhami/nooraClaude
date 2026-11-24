@@ -33,16 +33,19 @@ interface Props {
 	id: string;
 	/** the «گزارش» section; the customs report by default (used by QazvinSampling) */
 	report?: React.ReactNode;
+	/** customs stays on the empty section until a tab is clicked */
+	initialSection?: PageSection | null;
 }
 
 export const PageWidget = memo(function PageWidget({
 	id,
 	report,
+	initialSection = null,
 }: Props): React.ReactNode {
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [instance, setInstance] = useState<Instance>({} as any);
-	const [section, setSection] = useState<PageSection | null>(null);
+	const [section, setSection] = useState<PageSection | null>(initialSection);
 
 	const params = useSearchParams();
 	const page = params?.get("page");

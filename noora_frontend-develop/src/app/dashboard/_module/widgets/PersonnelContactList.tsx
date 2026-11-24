@@ -9,6 +9,7 @@ import {
 	CardNav,
 	CardTitle,
 } from "@/components/ui/card";
+import { getGroupByName } from "@/identity/groups/services/getGroupByName";
 import { UserLookupSelect } from "@/identity/users/components/UserLookupSelect";
 import { User } from "@/identity/users/models/User";
 import { UserLookup } from "@/identity/users/models/UserLookup";
@@ -25,15 +26,35 @@ const PersonnelContactList = () => {
 	const [firstFourUsers, setFirstFourUsers] = useState<User[]>([]);
 
 	useEffect(() => {
-		const getFirstFourUserWithImage = async () => {
+		const loadContacts = async () => {
 			const res = await getUsers({
 				pagination: { page: 0, pageSize: 10 },
 				populate: ["userFiles"],
 			});
-			setFirstFourUsers(res.items.filter((x) => x.image).slice(0, 4));
-			setPerssonel(res.items.filter((x) => x.image).slice(0, 4)[0]);
+			const withImage = res.items.filter((x) => x.image);
+			setFirstFourUsers(withImage.slice(0, 4));
+
+			try {
+				const ceoGroup = await getGroupByName(null, "ceo");
+				const ceoId = ceoGroup
+					? (
+							await getUsers({
+								filters: { groups: ceoGroup.id },
+								pagination: { page: 0, pageSize: 1 },
+							})
+						).items[0]?.id
+					: undefined;
+				if (ceoId) {
+					setPerssonel(await getUserById(ceoId));
+					return;
+				}
+			} catch (err) {
+				console.error(err);
+			}
+
+			setPerssonel(withImage[0]);
 		};
-		getFirstFourUserWithImage();
+		loadContacts();
 	}, []);
 
 	const findPersonnel = useCallback(async () => {
@@ -55,7 +76,7 @@ const PersonnelContactList = () => {
 	}, [findPersonnel, searchUser]);
 
 	return (
-		<Card className="col-span-full border-0 pb-6 shadow-none xl:col-span-4">
+		<Card className="col-span-full border-white/80 bg-white/70 pb-6 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md xl:col-span-4">
 			<CardHeader orientation="horizontal">
 				<CardTitle>فهرست تماس کارکنان</CardTitle>
 				<CardNav>
@@ -109,7 +130,7 @@ const PersonnelContactList = () => {
 										url={
 											personnel.image?.id
 												? `/api/users/${personnel.image?.id}`
-												: "public/images/avatar.png"
+												: "/images/avatar.png"
 										}
 									/>
 								</div>
@@ -121,11 +142,12 @@ const PersonnelContactList = () => {
 									{personnel.branch &&
 										" شعبه " + asNavigationProp(personnel.branch).title}
 								</span>
-								<span>{personnel?.email}</span>
+								<span>{personnel?.email || "-"}</span>
 								<span>
-									{personnel.personnel &&
-										"داخلی " + personnel.personnel[0]?.internalPhoneNo + " - "}
-									{personnel?.phoneNo}
+									{personnel.personnel?.[0]?.internalPhoneNo
+										? "داخلی " + personnel.personnel[0].internalPhoneNo + " - "
+										: ""}
+									{personnel?.phoneNo || "-"}
 								</span>
 							</div>
 						</div>
@@ -135,7 +157,7 @@ const PersonnelContactList = () => {
 								<SvgBorder
 									strokeColor="#E5E7EB"
 									strokeWidth="0.5px"
-									url={"public/images/avatar.png"}
+									url={"/images/avatar.png"}
 								/>
 							</div>
 

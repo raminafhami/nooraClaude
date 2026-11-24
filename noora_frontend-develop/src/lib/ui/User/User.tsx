@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
 
 import DashboardContext from "@/app/dashboard/_module/DashboardContext";
@@ -16,7 +15,8 @@ export function User() {
 
 	const [isLoading, setLoading] = useState<boolean>(true);
 
-	const [userAvatar, setUserAvatar] = useState(avatar);
+	const fallbackAvatar = typeof avatar === "string" ? avatar : avatar.src;
+	const [userAvatar, setUserAvatar] = useState(fallbackAvatar);
 	const { userAvatarChange, setUserAvatarChange } =
 		useContext(DashboardContext);
 
@@ -25,39 +25,49 @@ export function User() {
 			try {
 				setLoading(true);
 
-				let userDocs = await GetAllUserDocuments({
+				const personnelPhotos = await GetAllUserDocuments({
 					userId: identity.id,
 					page: 0,
-					size: 99,
-					key: "avatar",
+					size: 1,
+					key: "personnelPhoto",
+				});
+				const avatars = personnelPhotos?.length
+					? []
+					: await GetAllUserDocuments({
+							userId: identity.id,
+							page: 0,
+							size: 1,
+							key: "avatar",
+						});
+				const photo = personnelPhotos?.[0] ?? avatars?.[0];
+
+				if (!photo) {
+					setUserAvatar(fallbackAvatar);
+					return;
+				}
+
+				const inspectorFile = await GetUserDocumentsFile({
+					fileId: photo.id,
 				});
 
-				if (userDocs) {
-					let inspectorFile = await GetUserDocumentsFile({
-						fileId: userDocs[0].id,
-					});
-
-					if (inspectorFile) {
-						const files = new File([inspectorFile], "Avatar", {
-							type: inspectorFile.type,
-						});
-
-						const reader = new FileReader();
-
-						reader.onloadend = () => {
-							const dataURL = reader.result;
-							localStorage.setItem("userAvatar", dataURL as string);
-							setUserAvatar(dataURL);
-							setLoading(false);
-						};
-
-						reader.readAsDataURL(files);
-					}
+				if (!inspectorFile) {
+					setUserAvatar(fallbackAvatar);
+					return;
 				}
+
+				const dataUrl = await new Promise<string>((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onloadend = () => resolve(String(reader.result));
+					reader.onerror = () => reject(reader.error);
+					reader.readAsDataURL(inspectorFile);
+				});
+
+				localStorage.setItem("userAvatar", dataUrl);
+				setUserAvatar(dataUrl);
 			} catch {
-				setUserAvatar(avatar);
-				setLoading(false);
+				setUserAvatar(fallbackAvatar);
 			} finally {
+				setLoading(false);
 				setUserAvatarChange(false);
 			}
 		})();
@@ -70,13 +80,13 @@ export function User() {
 					{isLoading ? (
 						<Skeleton className="size-14 p-0.5" />
 					) : (
-						<Image
+						<img
 							draggable={false}
-							className="clip-hexagon h-[55px] !w-[55px] border border-[#355E7C] bg-white"
+							className="clip-hexagon h-[55px] w-[55px] border border-[#355E7C] bg-white object-cover object-center"
 							src={userAvatar}
 							alt="avatar"
-							width={60}
-							height={60}
+							width={55}
+							height={55}
 						/>
 					)}
 				</DynamicLink>

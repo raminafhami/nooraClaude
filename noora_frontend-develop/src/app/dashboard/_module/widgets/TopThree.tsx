@@ -93,7 +93,7 @@ const TopThree = () => {
 	}, [dialogs, imageUrls, topMarketers]);
 
 	return (
-		<Card className="relative col-span-full flex h-full flex-col border-0 shadow-none lg:col-span-6 2xl:col-span-3">
+		<Card className="relative col-span-full flex h-full flex-col border-white/80 bg-white/70 shadow-[0_12px_28px_-16px_rgba(10,38,59,0.45)] backdrop-blur-md lg:col-span-6 2xl:col-span-3">
 			<CardHeader orientation="horizontal">
 				<CardTitle>بازاریاب های برتر</CardTitle>
 				<CardNav>
