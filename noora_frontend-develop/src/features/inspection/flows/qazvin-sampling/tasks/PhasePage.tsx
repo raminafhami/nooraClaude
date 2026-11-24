@@ -400,9 +400,11 @@ function PhasePage() {
 			hooks.registerHook(
 				"pre-submit",
 				async ({ task, data }: { task: Task; data: Record<string, any> }) => {
-					if (!Array.isArray(data[QazvinIds.goodsRows])) {
-						data[QazvinIds.goodsRows] = [];
-					}
+					const goodsRows: ReturnType<typeof emptyGoodsRow>[] = Array.isArray(
+						data[QazvinIds.goodsRows],
+					)
+						? data[QazvinIds.goodsRows]
+						: [];
 					for (const key of Object.keys(schema.shape)) {
 						if (key === QazvinIds.goodsRows) continue;
 						if (data[key] === undefined || data[key] === null) {
@@ -410,7 +412,7 @@ function PhasePage() {
 						}
 					}
 
-					const rows = data[QazvinIds.goodsRows].filter((row) =>
+					const rows = goodsRows.filter((row) =>
 						Object.values(row || {}).some((value) => String(value || "").trim()),
 					);
 					data[QazvinIds.goodsRows] = rows;
