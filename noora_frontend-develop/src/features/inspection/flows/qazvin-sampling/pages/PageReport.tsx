@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { getIncomes } from "@/financial/incomes/services/getIncomes";
 import { getUserSignature } from "@/hrm/contract/flows/personnel-contract/services/getUserSignature";
 import { useInspectionContext } from "@/inspection/context/InspectionContext";
+import { Ids } from "@/inspection/flows/customsSampling/data";
 import { useLoadInspectionData } from "@/inspection/hooks/useLoadInspectionData";
 import generateTemplate from "@/template-engine/services/generateTemplate";
 import downloadTemplate from "@/template-engine/utils/downloadTemplate";
@@ -17,16 +18,40 @@ import { Head } from "@/ui/Head";
 import { Loading } from "@/ui/Loader";
 
 import { qazvinFieldKeys } from "../data/Ids";
+import { qazvinInspectorKeys } from "../data/LegacyIds";
 
 /** everything the Qazvin form stores; all optional so a case in progress still shows */
-const reportKeys: string[] = [...qazvinFieldKeys];
+const reportKeys = qazvinFieldKeys.map((id) => ({ id, optional: true }));
 
-const keys = reportKeys.map((id) => ({ id, optional: true }));
+const legacyReportKeys = [
+	Ids.buyerData,
+	Ids.buyerId,
+	Ids.buyerName,
+	Ids.buyerAddress,
+	Ids.cottageDate,
+	Ids.cottageNo,
+	Ids.receipt,
+	Ids.place,
+	Ids.title,
+	Ids.productsData,
+	Ids.productOwner,
+	Ids.productOwnerSignature,
+	Ids.samplerId,
+	Ids.samplerName,
+	Ids.samplerSignature,
+	Ids.coordinator,
+	Ids.coordinatorSignature,
+	Ids.scheduleDate,
+	Ids.pageNo,
+	...qazvinInspectorKeys,
+];
+const legacyKeys = legacyReportKeys.map((id) => ({ id, optional: true }));
 
 function PageReport() {
 	const { instance } = useInspectionContext();
+	const legacy = instance.version <= 1;
 	const { isLoading: isDataLoading, errorMessage: dataErrorMessage } =
-		useLoadInspectionData(true, keys);
+		useLoadInspectionData(true, legacy ? legacyKeys : reportKeys);
 
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [errorMessage, setErrorMessage] = useState<React.ReactNode>();
@@ -44,12 +69,15 @@ function PageReport() {
 			caseNo: instance.caseNo,
 			InspectionFeeInRial: incomesTotal,
 		};
-		reportKeys.forEach((key) => {
+		for (const key of legacy ? legacyReportKeys : qazvinFieldKeys) {
 			data[key] = instance.parameters?.[key] ?? "";
-		});
+		}
+		if (legacy && !Array.isArray(data[Ids.productsData])) {
+			data[Ids.productsData] = [];
+		}
 
 		const samplerId = instance.parameters?.SamplerId;
-		if (samplerId) {
+		if (!legacy && samplerId) {
 			try {
 				const signature = await getUserSignature(String(samplerId));
 				if (signature) data.SamplerSignature = signature;
@@ -59,11 +87,13 @@ function PageReport() {
 		}
 
 		return {
-			name: "inspection/sampling/qazvin/Report.html",
+			name: legacy
+				? "inspection/sampling/qazvin/Report.html"
+				: "inspection/sampling/qazvin/ReportV2.html",
 			output: `${instance.caseNo} Report`,
 			data,
 		};
-	}, [instance.caseNo, instance.id, instance.parameters]);
+	}, [instance.caseNo, instance.id, instance.parameters, legacy]);
 
 	const [isPending, setIsPending] = useState<boolean>(false);
 

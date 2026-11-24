@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn">
-  <!-- TODO: CustomsSampling candidate groups are not in git or this database.
-       Starter and task groups below are the sampling roles named in
-       noora-flow-main/src/modules/seeders/seeder-data.ts
-       (sampling-officer, surveyors, inspection-coordinator).
-       They are not a copy of the customs definition. Replace them when the real BPMN arrives. -->
-  <bpmn:process id="QazvinSampling" name="نمونه برداری گمرکی قزوین" isExecutable="true" camunda:candidateStarterGroups="sampling-officer,surveyors,inspection-coordinator" description="TODO: CustomsSampling candidate groups were not in git or this database. Groups are the sampling roles from seeder-data.ts, not a copy of customs.">
+  <bpmn:process id="QazvinSampling" name="????? ?????? ????? ?????" isExecutable="true" camunda:candidateStarterGroups="branch-admin,branch-manager,sampling-officer">
     <bpmn:extensionElements>
       <camunda:properties>
         <camunda:property name="displayable" value="true" />
@@ -16,7 +11,7 @@
     <bpmn:startEvent id="Start" name="شروع">
       <bpmn:outgoing>Flow_Start</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="QazvinSamplingForm" name="نمونه برداری گمرکی قزوین" camunda:candidateGroups="sampling-officer,surveyors,inspection-coordinator">
+    <bpmn:userTask id="QazvinSamplingForm" name="نمونه برداری گمرکی قزوین" camunda:assignee="$[owner]">
       <bpmn:extensionElements>
         <camunda:formData>
         <camunda:formField id="BuyerId" label="خریدار" type="string" />

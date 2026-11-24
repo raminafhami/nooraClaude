@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>گزارش بازرسی و نمونه برداری تعیین ماهیت کالا</title>
+  <style>
+    @page { size: A4 landscape; margin: 6mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    body {
+      color: #111;
+      font-family: "Noto Sans Arabic", Tahoma, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.55;
+    }
+    .sheet {
+      width: 285mm;
+      margin: 0 auto;
+      border: 1.4px solid #111;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    .head td { border-bottom: 1px solid #111; vertical-align: middle; }
+    .head .logo { width: 52mm; text-align: center; padding: 1.5mm 2mm; border-left: 1px solid #111; }
+    .head .logo img { height: 16mm; width: auto; display: block; margin: 0 auto; }
+    .head .title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0;
+      padding: 2mm;
+    }
+    .head .meta {
+      width: 78mm;
+      border-right: 1px solid #111;
+      padding: 1.5mm 2.5mm 1mm;
+      vertical-align: middle;
+    }
+    .code {
+      display: flex;
+      justify-content: space-between;
+      direction: ltr;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: "Noto Sans Arabic", Tahoma, sans-serif;
+    }
+    .when { width: 100%; margin-top: 1.5mm; font-size: 11px; }
+    .when td { border: 0; padding: 0 1mm; font-weight: 400; }
+    .when b { font-weight: 500; }
+    .fields { width: 100%; }
+    .fields td {
+      border: 0;
+      border-bottom: 1px solid #111;
+      padding: 1.1mm 2mm;
+      vertical-align: baseline;
+      font-size: 11px;
+      white-space: normal;
+    }
+    .dots {
+      border-bottom: 1px dotted #222;
+      display: inline-block;
+      min-width: 22mm;
+      padding: 0 1.2mm 0.2mm;
+      font-weight: 500;
+    }
+    .mark { font-weight: 600; }
+    .box {
+      display: inline-block;
+      width: 3.2mm;
+      height: 3.2mm;
+      border: 1px solid #111;
+      margin: 0 0.8mm;
+      vertical-align: -0.4mm;
+      position: relative;
+      background: #fff;
+    }
+    .box.on::after {
+      content: "";
+      position: absolute;
+      left: 0.55mm;
+      top: 0.15mm;
+      width: 1.1mm;
+      height: 2mm;
+      border: solid #111;
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(40deg);
+    }
+    .goods th, .goods td {
+      border: 1px solid #111;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0.6mm 0.8mm;
+      font-size: 10.5px;
+      font-weight: 500;
+    }
+    .goods th { line-height: 1.4; height: 12mm; font-weight: 500; }
+    .goods td { min-height: 7mm; height: auto; font-weight: 400; font-size: 10.5px; white-space: normal; word-break: break-word; padding: 1.2mm 1mm; }
+    .goods .c-row { width: 8mm; }
+    .goods .c-desc { width: 38mm; }
+    .goods .c-spec { width: 42mm; }
+    .goods .c-country { width: 22mm; }
+    .note { padding: 1mm 2.5mm; font-size: 11px; }
+    .note .line {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5mm;
+      margin: 0.7mm 0;
+    }
+    .fill { flex: 1; border-bottom: 1px dotted #222; min-height: 4mm; font-weight: 400; padding: 0 1.5mm; }
+    .result {
+      margin: 0 2mm 1.5mm;
+      border: 1px solid #111;
+      min-height: 16mm;
+      padding: 1mm 2mm 2mm;
+    }
+    .result .label { font-weight: 500; margin-bottom: 1mm; }
+    .result .value { font-weight: 400; min-height: 8mm; }
+    .signs td {
+      border: 1px solid #111;
+      width: 25%;
+      height: 28mm;
+      vertical-align: top;
+      padding: 1.4mm 1.8mm;
+      font-size: 10.5px;
+      line-height: 1.45;
+    }
+    .signs .name {
+      margin-top: 4mm;
+      font-weight: 500;
+    }
+    .sign-img {
+      display: block;
+      height: 16mm;
+      max-width: 42mm;
+      margin-top: 2mm;
+      object-fit: contain;
+    }
+    .copy td {
+      border: 1px solid #111;
+      text-align: center;
+      font-size: 10.5px;
+      padding: 0.8mm 1mm;
+      font-weight: 500;
+    }
+    .addr {
+      padding: 1mm 2.5mm 1.4mm;
+      font-size: 8.5px;
+      line-height: 1.45;
+    }
+    .addr .label { font-weight: 500; }
+  </style>
+</head>
+<body>
+<%
+  function text(value) {
+    if (value === undefined || value === null) return "";
+    return String(value);
+  }
+  function join(parts) {
+    return parts.map(text).map(function (s) { return s.trim(); }).filter(Boolean).join("  ");
+  }
+  const importOn = ShipmentType === "import";
+  const exportOn = ShipmentType === "export";
+  const photoDone = PhotoStatus === "done";
+  const photoSkipped = PhotoStatus === "notDone";
+  const mismatchOn = NonConformityStatus === "yes";
+  const mismatchOff = NonConformityStatus === "no";
+  function markingLabel(value) {
+    if (value === "yes") return "دارد";
+    if (value === "no") return "ندارد";
+    return text(value);
+  }
+  const placeLabels = {
+    vehicleNo: "شماره ماشین",
+    warehouse: "محل انبار",
+    containerNo: "شماره کانتینر",
+    privateWarehouse: "انبار اختصاصی",
+    launchNo: "شماره لنج",
+    launchName: "نام لنج"
+  };
+  const placeLabel = placeLabels[SamplingPlace] || "";
+  const letterText = join([CustomsLetterNo, CustomsLetterDate]);
+  const receiptText = join([WarehouseReceiptNo, WarehouseReceiptDate]);
+  function asGoodsRow(row) {
+    return {
+      description: text(row && (row.description || row.GoodsDescription)),
+      specs: text(row && (row.specs || row.PhysicalSpecs)),
+      country: text(row && row.country),
+      weight: text(row && (row.weight || row.GrossWeight)),
+      sample: text(row && (row.sample || row.SampleQuantity)),
+      seal: text(row && (row.seal || row.SealNumber)),
+      marking: markingLabel(row && (row.marking || row.Marking)),
+      packageText: join([
+        row && (row.packageCount || row.PackageCount),
+        row && (row.packageType || row.PackageType)
+      ])
+    };
+  }
+  let goods = (Array.isArray(GoodsRows) ? GoodsRows : []).map(asGoodsRow).filter(function (row) {
+    return row.description || row.specs || row.country || row.weight || row.sample || row.seal || row.marking || row.packageText;
+  });
+  if (!goods.length) {
+    goods = [asGoodsRow({
+      description: GoodsDescription,
+      specs: PhysicalSpecs,
+      weight: GrossWeight,
+      sample: SampleQuantity,
+      seal: SealNumber,
+      marking: Marking,
+      packageCount: PackageCount,
+      packageType: PackageType
+    })];
+  }
+  const blankGoods = { description: "", specs: "", country: "", weight: "", sample: "", seal: "", marking: "", packageText: "" };
+  while (goods.length < 4) goods.push(blankGoods);
+  const samplerSign = text(SamplerSignature).indexOf("data:image") === 0 ? text(SamplerSignature) : "";
+%>
+  <div class="sheet">
+    <table class="head">
+      <tr>
+        <td class="logo"><img src="data:image/png;base64,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" alt="ATIEH PAZHUHAN KEYFIAT" /></td>
+        <td class="title">گزارش بازرسی و نمونه برداری تعیین ماهیت کالا</td>
+        <td class="meta">
+          <div class="code"><span>Code : APK/PR06-FR30</span><span>REV:01</span></div>
+          <table class="when">
+            <tr>
+              <td>شماره: <b><%= text(FormNo) %></b></td>
+              <td>تاریخ: <b><%= text(FormDate) %></b></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table class="fields">
+      <tr>
+        <td style="width:34%">
+          نوع محموله:
+          <span class="box<%= importOn ? " on" : "" %>"></span>وارداتی
+          <span class="box<%= exportOn ? " on" : "" %>"></span>صادراتی
+        </td>
+        <td style="width:33%">صاحب کالا: <span class="dots"><%= text(BuyerName) %></span></td>
+        <td style="width:33%">شماره و تاریخ نامه گمرک: <span class="dots"><%= letterText %></span></td>
+      </tr>
+      <tr>
+        <td>ساعت نمونه برداری: <span class="dots"><%= text(SamplingTime) %></span></td>
+        <td>گمرک محل نمونه برداری: <span class="dots"><%= text(SamplingCustoms) %></span></td>
+        <td>
+          <% if (placeLabel) { %><%= placeLabel %>: <% } %>
+          <span class="dots"><%= text(SamplingPlaceDetail) %></span>
+        </td>
+      </tr>
+      <tr>
+        <td>شماره اظهارنامه: <span class="dots"><%= text(DeclarationNo) %></span></td>
+        <td>تاریخ اظهارنامه: <span class="dots"><%= text(DeclarationDate) %></span></td>
+        <td>شماره و تاریخ قبض انبار: <span class="dots"><%= receiptText %></span></td>
+      </tr>
+    </table>
+
+    <table class="goods">
+      <thead>
+        <tr>
+          <th class="c-row">ردیف</th>
+          <th class="c-desc">شرح کالا</th>
+          <th class="c-spec">مشخصات ظاهری و فیزیکی کالا</th>
+          <th class="c-country">کشور مبدأ /<br />کشور مقصد</th>
+          <th>وزن ناخالص</th>
+          <th>مقدار نمونه<br />برداشت شده</th>
+          <th>شماره پلمپ</th>
+          <th>نشانه گذاری<br />(دارد / ندارد)</th>
+          <th>تعداد و نوع<br />بسته بندی</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% goods.forEach(function (row, index) { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= row.description %></td>
+          <td><%= row.specs %></td>
+          <td><%= row.country %></td>
+          <td><%= row.weight %></td>
+          <td><%= row.sample %></td>
+          <td><%= row.seal %></td>
+          <td><%= row.marking %></td>
+          <td><%= row.packageText %></td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <div class="line">شماره پرسنلی بازرس: <span class="fill"><%= text(InspectorPersonnelNo) %></span></div>
+      <div class="line">
+        <span>عکس برداری</span>
+        <span class="box<%= photoDone ? " on" : "" %>"></span><span>انجام شد</span>
+        <span class="box<%= photoSkipped ? " on" : "" %>"></span><span>انجام نشد</span>
+        <span>حداقل عکس مورد نیاز: <span class="dots mid"><%= text(MinPhotos) %></span></span>
+        <span class="grow">علت عدم عکسبرداری: <span class="fill"><%= text(NoPhotoReason) %></span></span>
+      </div>
+      <div class="line">
+        <span>در تطبیق مشخصات محموله رویت شده فوق الذکر با اسناد گمرکی مربوطه عدم انطباق</span>
+        <span class="box<%= mismatchOn ? " on" : "" %>"></span><span>مشاهده شد</span>
+        <span class="box<%= mismatchOff ? " on" : "" %>"></span><span>مشاهده نشد</span>
+        <span class="grow">شرح عدم انطباق: <span class="fill"><%= text(NonConformityDescription) %></span></span>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="label">نتیجه نهایی بازرسی:</div>
+      <div class="value"><%= text(FinalResult) %></div>
+    </div>
+
+    <table class="signs">
+      <tr>
+        <td>
+          <div>صحت مندرجات فوق را با اسناد ارائه شده تایید می نمایم.</div>
+          <div class="name">نام و امضاء نماینده/صاحب کالا:</div>
+        </td>
+        <td>
+          <div>طبق اسناد پیوست، از محموله فوق بازرسی و نمونه برداری به عمل آمد و نمونه ها با پلمپ شرکت بازرسی آتیه پژوهان کیفیت پلمپ و مهرموم و مهار گردید.</div>
+          <div class="name">نام و امضاء نمونه بردار / کمک نمونه بردار:</div>
+          <% if (samplerSign) { %><img class="sign-img" src="<%= samplerSign %>" alt="" /><% } %>
+        </td>
+        <td>
+          <div>اظهار نظر ارزیاب گمرک:</div>
+          <div class="name">نام و امضاء ارزیاب گمرک:</div>
+        </td>
+        <td>
+          <div>اظهار نظر انباردار:</div>
+          <div class="name">نام و امضاء انباردار:</div>
+        </td>
+      </tr>
+    </table>
+
+    <table class="copy">
+      <tr>
+        <td>رونوشت: نسخه سفید: شرکت بازرسی</td>
+        <td>نسخه زرد: انباردار</td>
+        <td>نسخه صورتی: صاحب کالا</td>
+      </tr>
+    </table>
+
+    <div class="addr">
+      <div><span class="label">آدرس و شماره تماس:</span> دفتر مرکزی: قزوین، حدفاصل چهارراه فلسطین و تقاطع خیام شمالی، ساختمان 478، طبقه 3، واحد 5، کد پستی: 34138-73455 &nbsp; تلفن: 028-33322830 و 50</div>
+      <div>دفتر گمرک: قزوین، شهر صنعتی البرز، فلکه دوم، انتهای خیابان میرداماد شرقی، گمرک استان قزوین، واحد 13 &nbsp; تلفن: 028-32221160</div>
+    </div>
+  </div>
+</body>
+</html>

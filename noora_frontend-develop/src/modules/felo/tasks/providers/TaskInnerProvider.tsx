@@ -201,7 +201,7 @@ function TaskInnerProvider<T = any>({
 
 			if (!userNextTask) {
 				setNextStepData(othersNextTasks);
-				if (task.processKey === "QazvinSampling") {
+				if (task.processKey === "QazvinSampling" && task.instanceVersion > 1) {
 					setCartableOpen(true);
 				} else {
 					setMessage("اطلاعات با موفقیت ثبت شد.");
