@@ -213,7 +213,8 @@
   }
   const blankGoods = { description: "", specs: "", country: "", weight: "", sample: "", seal: "", marking: "", packageText: "" };
   while (goods.length < 4) goods.push(blankGoods);
-  const samplerSign = text(SamplerSignature).indexOf("data:image") === 0 ? text(SamplerSignature) : "";
+  const signature = text(locals.SamplerSignature);
+  const samplerSign = signature.startsWith("data:image") ? signature : "";
 %>
   <div class="sheet">
     <table class="head">
