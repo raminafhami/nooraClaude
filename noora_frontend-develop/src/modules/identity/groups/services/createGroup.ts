@@ -10,6 +10,7 @@ interface GroupCreateModel {
   title: string;
   metadata?: any;
   parent?: string | null;
+  permissions?: string[];
 }
 
 interface GroupCreateReturn extends UserGroup {}
@@ -20,6 +21,7 @@ interface GroupCreateApiModel {
   title: string;
   metadata: any;
   parentId: string | null;
+  permissions?: string[];
 }
 
 interface GroupCreateApiReturn extends UserGroupApi {}
@@ -34,9 +36,10 @@ export async function createGroup(
     metadata: details.metadata || {},
     parentId: details.parent || null,
   };
+  if (details.permissions?.length) data.permissions = details.permissions;
 
   const response = await apiClient.post<GroupCreateApiReturn>({
-    url: "/user-groups",
+    url: data.permissions ? "/user-groups/with-permissions" : "/user-groups",
     body: data,
   });
 

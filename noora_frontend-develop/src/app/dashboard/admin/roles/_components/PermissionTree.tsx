@@ -37,6 +37,10 @@ function triState(ids: string[], value: string[]): TriState {
 	return "indeterminate";
 }
 
+function actionLabel(permission: Permission) {
+	return permission.actions.map((action) => ACTION_LABELS[action] ?? action).join("، ");
+}
+
 export function PermissionTree({ pageGroups, value, onChange }: PermissionTreeProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
@@ -60,7 +64,9 @@ export function PermissionTree({ pageGroups, value, onChange }: PermissionTreePr
 					continue;
 				}
 				const matchingPermissions = group.permissions.filter((p) =>
-					(ACTION_LABELS[p.actions[0]] ?? p.actions[0]).toLowerCase().includes(term),
+					[actionLabel(p), p.description, p.subject].some((label) =>
+						label?.toLowerCase().includes(term),
+					),
 				);
 				if (matchingPermissions.length) {
 					subjectGroups.push({ ...group, permissions: matchingPermissions });
@@ -128,29 +134,32 @@ export function PermissionTree({ pageGroups, value, onChange }: PermissionTreePr
 
 						return (
 							<div key={page.label} className="px-3 py-2">
-								<button
-									type="button"
-									onClick={() => togglePage(page.label)}
-									className="flex w-full items-center gap-2 rounded-md py-1 text-start hover:bg-gray-50"
-								>
-									<ChevronDown
-										className={cn(
-											"size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-											pageOpen && "rotate-180",
-										)}
-									/>
+								<div className="flex items-center gap-2 rounded-md px-1 hover:bg-gray-50">
 									<Checkbox
+										aria-label={`انتخاب مجوزهای ${page.label}`}
 										checked={pageState}
-										onClick={(e) => e.stopPropagation()}
 										onCheckedChange={(checked) => setMany(pageIds, checked === true)}
 									/>
-									<span className="font-medium">{page.label}</span>
-									{selectedCount > 0 && (
-										<span className="text-xs text-muted-foreground">
-											({selectedCount} از {pageIds.length})
-										</span>
-									)}
-								</button>
+									<button
+										type="button"
+										aria-expanded={pageOpen}
+										onClick={() => togglePage(page.label)}
+										className="flex flex-1 items-center gap-2 py-1 text-start"
+									>
+										<ChevronDown
+											className={cn(
+												"size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+												pageOpen && "rotate-180",
+											)}
+										/>
+										<span className="font-medium">{page.label}</span>
+										{selectedCount > 0 && (
+											<span className="text-xs text-muted-foreground">
+												({selectedCount} از {pageIds.length})
+											</span>
+										)}
+									</button>
+								</div>
 
 								{pageOpen && (
 									<div className="relative ms-5 me-1 mt-1 space-y-1 border-s border-gray-200 ps-4">
@@ -166,39 +175,39 @@ export function PermissionTree({ pageGroups, value, onChange }: PermissionTreePr
 											return (
 												<div key={group.subject} className="relative">
 													<span className="absolute -start-4 top-4 h-px w-4 bg-gray-200" />
-													<button
-														type="button"
-														onClick={() => toggleSubject(subjectKey)}
-														className="flex w-full items-center gap-2 rounded-md py-1 text-start hover:bg-gray-50"
-													>
-														<ChevronDown
-															className={cn(
-																"size-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
-																groupOpen && "rotate-180",
-															)}
-														/>
+													<div className="flex items-center gap-2 rounded-md px-1 hover:bg-gray-50">
 														<Checkbox
+															aria-label={`انتخاب مجوزهای ${group.label}`}
 															checked={groupState}
-															onClick={(e) => e.stopPropagation()}
-															onCheckedChange={(checked) =>
-																setMany(groupIds, checked === true)
-															}
+															onCheckedChange={(checked) => setMany(groupIds, checked === true)}
 														/>
-														<span className="text-sm text-gray-700">
-															{group.label}
-														</span>
-														{groupSelectedCount > 0 && (
-															<span className="text-xs text-muted-foreground">
-																({groupSelectedCount} از {groupIds.length})
-															</span>
-														)}
-													</button>
+																<button
+																	type="button"
+																	aria-expanded={groupOpen}
+																	onClick={() => toggleSubject(subjectKey)}
+																	className="flex flex-1 items-center gap-2 py-1 text-start"
+																>
+																	<ChevronDown
+																		className={cn(
+																			"size-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
+																			groupOpen && "rotate-180",
+																		)}
+																	/>
+																	<span className="text-sm text-gray-700">{group.label}</span>
+																	{groupSelectedCount > 0 && (
+																		<span className="text-xs text-muted-foreground">
+																			({groupSelectedCount} از {groupIds.length})
+																		</span>
+																	)}
+														</button>
+													</div>
 
 													{groupOpen && (
 														<div className="relative ms-5 me-1 mt-1 flex flex-wrap gap-x-5 gap-y-1.5 border-s border-gray-200 py-1 ps-4">
 															{group.permissions.map((permission) => (
 																<label
 																	key={permission.id}
+																					title={permission.description}
 																	className="relative flex cursor-pointer items-center gap-2 text-sm"
 																>
 																	<span className="absolute -start-4 top-1/2 h-px w-4 -translate-y-1/2 bg-gray-200" />
@@ -209,8 +218,7 @@ export function PermissionTree({ pageGroups, value, onChange }: PermissionTreePr
 																		}
 																	/>
 																	<span>
-																		{ACTION_LABELS[permission.actions[0]] ??
-																			permission.actions[0]}
+																						{actionLabel(permission) || permission.description || permission.subject}
 																	</span>
 																</label>
 															))}

@@ -56,6 +56,9 @@ export class PerformanceReportBootstrap {
       subject: Subjects.PERFORMANCE_REPORT,
       actions: PermissionAction.READ,
     });
+    // Apply defaults when introducing the permission. Existing role assignments
+    // can be edited by administrators and must survive subsequent restarts.
+    const newPermission = !permission;
     if (!permission) {
       permission = await this.permissionModel.create({
         actions: [PermissionAction.READ],
@@ -81,7 +84,7 @@ export class PerformanceReportBootstrap {
           type: USER_GROUP_TYPE.ROLE,
           permissions: [permission._id],
         });
-      } else {
+      } else if (newPermission) {
         await this.userGroupModel.updateOne(
           { _id: group._id },
           { $addToSet: { permissions: permission._id } },

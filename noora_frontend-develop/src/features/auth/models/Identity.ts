@@ -9,7 +9,12 @@ type Identity = {
 	branchId: string | null;
 	groups: string[];
 	expireAt: Date;
-	canViewPerformanceReport?: boolean;
+	dashboardAccess?: {
+		viewRoles: boolean;
+		createRoles: boolean;
+		editRoles: boolean;
+		viewPerformanceReport: boolean;
+	};
 };
 
 export type { Identity };

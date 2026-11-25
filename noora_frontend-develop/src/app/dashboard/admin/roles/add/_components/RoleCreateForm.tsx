@@ -11,7 +11,6 @@ import { Select } from "@/form/select";
 import { useRoles } from "@/identity/groups/hooks/useRoles";
 import { UserGroupType } from "@/identity/groups/models/GroupType";
 import { createGroup } from "@/identity/groups/services/createGroup";
-import { setGroupPermissions } from "@/identity/groups/services/setGroupPermissions";
 import { messages } from "@/messages";
 import { Loading } from "@/ui/Loader";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
@@ -29,6 +28,7 @@ export function RoleCreateForm() {
 
 	const { groups: roles } = useRoles();
 	const [permissions, setPermissions] = useState<string[]>([]);
+	const [permissionsReady, setPermissionsReady] = useState(false);
 
 	const {
 		formState,
@@ -59,15 +59,14 @@ export function RoleCreateForm() {
 							type: UserGroupType.Role,
 							metadata: {},
 							...data,
+							permissions,
 						});
 
-						if (permissions.length) {
-							await setGroupPermissions(role.id, permissions);
-						}
-
 						router.push(getDynamicUrl(`/dashboard/admin/roles/${role.id}`));
-					} catch (err) {
-						setError("root.server", { message: "Something went wrong..." });
+					} catch (error: any) {
+						setError("root.server", {
+							message: typeof error?.message === "string" ? error.message : "ثبت نقش انجام نشد.",
+						});
 					}
 				})}
 			>
@@ -133,14 +132,16 @@ export function RoleCreateForm() {
 							<RolePermissionsField
 								value={permissions}
 								onChange={setPermissions}
+								onReady={setPermissionsReady}
 							/>
 						</div>
 					</div>
 				</div>
 
 				<div className="mt-12">
+					{errors.root?.server && <p role="alert" className="mb-3 text-sm text-red-700">{errors.root.server.message}</p>}
 					<Button
-						disabled={isSubmitting || isSubmitSuccessful}
+						disabled={!permissionsReady || isSubmitting || isSubmitSuccessful}
 						variant="primary"
 					>
 						<span>افزودن</span>

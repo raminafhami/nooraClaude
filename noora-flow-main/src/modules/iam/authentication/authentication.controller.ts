@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { RegisterDto } from './dto/register.dto';
@@ -24,12 +25,31 @@ import { ActiveUser } from './decorators/active-user.decorator';
 import { ActiveUserData } from './interfaces/active-user-data.interface';
 import { CheckPermissions } from './decorators/permissions.decorator';
 import { PermissionAction, Subjects } from './enums';
+import { CaslAbilityFactory } from './factories/casl-ability.factory';
+import { AccessTokenGuard } from './guards/access-token.guard';
 
 @Auth(AuthType.None)
 @ApiTags('authentication')
 @Controller('authentication')
 export class AuthenticationController {
-  constructor(private authService: AuthenticationService) {}
+  constructor(
+    private authService: AuthenticationService,
+    private readonly abilityFactory: CaslAbilityFactory,
+  ) {}
+
+  @ApiBearerAuth('token')
+  @UseGuards(AccessTokenGuard)
+  @Get('dashboard-access')
+  async dashboardAccess(@ActiveUser() user: ActiveUserData) {
+    const ability = await this.abilityFactory.createForUser(user);
+    const readCatalog = ability.can(PermissionAction.READ, Subjects.PERMISSION);
+    return {
+      viewRoles: ability.can(PermissionAction.READ, Subjects.USER_GROUP),
+      createRoles: readCatalog && ability.can(PermissionAction.CREATE, Subjects.USER_GROUP),
+      editRoles: readCatalog && ability.can(PermissionAction.UPDATE, Subjects.USER_GROUP),
+      viewPerformanceReport: ability.can(PermissionAction.READ, Subjects.PERFORMANCE_REPORT),
+    };
+  }
 
   @Post('register')
   async register(

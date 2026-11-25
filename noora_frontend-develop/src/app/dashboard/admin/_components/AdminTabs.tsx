@@ -132,22 +132,6 @@ export const AdminTabs: TabsData[] = [
 		color: "",
 		icon: FaUserShield,
 		value: "roles",
-		element: (
-			<div className="space-y-6">
-				<div className="flex justify-end">
-					<DynamicLink
-						className="flex rounded-lg px-3 py-1"
-						href="/dashboard/admin/roles/add"
-					>
-						<Button className="ms-1">
-							<FaPlus className="mx-1 text-2xs" />
-							افزودن نقش
-						</Button>
-					</DynamicLink>
-				</div>
-				<RolesWidget />
-			</div>
-		),
-		authorize: authorizeByGroups(["system-admin"]),
+		element: <RolesWidget />,
 	},
 ];

@@ -2,12 +2,14 @@
 
 import { FaEye, FaPencilAlt } from "react-icons/fa";
 
+import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import { DynamicLink } from "@/components/ui/dynamic-link";
 import { useRoles } from "@/identity/groups/hooks/useRoles";
 import { Loading } from "@/ui/Loader";
 import { Table } from "@/ui/Table";
 
 export function RolesTable() {
+	const { identity } = useLoggedInUser();
 	const { isLoading, error, groups: roles } = useRoles();
 
 	return (
@@ -56,6 +58,7 @@ export function RolesTable() {
 												<FaEye />
 											</DynamicLink>
 										</Table.Action>
+									{identity?.dashboardAccess?.editRoles && (
 										<Table.Action className="hover:text-yellow-500">
 											<DynamicLink
 												className="flex h-full w-6 items-center justify-center"
@@ -64,6 +67,7 @@ export function RolesTable() {
 												<FaPencilAlt />
 											</DynamicLink>
 										</Table.Action>
+									)}
 									</Table.Actions>
 								</Table.Cell>
 								<Table.Cell>{role.name}</Table.Cell>
@@ -73,9 +77,9 @@ export function RolesTable() {
 									</DynamicLink>
 								</Table.Cell>
 								<Table.Cell>
-									{role.parent
-										? roles.find((x) => x.id === role.parent)!.title
-										: "-"}
+									{(typeof role.parent === "string"
+										? roles.find((x) => x.id === role.parent)?.title
+										: role.parent?.title) ?? "-"}
 								</Table.Cell>
 								<Table.Cell></Table.Cell>
 							</Table.Row>

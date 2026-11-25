@@ -1,12 +1,10 @@
 import {
-  IsEmail,
   IsEnum,
+  IsMongoId,
   IsNotEmpty,
-  IsNumberString,
   IsOptional,
   IsString,
   Length,
-  MinLength,
 } from 'class-validator';
 import { USER_GROUP_TYPE } from '../schemas/user-group.schema';
 
@@ -24,8 +22,8 @@ export class CreateUserGroupDto {
   type: string;
 
   @IsOptional()
-  @IsString()
-  parentId?: string;
+  @IsMongoId()
+  parentId?: string | null;
 
   @IsOptional()
   metadata?: any;

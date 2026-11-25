@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
@@ -16,6 +15,7 @@ import { GetQueryDto } from 'src/shared/crud/dto/get-query.dto';
 import { UserGroupsService } from './user-groups.service';
 import { CreateUserGroupDto } from './dto/create-user-group.dto';
 import {
+  CreateUserGroupWithPermissionsDto,
   SetPermissionsDto,
   UpdateUserGroupDto,
 } from './dto/update-user-group.dto';
@@ -35,8 +35,16 @@ export class UserGroupsController {
   })
   @Post()
   async create(@Body() createUserGroupDto: CreateUserGroupDto) {
-    const userGroup = await this.userGroupsService.create(createUserGroupDto);
-    return userGroup;
+    return this.userGroupsService.createGroup(createUserGroupDto);
+  }
+
+  @CheckPermissions(
+    { action: PermissionAction.CREATE, subject: Subjects.USER_GROUP },
+    { action: PermissionAction.UPDATE, subject: Subjects.USER_GROUP },
+  )
+  @Post('with-permissions')
+  async createWithPermissions(@Body() dto: CreateUserGroupWithPermissionsDto) {
+    return this.userGroupsService.createGroup(dto);
   }
 
   @CheckPermissions({
@@ -75,7 +83,7 @@ export class UserGroupsController {
     @Param('id') id: string,
     @Body() updateUserGroupDto: UpdateUserGroupDto,
   ) {
-    const newUserGroup = await this.userGroupsService.findByIdAndUpdate(
+    const newUserGroup = await this.userGroupsService.updateGroup(
       id,
       updateUserGroupDto,
     );
@@ -109,7 +117,7 @@ export class UserGroupsController {
     @Param('id') id: string,
     @Body() setPermissionsDto: SetPermissionsDto,
   ) {
-    const newUserGroup = await this.userGroupsService.findByIdAndUpdate(
+    const newUserGroup = await this.userGroupsService.updateGroup(
       id,
       setPermissionsDto,
     );

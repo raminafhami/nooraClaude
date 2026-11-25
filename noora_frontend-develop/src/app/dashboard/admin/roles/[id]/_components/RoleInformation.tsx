@@ -1,15 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaSquare } from "react-icons/fa";
 
 import { Input } from "@/form/Input";
 import { UserGroup } from "@/identity/groups/models/Group";
-import { UserGroupType } from "@/identity/groups/models/GroupType";
 import { getGroupById } from "@/identity/groups/services/getGroupById";
-import { getGroups } from "@/identity/groups/services/getGroups";
-import { Permission } from "@/identity/permissions/models/Permission";
 import { Loading } from "@/ui/Loader";
 
 interface Props {
@@ -17,27 +13,20 @@ interface Props {
 }
 
 export function RoleInformation({ id }: Props) {
-  const router = useRouter();
-
   const [role, setRole] = useState<UserGroup>();
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const role = await getGroupById(id, "permissions");
+    let active = true;
+    setRole(undefined);
+    setError(false);
+    getGroupById(id, "permissions parent children users")
+      .then((result) => { if (active) setRole(result); })
+      .catch(() => { if (active) setError(true); });
+    return () => { active = false; };
+  }, [id]);
 
-      if (!role) {
-        router.replace("/dashboard/admin/roles");
-        return;
-      }
-
-      const children = await getGroups(UserGroupType.Role, {
-        filters: [{ name: "parentId", value: role.id }],
-      });
-
-      setRole({ ...role, children });
-    })();
-  }, []);
-
+  if (error) return <p role="alert">دریافت جزئیات نقش انجام نشد.</p>;
   if (!role) {
     return <Loading size="sm">در حال دریافت اطلاعات...</Loading>;
   }
@@ -59,7 +48,7 @@ export function RoleInformation({ id }: Props) {
         <div className="mt-2">
           <Input
             className="mt-2"
-            defaultValue={role.parent ? (role.parent as UserGroup).title : "-"}
+            defaultValue={(typeof role.parent === "object" && role.parent?.title) || "-"}
             disabled
           />
         </div>
@@ -108,7 +97,7 @@ export function RoleInformation({ id }: Props) {
                 <FaSquare className="text-[.375rem]" />
                 {typeof permission === "string"
                   ? permission
-                  : (permission as Permission).description}
+                  : permission.description || permission.subject}
               </div>
             ))) ||
             "دسترسی‌ای برای این نقش تعریف نشده."}

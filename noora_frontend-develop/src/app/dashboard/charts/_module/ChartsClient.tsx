@@ -8,6 +8,7 @@ import {
 	FaUsersViewfinder,
 } from "react-icons/fa6";
 
+import { useLoggedInUser } from "@/auth/hooks/useLoggedInUser";
 import TabsCreator, {
 	authorizeByGroups,
 	TabsData,
@@ -61,20 +62,17 @@ const tabs: TabsData[] = [
 		icon: FaChartColumn,
 		value: "performance",
 		element: <PerformanceTab />,
-		authorize: (identity) =>
-			Boolean(identity?.canViewPerformanceReport) ||
-			Boolean(identity?.groups?.includes("ceo")) ||
-			Boolean(identity?.groups?.includes("hr-manager")) ||
-			Boolean(identity?.groups?.includes("system-admin")),
 	},
 ];
 
 function ChartsClient() {
+	const { identity } = useLoggedInUser();
+	const visibleTabs = tabs.filter((tab) => tab.value !== "performance" || identity?.dashboardAccess?.viewPerformanceReport);
 	return (
 		<Layout.Root>
 			<Layout.Head title="نمودارها" />
 			<Layout.Content>
-				<TabsCreator data={tabs} />
+				<TabsCreator data={visibleTabs} />
 			</Layout.Content>
 		</Layout.Root>
 	);

@@ -86,7 +86,7 @@ UserGroupSchema.virtual('users', {
   ref: 'User',
   localField: '_id',
   foreignField: 'groups',
-  // options: { projection: 'email' }, // sample
+  options: { select: 'name lastname groups' },
 });
 
 export { UserGroupSchema };

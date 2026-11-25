@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaSquare } from "react-icons/fa";
@@ -15,7 +14,6 @@ import getUserById from "@/identity/users/services/getUserById";
 import { updateUserGroups } from "@/identity/users/services/updateUserGroups";
 import { Head } from "@/ui/Head";
 import { Loading } from "@/ui/Loader";
-import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
 
 interface Props {
 	id: string;
@@ -33,20 +31,19 @@ interface UserGroupNode {
 }
 
 export function UserRoles({ id }: Props) {
-	const router = useRouter();
-
 	const [isLoading, setLoading] = useState<boolean>(true);
+	const [loadError, setLoadError] = useState(false);
 	const [roles, setRoles] = useState<UserGroupNode[]>();
 	const [groupOptions, setGroupOptions] = useState<UserGroupNode[]>();
 
 	const form = useForm<FormData>();
 	const { formState, handleSubmit, reset, setError, setValue, watch } = form;
-	const { isDirty, isSubmitting, isSubmitSuccessful } = formState;
+	const { errors, isDirty, isSubmitting, isSubmitSuccessful } = formState;
 	const fields = watch();
 
 	const fetchMemberships = useCallback(async () => {
 		const user = await getUserById(id);
-		const memberships = user.groups as UserGroup[];
+		const memberships = (user.groups ?? []) as UserGroup[];
 		return {
 			roles: memberships.filter((item) => item.type === "role").map((item) => item.id),
 			groups: memberships.filter((item) => item.type === "group").map((item) => item.id),
@@ -56,10 +53,12 @@ export function UserRoles({ id }: Props) {
 	const fetchAllRoles = useCallback(async () => {
 		const roles = await getGroups(UserGroupType.Role);
 
-		return roles
-			.sort((a, b) => a.title.localeCompare(b.title))
-			.filter((x) => !x.parent)
-			.map((x) => buildGroupNode(x, roles));
+		roles.sort((a, b) => a.title.localeCompare(b.title, "fa"));
+		const visited = new Set<string>();
+		const roots = roles.filter((role) => !roles.some((parent) => parent.id === role.parent));
+		return [...roots, ...roles]
+			.map((role) => buildGroupNode(role, roles, visited))
+			.filter((role): role is UserGroupNode => Boolean(role));
 	}, []);
 
 	const fetchAllGroups = useCallback(async () => {
@@ -70,29 +69,28 @@ export function UserRoles({ id }: Props) {
 	}, []);
 
 	useEffect(() => {
+		let active = true;
+		setLoading(true);
+		setLoadError(false);
 		(async () => {
 			try {
-				await Promise.all([
-					await (async () => {
-						const memberships = await fetchMemberships();
-						setValue("roles", memberships.roles);
-						setValue("groups", memberships.groups);
-					})(),
-					await (async () => {
-						const roles = await fetchAllRoles();
-						setRoles(roles);
-					})(),
-					await (async () => {
-						setGroupOptions(await fetchAllGroups());
-					})(),
+				const [memberships, roles, groups] = await Promise.all([
+					fetchMemberships(), fetchAllRoles(), fetchAllGroups(),
 				]);
-			} catch (err) {
-				router.replace(getDynamicUrl("/dashboard/admin/users"));
+				if (!active) return;
+				reset(memberships);
+				setRoles(roles);
+				setGroupOptions(groups);
+			} catch {
+				if (active) setLoadError(true);
 			} finally {
-				setLoading(false);
+				if (active) setLoading(false);
 			}
 		})();
-	}, [router, fetchAllGroups, fetchAllRoles, fetchMemberships, setValue]);
+		return () => { active = false; };
+	}, [fetchAllGroups, fetchAllRoles, fetchMemberships, reset]);
+
+	if (loadError) return <p role="alert">دریافت نقش‌ها و گروه‌های کاربر انجام نشد.</p>;
 
 	if (isLoading) {
 		return <Loading size="sm">در حال دریافت اطلاعات...</Loading>;
@@ -107,22 +105,16 @@ export function UserRoles({ id }: Props) {
 			<FormProvider {...form}>
 				<form
 					className="w-1/2 min-w-[40rem] space-y-6"
-						onSubmit={handleSubmit(async (data) => {
+					onSubmit={handleSubmit(async (data) => {
 						try {
 							await updateUserGroups({
 								userId: id,
-								groupType: "role",
-								groups: data.roles,
-							});
-							await updateUserGroups({
-								userId: id,
-								groupType: "group",
-								groups: data.groups,
+								...data,
 							});
 
 							reset({ roles: data.roles, groups: data.groups });
-						} catch (err) {
-							setError("root.server", { message: "Something went wrong..." });
+						} catch {
+							setError("root.server", { message: "ذخیره نقش‌ها و گروه‌های کاربر انجام نشد." });
 						}
 					})}
 				>
@@ -130,7 +122,8 @@ export function UserRoles({ id }: Props) {
 						<Head.Title>نقش های کاربر</Head.Title>
 					</Head.Root>
 
-					{isSubmitSuccessful && (
+					{errors.root?.server && <p role="alert" className="text-sm text-red-700">{errors.root.server.message}</p>}
+					{isSubmitSuccessful && !isDirty && (
 						<Alert variant="info">
 							<AlertDescription>
 								نقش‌ها و گروه‌های کاربر با موفقیت بروزرسانی گردید.
@@ -257,11 +250,13 @@ function GroupNode({
 	);
 }
 
-function buildGroupNode(group: UserGroup, groups: UserGroup[]) {
-	const node = { id: group.id, title: group.title } as UserGroupNode;
-	node.children = groups
+function buildGroupNode(group: UserGroup, groups: UserGroup[], visited: Set<string>): UserGroupNode | undefined {
+	if (visited.has(group.id)) return;
+	visited.add(group.id);
+	const children = groups
 		.filter((x) => x.parent === group.id)
-		.map((x) => buildGroupNode(x, groups));
+		.map((x) => buildGroupNode(x, groups, visited))
+		.filter((node): node is UserGroupNode => Boolean(node));
 
-	return node;
+	return { id: group.id, title: group.title, children };
 }

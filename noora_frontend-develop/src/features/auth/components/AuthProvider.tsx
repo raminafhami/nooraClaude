@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 
+import apiClient from "@/api/client";
+
 import { AuthContext, AuthContextType } from "../context/AuthContext";
 import { AuthenticationStatus } from "../enums/AuthenticationStatus";
 import { useSession } from "../hooks/useSession";
@@ -57,6 +59,40 @@ function AuthProvider({ children }: Readonly<PropsWithChildren>) {
 			}
 		})();
 	}, [accessToken, refreshToken]);
+
+	useEffect(() => {
+		if (!accessToken) return;
+		let active = true;
+		let loading = false;
+		async function refreshAccess() {
+			if (loading || document.visibilityState === "hidden") return;
+			loading = true;
+			try {
+				const { result } = await apiClient.get<Identity["dashboardAccess"]>({
+					url: "/authentication/dashboard-access",
+				});
+				if (active) {
+					setIdentity((current) => current && { ...current, dashboardAccess: result });
+				}
+			} catch {
+				if (active) {
+					setIdentity((current) => current?.dashboardAccess
+						? { ...current, dashboardAccess: undefined }
+						: current);
+				}
+			} finally {
+				loading = false;
+			}
+		}
+		void refreshAccess();
+		const interval = window.setInterval(refreshAccess, 30_000);
+		document.addEventListener("visibilitychange", refreshAccess);
+		return () => {
+			active = false;
+			window.clearInterval(interval);
+			document.removeEventListener("visibilitychange", refreshAccess);
+		};
+	}, [accessToken]);
 
 	useEffect(() => {
 		(async () => {

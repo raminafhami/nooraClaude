@@ -9,11 +9,8 @@ import { FieldError } from "@/form/FieldError";
 import { Input } from "@/form/Input";
 import { Select } from "@/form/select";
 import { useRoles } from "@/identity/groups/hooks/useRoles";
-import { UserGroup } from "@/identity/groups/models/Group";
 import { getGroupById } from "@/identity/groups/services/getGroupById";
-import { setGroupPermissions } from "@/identity/groups/services/setGroupPermissions";
 import { updateGroup } from "@/identity/groups/services/updateGroup";
-import { Permission } from "@/identity/permissions/models/Permission";
 import { messages } from "@/messages";
 import { Loading } from "@/ui/Loader";
 import { getDynamicUrl } from "@/utils/url/getDynamicUrl";
@@ -35,6 +32,9 @@ export function RoleEditForm({ id }: Props) {
 
 	const { groups: roles } = useRoles();
 	const [permissions, setPermissions] = useState<string[]>([]);
+	const [permissionsReady, setPermissionsReady] = useState(false);
+	const [loadError, setLoadError] = useState(false);
+	const [loaded, setLoaded] = useState(false);
 
 	const {
 		formState,
@@ -52,33 +52,38 @@ export function RoleEditForm({ id }: Props) {
 	const fields = watch();
 
 	useEffect(() => {
+		let active = true;
+		setLoaded(false);
+		setLoadError(false);
+		setPermissionsReady(false);
 		(async () => {
-			const role = await getGroupById(id, "permissions");
-
-			if (!role) {
-				router.replace("/dashboard/admin/roles");
-				return;
+			try {
+				const role = await getGroupById(id);
+				if (!active) return;
+				reset({
+					title: role.title,
+					name: role.name,
+					parent: typeof role.parent === "string" ? role.parent : role.parent?.id,
+				});
+				setPermissions((role.permissions ?? []).map((permission) =>
+					typeof permission === "string" ? permission : permission.id,
+				));
+				setLoaded(true);
+			} catch {
+				if (active) setLoadError(true);
 			}
-
-			reset({
-				title: role.title,
-				name: role.name,
-				parent: role.parent && (role.parent as UserGroup).id,
-			});
-
-			setPermissions(
-				(role.permissions ?? []).map((x) =>
-					typeof x === "string" ? x : (x as Permission).id,
-				),
-			);
 		})();
-	}, []);
+		return () => { active = false; };
+	}, [id, reset]);
 
 	useEffect(() => {
 		register("parent");
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	if (loadError) return <p role="alert">دریافت اطلاعات نقش انجام نشد.</p>;
+	if (!loaded) return <Loading size="sm">در حال دریافت اطلاعات نقش...</Loading>;
 
 	return (
 		<>
@@ -87,14 +92,15 @@ export function RoleEditForm({ id }: Props) {
 					try {
 						await updateGroup(id, {
 							...data,
-							metadata: {},
+							parent: data.parent ?? null,
+							permissions,
 						});
 
-						await setGroupPermissions(id, permissions);
-
 						router.push(getDynamicUrl(`/dashboard/admin/roles/${id}`));
-					} catch (err) {
-						setError("root.server", { message: "Something went wrong..." });
+					} catch (error: any) {
+						setError("root.server", {
+							message: typeof error?.message === "string" ? error.message : "ویرایش نقش انجام نشد.",
+						});
 					}
 				})}
 			>
@@ -162,14 +168,16 @@ export function RoleEditForm({ id }: Props) {
 							<RolePermissionsField
 								value={permissions}
 								onChange={setPermissions}
+								onReady={setPermissionsReady}
 							/>
 						</div>
 					</div>
 				</div>
 
 				<div className="mt-12">
+					{errors.root?.server && <p role="alert" className="mb-3 text-sm text-red-700">{errors.root.server.message}</p>}
 					<Button
-						disabled={isSubmitting || isSubmitSuccessful}
+						disabled={!permissionsReady || isSubmitting || isSubmitSuccessful}
 						variant="primary"
 					>
 						<span>ویرایش</span>

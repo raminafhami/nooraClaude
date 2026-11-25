@@ -391,7 +391,10 @@ export function getNavItems(identity: Identity, path: string): NavItemProps[] {
 
 	return items.filter((item) => {
 		if (identity.type === UserType.System) return true;
-		if (item.url === "/dashboard/charts" && identity.canViewPerformanceReport) {
+		if (item.url === "/dashboard/admin" && identity.dashboardAccess?.viewRoles) {
+			return true;
+		}
+		if (item.url === "/dashboard/charts" && identity.dashboardAccess?.viewPerformanceReport) {
 			return true;
 		}
 		return (

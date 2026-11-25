@@ -63,7 +63,7 @@ function TabsCreator<T = any>({ data, context }: Props<T>) {
 	}
 
 	return (
-		<Tabs className="w-full" value={value} onValueChange={setValue}>
+		<Tabs className="w-full" value={visibleTabs.some((tab) => tab.value === value) ? value : visibleTabs[0].value} onValueChange={setValue}>
 			<TabsList className="w-full flex-row-reverse justify-start overflow-x-auto">
 				{visibleTabs.map((tab) => (
 					<TabsTrigger key={tab.value} value={tab.value}>
